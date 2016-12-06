@@ -1,25 +1,28 @@
 ﻿using CommNet;
 
+// purpose?
+
 namespace CommNetConstellation.CommNetLayer
 {
+    //[KSPAddon(KSPAddon.Startup.TrackingStation, false)]
     public class CNCCommNetNode : CommNetNode
     {
-        protected override void OnNetworkInitialized()
-        {
-            CNCLog.Debug("CNCCommNetNode.OnNetworkInitialized() @ {0}", this.Comm.name);
-            base.OnNetworkInitialized();
-        }
-
         public override void OnNetworkPostUpdate()
         {
-            CNCLog.Debug("CNCCommNetNode.OnNetworkPostUpdate()");
+            //CNCLog.Debug("CNCCommNetNode.OnNetworkPostUpdate() : {0}", base.comm.ToString());
             base.OnNetworkPostUpdate();
         }
 
         public override void OnNetworkPreUpdate()
         {
-            CNCLog.Debug("CNCCommNetNode.OnNetworkPostUpdate()");
+            //CNCLog.Debug("CNCCommNetNode.OnNetworkPreUpdate() : {0}", base.comm.ToString());
             base.OnNetworkPreUpdate();
+        }
+
+        protected override void OnNetworkInitialized()
+        {
+            CNCLog.Debug("CNCCommNetNode.OnNetworkInitialized() : {0}", base.comm.ToString());
+            base.OnNetworkInitialized();
         }
     }
 }

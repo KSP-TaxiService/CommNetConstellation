@@ -54,9 +54,11 @@
     <Compile Include="CNCSettings.cs" />
     <Compile Include="CommNetConstellation.cs" />
     <Compile Include="CommNetLayer\CNCCommLink.cs" />
+    <Compile Include="CommNetLayer\CNCCommNetNetwork.cs" />
+    <Compile Include="CommNetLayer\CNCCommNetNode.cs" />
     <Compile Include="CommNetLayer\CNCCommNetVessel.cs" />
     <Compile Include="CommNetLayer\CNCCommNetwork.cs" />
-    <Compile Include="CommNetLayer\CNCCommNetNode.cs" />
+    <Compile Include="CommNetLayer\CNCCommNode.cs" />
     <Compile Include="CommNetLayer\CNCCommPath.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
