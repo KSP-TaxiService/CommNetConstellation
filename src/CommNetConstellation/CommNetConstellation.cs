@@ -13,10 +13,8 @@ namespace CommNetConstellation
         public void Start()
         {
             CNCLog.Debug("CommNetConstellation.Start()");
-            if (!CommNetNetwork.Initialized)
-            {
-                CNCCommNetNetwork.upgradeToCNCCommNetNetwork();
-            }
+            //if (!CommNetNetwork.Initialized)
+                //CNCCommNetNetwork.upgradeToCNCCommNetNetwork();
         }
 
         public void OnDestroy()
@@ -24,14 +22,17 @@ namespace CommNetConstellation
             
         }
 
-        public void Awake()
-        {
-            
-        }
-
         public void Update()
         {
-            
+            return;
+            if (CommNetNetwork.Initialized)
+            {
+                if (CommNetNetwork.Instance.CommNet is CommNetwork)
+                    CNCLog.Debug("CommNetConstellation.Update() : CommNetwork type");
+
+                if (CommNetNetwork.Instance.CommNet is CNCCommNetwork)
+                    CNCLog.Debug("CommNetConstellation.Update() : CNCCommNetwork type");
+            }
         }
     }
 }

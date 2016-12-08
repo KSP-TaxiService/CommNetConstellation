@@ -60,6 +60,8 @@
     <Compile Include="CommNetLayer\CNCCommNetwork.cs" />
     <Compile Include="CommNetLayer\CNCCommNode.cs" />
     <Compile Include="CommNetLayer\CNCCommPath.cs" />
+    <Compile Include="CommNetLayer\CNCNet.cs" />
+    <Compile Include="CommNetLayer\CNCNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
