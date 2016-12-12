@@ -5,7 +5,7 @@ namespace CommNetConstellation.CommNetLayer
     public class CNCCommNetVessel : CommNetVessel
     {
         [KSPField(isPersistant = true)]
-        public short radioFrequency = CNCSettings.everyoneRadioFrequency;
+        public short radioFrequency = CNCSettings.Instance.PublicRadioFrequency;
 
         protected override void OnNetworkInitialized()
         {
