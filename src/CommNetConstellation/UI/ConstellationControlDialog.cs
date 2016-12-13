@@ -10,35 +10,40 @@ namespace CommNetConstellation.UI
 {
     public class ConstellationControlDialog : AbstractDialog
     {
-        private string briefMessage;
-
-        public ConstellationControlDialog(string title, string briefMessage) : base(title, 
+        public ConstellationControlDialog(string title) : base(title, 
                                                                                     0.7f,                        //x
-                                                                                    0.3f,                        //y
-                                                                                    (int)(Screen.width*0.4),     //width
-                                                                                    (int)(Screen.height*0.4),    //height
+                                                                                    0.5f,                        //y
+                                                                                    (int)(Screen.width*0.3),     //width
+                                                                                    (int)(Screen.height*0.5),    //height
                                                                                     false)                       //close button
         {
-            this.briefMessage = briefMessage;
+            
         }
 
         protected override List<DialogGUIBase> drawContentComponents()
         {
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
+            
+            setupConstellationList(listComponments);
+            setupSatelliteList(listComponments);
 
-            //Label for the brief message
-            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.briefMessage, false, false) }));
+            return listComponments;
+        }
 
-            //A GUILayout for each row (eg label + textfield + button)
+        private void setupConstellationList(List<DialogGUIBase> listComponments)
+        {
+            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel("<b>You can manage multiple constellations of vessels</b>", false, false) }));
+
             List<DialogGUIHorizontalLayout> eachRowGroupList = new List<DialogGUIHorizontalLayout>();
-            for (int i=0; i< 5; i++)
+            for (int i = 0; i < 5; i++)
             {
                 DialogGUITextInput nameInput = new DialogGUITextInput("Constellation nickname", false, 50, null);
-                DialogGUITextInput frequencyInput = new DialogGUITextInput(""+settings.PublicRadioFrequency, false, 4, null);
-                DialogGUIButton colorButton = new DialogGUIButton("Color", a, 50, 50, false);
+                DialogGUITextInput frequencyInput = new DialogGUITextInput("" + settings.PublicRadioFrequency, false, 5, null);
+                DialogGUIButton colorButton = new DialogGUIButton("Color", a, false);
                 DialogGUIButton updateButton = new DialogGUIButton("Update", updateClick, false);
+                DialogGUIButton deleteButton = new DialogGUIButton("Remove", deleteClick, false);
 
-                DialogGUIHorizontalLayout lineGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.UpperLeft, new DialogGUIBase[] { colorButton, nameInput, frequencyInput, updateButton });
+                DialogGUIHorizontalLayout lineGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.UpperLeft, new DialogGUIBase[] { colorButton, frequencyInput, nameInput, updateButton, deleteButton });
                 eachRowGroupList.Add(lineGroup);
             }
 
@@ -49,8 +54,30 @@ namespace CommNetConstellation.UI
                 rows[i + 1] = eachRowGroupList[i];
 
             listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 15, 0, 0), TextAnchor.UpperLeft, rows)));
+        }
 
-            return listComponments;
+        private void setupSatelliteList(List<DialogGUIBase> listComponments)
+        {
+            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel("\n<b>You can edit the constellation configuration of each eligible vessel</b>", false, false) }));
+
+            List<DialogGUIHorizontalLayout> eachRowGroupList = new List<DialogGUIHorizontalLayout>();
+            for (int i = 0; i < 5; i++)
+            {
+                DialogGUIButton vesselButton = new DialogGUIButton("VesselName", vesselFocusClick, false);
+                DialogGUILabel locationLabel = new DialogGUILabel("@ PLANET", false, false);
+                DialogGUIButton setupButton = new DialogGUIButton("Setup", vesselSetupClick, false);
+
+                DialogGUIHorizontalLayout lineGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.UpperLeft, new DialogGUIBase[] { vesselButton, locationLabel, setupButton });
+                eachRowGroupList.Add(lineGroup);
+            }
+
+            //Prepare a list container for the GUILayout rows
+            DialogGUIBase[] rows = new DialogGUIBase[eachRowGroupList.Count + 1];
+            rows[0] = new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true);
+            for (int i = 0; i < eachRowGroupList.Count; i++)
+                rows[i + 1] = eachRowGroupList[i];
+
+            listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 15, 0, 0), TextAnchor.UpperLeft, rows)));
         }
 
         private void a()
@@ -66,6 +93,21 @@ namespace CommNetConstellation.UI
         private void updateClick()
         {
             CNCLog.Verbose("Update button is clicked but which row?");
+        }
+
+        private void deleteClick()
+        {
+
+        }
+
+        private void vesselSetupClick()
+        {
+
+        }
+
+        private void vesselFocusClick()
+        {
+
         }
 
         private void colorSelected(bool arg1)

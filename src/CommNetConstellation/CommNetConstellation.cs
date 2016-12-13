@@ -6,8 +6,10 @@ using KSP.UI.Screens;
 
 namespace CommNetConstellation
 {
-    // Called when you are in the flight scene
     [KSPAddon(KSPAddon.Startup.TrackingStation, false)]
+    public class CommNetConstellationDuplicate : CommNetConstellation { } //no futher action
+
+    [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class CommNetConstellation : MonoBehaviour
     {
         private ApplicationLauncherButton launcherButton = null;
@@ -18,7 +20,7 @@ namespace CommNetConstellation
         {
             CNCLog.Debug("CommNetConstellation.Start()");
 
-            this.controlDialog = new ConstellationControlDialog("CommNet Constellation", "Control panel for managing multiple constellations of satellites");
+            this.controlDialog = new ConstellationControlDialog("CommNet Constellation - <color=#00ff00>Control Panel</color>");
             this.launcherBtnTexture = CNCUtils.loadImage("cnclauncherbutton");
 
             this.launcherButton = ApplicationLauncher.Instance.AddModApplication(
