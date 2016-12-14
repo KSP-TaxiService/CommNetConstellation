@@ -27,9 +27,6 @@ namespace CommNetConstellation
                 controlDialog.launch, controlDialog.dismiss, null, null, null, null,
                 ApplicationLauncher.AppScenes.TRACKSTATION,
                 launcherBtnTexture);
-
-            //if (!CommNetNetwork.Initialized)
-            //CNCCommNetNetwork.upgradeToCNCCommNetNetwork();
         }
 
         public void OnDestroy()

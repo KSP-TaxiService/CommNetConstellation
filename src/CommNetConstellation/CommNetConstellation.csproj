@@ -57,6 +57,8 @@
     <Compile Include="CommNetLayer\CNCCommLink.cs" />
     <Compile Include="CommNetLayer\CNCCommNetNetwork.cs" />
     <Compile Include="CommNetLayer\CNCCommNetNode.cs" />
+    <Compile Include="CommNetLayer\CNCCommNetScenario.cs" />
+    <Compile Include="CommNetLayer\CNCCommNetUI.cs" />
     <Compile Include="CommNetLayer\CNCCommNetVessel.cs" />
     <Compile Include="CommNetLayer\CNCCommNetwork.cs" />
     <Compile Include="CommNetLayer\CNCCommNode.cs" />
