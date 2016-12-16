@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 
 using UnityEngine;
+using CommNetConstellation.CommNetLayer;
 
 namespace CommNetConstellation
 {
@@ -23,6 +24,28 @@ namespace CommNetConstellation
                 CNCLog.Error("Cannot find the texture '{0}': {1}", fileName, str);
                 return Texture2D.blackTexture;
             }
+        }
+
+        public static List<CNCCommNetVessel> getCommNetVessels()
+        {
+            return getCommNetVessels(CNCSettings.Instance.PublicRadioFrequency);
+        }
+
+        public static List<CNCCommNetVessel> getCommNetVessels(int radioFrequency)
+        {
+            List<Vessel> vessels = FlightGlobals.Vessels;
+            List<CNCCommNetVessel> commnetVessels = new List<CNCCommNetVessel>();
+
+            for (int i=0; i<vessels.Count; i++)
+            {
+                Vessel thisVessel = vessels.ElementAt(i);
+                if(thisVessel.Connection != null)
+                {
+                    commnetVessels.Add((CNCCommNetVessel)thisVessel.Connection);
+                }
+            }
+
+            return commnetVessels;
         }
     }
 }

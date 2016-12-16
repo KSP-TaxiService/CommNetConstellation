@@ -2,7 +2,7 @@
 
 namespace CommNetConstellation.CommNetLayer
 {
-    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.FLIGHT, GameScenes.TRACKSTATION, GameScenes.SPACECENTER, GameScenes.EDITOR)]
+    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.FLIGHT, GameScenes.TRACKSTATION, GameScenes.SPACECENTER)]
     public class CNCCommNetScenario : CommNetScenario
     {
         //these variables from the base are private so clone your own variables

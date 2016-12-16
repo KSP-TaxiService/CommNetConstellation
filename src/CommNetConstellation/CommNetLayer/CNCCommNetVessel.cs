@@ -1,5 +1,7 @@
 ﻿using CommNet;
 using CommNetConstellation.UI;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -41,6 +43,26 @@ namespace CommNetConstellation.CommNetLayer
         {
             //CNCLog.Debug("CNCCommNetVessel.UpdateComm()");
             base.UpdateComm();
+        }
+
+        public short getRadioFrequency()
+        {
+            List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
+
+            for (int i = 0; i < parts.Count; i++)
+            {
+                ProtoPartSnapshot thisPart = parts.ElementAt(i);
+                ProtoPartModuleSnapshot thisModule = thisPart.FindModule("CNConstellationModule");
+
+                if (thisModule == null)
+                    continue;
+
+                short radioFreq = short.Parse(thisModule.moduleValues.GetValue("radioFrequency"));
+                return radioFreq;
+            }
+
+            CNCLog.Error("CommNetVessel '{0}' has no radio frequency!", this.Vessel.GetName());
+            return CNCSettings.Instance.PublicRadioFrequency;
         }
     }
 }
