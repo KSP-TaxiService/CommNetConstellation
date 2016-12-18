@@ -20,11 +20,15 @@ namespace CommNetConstellation.CommNetLayer
 
     public class CNCCommNetVessel : CommNetVessel
     {
+        protected short radioFrequency;
+
         protected override void OnNetworkInitialized()
         {
             CNCLog.Debug("CNCCommNetVessel.OnNetworkInitialized() @ {0}", this.Vessel.GetName());
             //base.comm = new CNCCommNode(base.comm);
             base.OnNetworkInitialized();
+
+            this.radioFrequency = getRadioFrequency(true);
         }
 
         public override void OnNetworkPostUpdate()
@@ -45,24 +49,65 @@ namespace CommNetConstellation.CommNetLayer
             base.UpdateComm();
         }
 
-        public short getRadioFrequency()
+        public void updateRadioFrequency(short newFrequency)
         {
+            if(newFrequency < 0 || newFrequency > short.MaxValue)
+            {
+                CNCLog.Error("The new frequency {0} is out of the range [0,{1}]!", newFrequency, short.MaxValue);
+                return;
+            }
+
+            bool success = false;
             List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
 
             for (int i = 0; i < parts.Count; i++)
             {
-                ProtoPartSnapshot thisPart = parts.ElementAt(i);
-                ProtoPartModuleSnapshot thisModule = thisPart.FindModule("CNConstellationModule");
+                ProtoPartModuleSnapshot thisModule = parts.ElementAt(i).FindModule("CNConstellationModule");
 
                 if (thisModule == null)
                     continue;
 
-                short radioFreq = short.Parse(thisModule.moduleValues.GetValue("radioFrequency"));
-                return radioFreq;
+                success = thisModule.moduleValues.SetValue("radioFrequency", newFrequency);
+                break;
             }
 
-            CNCLog.Error("CommNetVessel '{0}' has no radio frequency!", this.Vessel.GetName());
-            return CNCSettings.Instance.PublicRadioFrequency;
+            if (success)
+            {
+                this.radioFrequency = newFrequency;
+                CNCLog.Verbose("Update CommNet vessel '{0}''s frequency to {1}", this.Vessel.GetName(), newFrequency);
+            }
+            else
+            {
+                CNCLog.Error("Unable to update CommNet vessel '{0}''s frequency to {1}!", this.Vessel.GetName(), newFrequency);
+            }
+        }
+
+        public short getRadioFrequency(bool forceRetrievalFromModule = false)
+        {
+            if (forceRetrievalFromModule)
+            {
+                bool success = false;
+                List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
+
+                for (int i = 0; i < parts.Count && !success; i++)
+                {
+                    ProtoPartModuleSnapshot thisModule = parts.ElementAt(i).FindModule("CNConstellationModule");
+
+                    if (thisModule != null)
+                    {
+                        this.radioFrequency = short.Parse(thisModule.moduleValues.GetValue("radioFrequency"));
+                        success = true;
+                    }
+                }
+
+                if(!success) // fallback
+                {
+                    CNCLog.Error("CommNet vessel '{0}' does not have the frequency module-value! Reset to freq {1}", this.Vessel.GetName(), this.radioFrequency);
+                    this.radioFrequency = CNCSettings.Instance.PublicRadioFrequency;
+                }
+            }
+
+            return this.radioFrequency;
         }
     }
 }

@@ -22,22 +22,25 @@ namespace CommNetConstellation.CommNetLayer
         protected override void UpdateDisplay()
         {
             base.UpdateDisplay();
+            coloriseEachConstellation(CNCSettings.Instance.PublicRadioFrequency);
+        }
 
-            List<CNCCommNetVessel> commnetVessels = CNCUtils.getCommNetVessels(CNCSettings.Instance.PublicRadioFrequency);
+        private void coloriseEachConstellation(int radioFrequency)
+        {
+            List<CNCCommNetVessel> commnetVessels = CNCUtils.getCommNetVessels(radioFrequency);
 
-            for(int i=0; i<commnetVessels.Count; i++)
+            for (int i = 0; i < commnetVessels.Count; i++)
             {
                 MapObject mapObj = commnetVessels.ElementAt(i).Vessel.mapObject;
-                
-                if(mapObj.type == MapObject.ObjectType.Vessel)
+
+                if (mapObj.type == MapObject.ObjectType.Vessel)
                 {
                     Image thisImageIcon = mapObj.uiNode.GetComponentInChildren<Image>();
                     thisImageIcon.color = new Color(0.43f, 0.81f, 0.96f, 1f);
-                    CNCLog.Debug("Vessel '{0}' has radio frequency {1}", commnetVessels.ElementAt(i).Vessel.GetName(), commnetVessels.ElementAt(i).getRadioFrequency());
                 }
-            }      
+            }
+
+            //TODO: color links
         }
-
-
     }
 }

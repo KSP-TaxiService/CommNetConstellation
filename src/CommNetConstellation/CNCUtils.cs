@@ -28,10 +28,10 @@ namespace CommNetConstellation
 
         public static List<CNCCommNetVessel> getCommNetVessels()
         {
-            return getCommNetVessels(CNCSettings.Instance.PublicRadioFrequency);
+            return getCommNetVessels(CNCSettings.Instance.PublicRadioFrequency); // don't hardcode (int radioFrequency = 0)
         }
 
-        public static List<CNCCommNetVessel> getCommNetVessels(int radioFrequency)
+        public static List<CNCCommNetVessel> getCommNetVessels(int targetRadioFrequency)
         {
             List<Vessel> vessels = FlightGlobals.Vessels;
             List<CNCCommNetVessel> commnetVessels = new List<CNCCommNetVessel>();
@@ -41,7 +41,9 @@ namespace CommNetConstellation
                 Vessel thisVessel = vessels.ElementAt(i);
                 if(thisVessel.Connection != null)
                 {
-                    commnetVessels.Add((CNCCommNetVessel)thisVessel.Connection);
+                    CNCCommNetVessel cncVessel = (CNCCommNetVessel)thisVessel.Connection;
+                    if(cncVessel.getRadioFrequency() == targetRadioFrequency)
+                        commnetVessels.Add(cncVessel);
                 }
             }
 
