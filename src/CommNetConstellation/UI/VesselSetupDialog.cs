@@ -54,7 +54,7 @@ namespace CommNetConstellation.UI
             listComponments.Add(lineGroup2);
 
             DialogGUILabel messageLabel = new DialogGUILabel("Message: <color=#dc3e44>U FAIL</color>", true, false);
-            listComponments.Add(new DialogGUIScrollList(Vector2.one, false, false, new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 5, 2, 2), TextAnchor.UpperLeft, new DialogGUIBase[] { messageLabel })));
+            listComponments.Add(new DialogGUIScrollList(Vector2.one, false, false, new DialogGUIVerticalLayout(false, false, 4, new RectOffset(5, 5, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[] { messageLabel })));
 
             return listComponments;
         }
