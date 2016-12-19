@@ -6,25 +6,19 @@ namespace CommNetConstellation.CommNetLayer
     {
         public CNCCommNetwork() : base()
         {
-            CNCLog.Debug("CNCCommNetwork.CNCCommNetwork()");
+            CNCLog.Debug("CNCCommNetwork()");
         }
 
-        public override bool FindClosestControlSource(CommNode from, CommPath path = null)
+        public override CommNode Add(CommNode conn)
         {
-            CNCLog.Debug("CNCCommNetwork.FindClosestControlSource() : {0}",from.name);
-            return base.FindClosestControlSource(from, path);
+            CNCLog.Debug("CNCCommNetwork.Add() : {0}", conn.name);
+            return base.Add(conn);
         }
 
-        public override bool FindHome(CommNode from, CommPath path = null)
+        public override bool Remove(CommNode conn)
         {
-            CNCLog.Debug("CNCCommNetwork.FindHome() : {0}", from.name);
-            return base.FindHome(from, path);
-        }
-
-        protected override bool TryConnect(CommNode a, CommNode b, double distance, bool aCanRelay, bool bCanRelay, bool bothRelay)
-        {
-            CNCLog.Debug("CNCCommNetwork.TryConnect() : {0} {1}", a.name, b.name);
-            return base.TryConnect(a, b, distance, aCanRelay, bCanRelay, bothRelay);
+            CNCLog.Debug("CNCCommNetwork.Remove() : {0}", conn.name);
+            return base.Remove(conn);
         }
     }
 }

@@ -36,10 +36,5 @@ namespace CommNetConstellation
                 ApplicationLauncher.Instance.RemoveModApplication(launcherButton);
             }
         }
-
-        public void Update()
-        {
-
-        }
     }
 }
