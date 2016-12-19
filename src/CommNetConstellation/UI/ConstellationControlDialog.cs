@@ -11,11 +11,11 @@ namespace CommNetConstellation.UI
     public class ConstellationControlDialog : AbstractDialog
     {
         public ConstellationControlDialog(string title) : base(title, 
-                                                                                    0.7f,                        //x
-                                                                                    0.5f,                        //y
-                                                                                    (int)(Screen.width*0.3),     //width
-                                                                                    (int)(Screen.height*0.5),    //height
-                                                                                    false)                       //close button
+                                                            0.7f,                           //x
+                                                            0.5f,                           //y
+                                                            (int)(Screen.width*0.3),        //width
+                                                            (int)(Screen.height*0.5),       //height
+                                                            new string[] { "showversion" }) //arguments
         {
             
         }
@@ -85,7 +85,7 @@ namespace CommNetConstellation.UI
             CNCLog.Verbose("Color button is clicked but which row?");
         }
 
-        protected override bool runIntenseInfo()
+        protected override bool runIntenseInfo(System.Object[] args)
         {
             return true;
         }

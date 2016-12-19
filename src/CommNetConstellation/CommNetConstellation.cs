@@ -24,7 +24,7 @@ namespace CommNetConstellation
             this.launcherBtnTexture = CNCUtils.loadImage("cnclauncherbutton");
 
             this.launcherButton = ApplicationLauncher.Instance.AddModApplication(
-                controlDialog.launch, controlDialog.dismiss, null, null, null, null,
+                delegate { controlDialog.launch(new Object[] { }); }, controlDialog.dismiss, null, null, null, null,
                 ApplicationLauncher.AppScenes.TRACKSTATION,
                 launcherBtnTexture);
         }
@@ -39,15 +39,7 @@ namespace CommNetConstellation
 
         public void Update()
         {
-            return;
-            if (CommNetNetwork.Initialized)
-            {
-                if (CommNetNetwork.Instance.CommNet is CommNetwork)
-                    CNCLog.Debug("CommNetConstellation.Update() : CommNetwork type");
 
-                if (CommNetNetwork.Instance.CommNet is CNCCommNetwork)
-                    CNCLog.Debug("CommNetConstellation.Update() : CNCCommNetwork type");
-            }
         }
     }
 }

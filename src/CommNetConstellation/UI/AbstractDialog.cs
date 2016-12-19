@@ -16,43 +16,41 @@ namespace CommNetConstellation.UI
 {
     public abstract class AbstractDialog
     {
-        protected bool isDisplayed;
+        protected bool isDisplayed = false;
         protected string dialogTitle;
         protected int windowWidth;
         protected int windowHeight;
         protected float normalizedCenterX; //0.0f to 1.0f
         protected float normalizedCenterY; //0.0f to 1.0f
-        protected bool showCloseButton;
+        protected bool showCloseButton = false;
+        protected bool showVersion = false;
 
         protected Settings settings;
 
-        protected PopupDialog popupDialog;
+        protected PopupDialog popupDialog = null;
 
-        public AbstractDialog(string dialogTitle, float normalizedCenterX, float normalizedCenterY, int windowWidth, int windowHeight, bool showCloseButton)
+        public AbstractDialog(string dialogTitle, float normalizedCenterX, float normalizedCenterY, int windowWidth, int windowHeight, string[] extraArgs)
         {
-            this.isDisplayed = false;
-            this.popupDialog = null;
-
             this.dialogTitle = dialogTitle;
             this.windowWidth = windowWidth;
             this.windowHeight = windowHeight;
             this.normalizedCenterX = normalizedCenterX;
             this.normalizedCenterY = normalizedCenterY;
-            this.showCloseButton = showCloseButton;
 
+            processArguments(extraArgs);
             this.settings = CNCSettings.Instance;
         }
 
-        protected abstract bool runIntenseInfo();
+        protected abstract bool runIntenseInfo(System.Object[] args);
         protected abstract List<DialogGUIBase> drawContentComponents();
 
-        public void launch()
+        public void launch(System.Object[] args)
         {
             if (this.isDisplayed)
                 return;
 
             this.isDisplayed = true;
-            if (runIntenseInfo())
+            if (runIntenseInfo(args))
                 popupDialog = spawnDialog();
         }
 
@@ -65,17 +63,31 @@ namespace CommNetConstellation.UI
             }
         }
 
+        protected virtual void processArguments(string[] args)
+        {
+            for(int i=0; i<args.Length; i++)
+            {
+                string arg = args[i];
+                if (arg.Equals("showclosebutton"))
+                    this.showCloseButton = true;
+                else if (arg.Equals("showversion"))
+                    this.showVersion = true;
+                else
+                    CNCLog.Error("AbstractDialog argument '{0}' is unknown",arg);
+            }
+        }
+
         private PopupDialog spawnDialog()
         {
             /* This dialog looks like below
              * -----------------------
              * |        TITLE        |
-             * |----------------------
+             * |---------------------|
              * |                     |
-             * |      CONTENT        |
+             * |       CONTENT       |
              * |                     |
-             * |----------------------
-             * |      [CLOSE]     XX |
+             * |---------------------|
+             * |       [CLOSE]   [XX]|
              * ----------------------- 
              */
 
@@ -88,22 +100,25 @@ namespace CommNetConstellation.UI
 
             //close button and some info
             //entireComponentList.Add(new DialogGUISpace(4));
-            entireComponentList.Add(new DialogGUIHorizontalLayout(
-                                        (showCloseButton)?
-                                        new DialogGUIBase[]
-                                        {
+            if (showVersion || showCloseButton)
+            {
+                entireComponentList.Add(new DialogGUIHorizontalLayout(
+                                            (showCloseButton) ?
+                                            new DialogGUIBase[]
+                                            {
                                             new DialogGUIFlexibleSpace(),
                                             new DialogGUIButton("Close", dismiss),
                                             new DialogGUIFlexibleSpace(),
-                                            new DialogGUILabel(string.Format("v{0}.{1}", settings.MajorVersion, settings.MinorVersion), false, false)
-                                        }
-                                        :
-                                        new DialogGUIBase[]
-                                        {
+                                            new DialogGUILabel((!showVersion)?"":string.Format("v{0}.{1}", settings.MajorVersion, settings.MinorVersion), false, false)
+                                            }
+                                            :
+                                            new DialogGUIBase[]
+                                            {
                                             new DialogGUIFlexibleSpace(),
-                                            new DialogGUILabel(string.Format("v{0}.{1}", settings.MajorVersion, settings.MinorVersion), false, false)
-                                        }
-                                    ));
+                                            new DialogGUILabel((!showVersion)?"":string.Format("v{0}.{1}", settings.MajorVersion, settings.MinorVersion), false, false)
+                                            }
+                                        ));
+            }
 
             //Spawn the dialog
             MultiOptionDialog moDialog = new MultiOptionDialog("",

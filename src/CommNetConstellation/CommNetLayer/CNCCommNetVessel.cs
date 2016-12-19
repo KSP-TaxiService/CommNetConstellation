@@ -2,6 +2,7 @@
 using CommNetConstellation.UI;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -14,7 +15,7 @@ namespace CommNetConstellation.CommNetLayer
         [KSPEvent(guiActive = true, guiActiveEditor =true, guiActiveUnfocused = false, guiName = "CommNet Constellation", active = true)]
         public void KSPEventConstellationSetup()
         {
-            new VesselSetupDialog("CommNet Constellation - <color=#00ff00>Setup</color>", this.vessel, this).launch();
+            new VesselSetupDialog("CommNet Constellation - <color=#00ff00>Setup</color>", this.vessel, this).launch(new Object[] { this.vessel });
         }
     }
 
@@ -51,24 +52,33 @@ namespace CommNetConstellation.CommNetLayer
 
         public void updateRadioFrequency(short newFrequency)
         {
-            if(newFrequency < 0 || newFrequency > short.MaxValue)
+            if (newFrequency < 0 || newFrequency > short.MaxValue)
             {
                 CNCLog.Error("The new frequency {0} is out of the range [0,{1}]!", newFrequency, short.MaxValue);
                 return;
             }
 
             bool success = false;
-            List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
-
-            for (int i = 0; i < parts.Count; i++)
+            if (this.Vessel.loaded)
             {
-                ProtoPartModuleSnapshot thisModule = parts.ElementAt(i).FindModule("CNConstellationModule");
+                CNConstellationModule thisModule = this.Vessel.FindPartModuleImplementing<CNConstellationModule>();
+                thisModule.radioFrequency = newFrequency;
+                success = true;
+            }
+            else
+            {
+                List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
 
-                if (thisModule == null)
-                    continue;
+                for (int i = 0; i < parts.Count; i++)
+                {
+                    ProtoPartModuleSnapshot thisModule = parts.ElementAt(i).FindModule("CNConstellationModule");
 
-                success = thisModule.moduleValues.SetValue("radioFrequency", newFrequency);
-                break;
+                    if (thisModule == null)
+                        continue;
+
+                    success = thisModule.moduleValues.SetValue("radioFrequency", newFrequency);
+                    break;
+                }
             }
 
             if (success)
@@ -86,24 +96,33 @@ namespace CommNetConstellation.CommNetLayer
         {
             if (forceRetrievalFromModule)
             {
-                bool success = false;
-                List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
-
-                for (int i = 0; i < parts.Count && !success; i++)
+                if (this.Vessel.loaded)
                 {
-                    ProtoPartModuleSnapshot thisModule = parts.ElementAt(i).FindModule("CNConstellationModule");
-
-                    if (thisModule != null)
-                    {
-                        this.radioFrequency = short.Parse(thisModule.moduleValues.GetValue("radioFrequency"));
-                        success = true;
-                    }
+                    CNConstellationModule thisModule = this.Vessel.FindPartModuleImplementing<CNConstellationModule>();
+                    this.radioFrequency = thisModule.radioFrequency;
                 }
-
-                if(!success) // fallback
+                else
                 {
-                    CNCLog.Error("CommNet vessel '{0}' does not have the frequency module-value! Reset to freq {1}", this.Vessel.GetName(), this.radioFrequency);
-                    this.radioFrequency = CNCSettings.Instance.PublicRadioFrequency;
+                    bool success = false;
+                    List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
+
+                    for (int i = 0; i < parts.Count && !success; i++)
+                    {
+                        ProtoPartModuleSnapshot thisModule = parts.ElementAt(i).FindModule("CNConstellationModule");
+
+                        if (thisModule != null)
+                        {
+                            this.radioFrequency = short.Parse(thisModule.moduleValues.GetValue("radioFrequency"));
+                            success = true;
+                        }
+                    }
+
+
+                    if (!success) // fallback
+                    {
+                        CNCLog.Error("CommNet vessel '{0}' does not have the frequency module-value! Reset to freq {1}", this.Vessel.GetName(), this.radioFrequency);
+                        this.radioFrequency = CNCSettings.Instance.PublicRadioFrequency;
+                    }
                 }
             }
 

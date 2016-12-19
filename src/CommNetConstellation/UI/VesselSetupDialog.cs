@@ -16,11 +16,11 @@ namespace CommNetConstellation.UI
         private CNConstellationModule hostModule;
 
         public VesselSetupDialog(string title, Vessel thisVessel, CNConstellationModule thisModule) : base(title, 
-                                                                                                            0.7f,                        //x
-                                                                                                            0.5f,                        //y
-                                                                                                            250,     //width
-                                                                                                            170,    //height
-                                                                                                            true)                       //close button
+                                                                                                            0.7f,                               //x
+                                                                                                            0.5f,                               //y
+                                                                                                            250,                                //width
+                                                                                                            170,                                //height
+                                                                                                            new string[] { "showclosebutton" }) //arguments
         {
             this.hostVessel = thisVessel; // could be null (in editor)
             this.hostModule = thisModule;
@@ -59,7 +59,7 @@ namespace CommNetConstellation.UI
             return listComponments;
         }
 
-        protected override bool runIntenseInfo()
+        protected override bool runIntenseInfo(System.Object[] args)
         {
             return true;
         }
