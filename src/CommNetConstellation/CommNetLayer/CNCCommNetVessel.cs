@@ -25,29 +25,47 @@ namespace CommNetConstellation.CommNetLayer
 
         protected override void OnNetworkInitialized()
         {
-            CNCLog.Debug("CNCCommNetVessel.OnNetworkInitialized() @ {0}", this.Vessel.GetName());
-            //base.comm = new CNCCommNode(base.comm);
-            base.OnNetworkInitialized();
+            if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
+                return;
 
+            CNCLog.Debug("CNCCommNetVessel.OnNetworkInitialized() @ {0}", this.Vessel.GetName());
+
+            base.OnNetworkInitialized();
+            CNCCommNetNetwork.Add(this.comm);
             this.radioFrequency = getRadioFrequency(true);
         }
 
         public override void OnNetworkPostUpdate()
         {
+            if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
+                return;
+
             //CNCLog.Debug("CNCCommNetVessel.OnNetworkPostUpdate()");
             base.OnNetworkPostUpdate();
         }
 
         public override void OnNetworkPreUpdate()
         {
+            if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
+                return;
+
             //CNCLog.Debug("CNCCommNetVessel.OnNetworkPreUpdate()");
             base.OnNetworkPreUpdate();
         }
 
         protected override void UpdateComm()
         {
+            if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
+                return;
+
             //CNCLog.Debug("CNCCommNetVessel.UpdateComm()");
             base.UpdateComm();
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            CommNetNetwork.Remove(this.comm);
         }
 
         public void updateRadioFrequency(short newFrequency)

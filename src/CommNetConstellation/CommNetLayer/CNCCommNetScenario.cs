@@ -2,37 +2,34 @@
 
 namespace CommNetConstellation.CommNetLayer
 {
-    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.FLIGHT, GameScenes.TRACKSTATION, GameScenes.SPACECENTER)]
+    [KSPScenario(ScenarioCreationOptions.AddToAllGames, new GameScenes[] {GameScenes.FLIGHT, GameScenes.TRACKSTATION})]
     public class CNCCommNetScenario : CommNetScenario
     {
-        //these variables from the base are private so clone your own variables
-        private CNCCommNetNetwork network;
-        private CNCCommNetUI ui;
+        private CNCCommNetUI customUI = null;
+        private CNCCommNetNetwork customNetworkService = null;
 
         protected override void Start()
         {
-            CNCLog.Debug("CNCCommNetScenario.Start()");
-            this.ui = base.gameObject.AddComponent<CNCCommNetUI>();
-            this.network = base.gameObject.AddComponent<CNCCommNetNetwork>();
+            CommNetUI ui = FindObjectOfType<CommNetUI>();
+            customUI = ui.gameObject.AddComponent<CNCCommNetUI>();
+            UnityEngine.Object.Destroy(ui);
+
+            CommNetNetwork networkService = FindObjectOfType<CommNetNetwork>();
+            customNetworkService = networkService.gameObject.AddComponent<CNCCommNetNetwork>();
+            //networkService = customNetworkService; // substitute CNCCommNetNetwork for CommNetNetwork; do not destroy CommNetNetwork because the other classes invoke CommNetNetwork.Add/Remove(...) //TODO what is effect?
+            UnityEngine.Object.Destroy(networkService);
         }
 
-        public override void OnAwake()
-        {
-            CNCLog.Debug("CNCCommNetScenario.OnAwake()");
-        }
+        //override to turn off CommNetScenario's instance check
+        public override void OnAwake() { }
 
         private void OnDestroy()
         {
-            CNCLog.Debug("CNCCommNetScenario.OnDestroy()");
-            if (this.network != null)
-            {
-                UnityEngine.Object.Destroy(this.network);
-            }
+            if (this.customNetworkService != null)
+                UnityEngine.Object.Destroy(this.customNetworkService);
 
-            if (this.ui != null)
-            {
-                UnityEngine.Object.Destroy(this.ui);
-            }
+            if (this.customUI != null)
+                UnityEngine.Object.Destroy(this.customUI);
         }
     }
 }

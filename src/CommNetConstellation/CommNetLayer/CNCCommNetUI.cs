@@ -24,6 +24,7 @@ namespace CommNetConstellation.CommNetLayer
             base.UpdateDisplay();
             coloriseEachConstellation(CNCSettings.Instance.PublicRadioFrequency, new Color(0.65f, 0.65f, 0.65f, 1f));
             coloriseEachConstellation(1, new Color(0.43f, 0.81f, 0.96f, 1f));
+            coloriseEachConstellation(2, new Color(0.95f, 0.43f, 0.49f, 1f));
         }
 
         private void coloriseEachConstellation(int radioFrequency, Color newColor)

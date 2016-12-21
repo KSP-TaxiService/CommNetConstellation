@@ -13,7 +13,7 @@ GAME
 	flag = Squad/Flags/default
 	launchID = 11
 	modded = True
-	envInfo =  - Environment Info - Win32NT 7FFFFFFFFFFFFFFF  Args: KSP_x64.exe  - 
+	envInfo =  - Environment Info - Win32NT 7FFFFFFFFFFFFFFF  Args: KSP_x64_Dbg.exe  - 
 	versionFull = 1.2.2.1622 (WindowsPlayer x64)
 	versionCreated = 1.2.1.1604 (WindowsPlayer x64)
 	PARAMETERS
@@ -454,12 +454,12 @@ GAME
 	SCENARIO
 	{
 		name = CNCCommNetScenario
-		scene = 7, 8, 5
+		scene = 7, 8
 	}
 	FLIGHTSTATE
 	{
 		version = 1.2.2
-		UT = 1463395.2298595349
+		UT = 1463679.6298597998
 		activeVessel = 0
 		mapViewFiltering = -1026
 		commNetUIModeTracking = Network
@@ -3849,7 +3849,7 @@ GAME
 				{
 					name = CNConstellationModule
 					isEnabled = True
-					radioFrequency = 0
+					radioFrequency = 2
 					stagingEnabled = True
 					EVENTS
 					{
@@ -4813,7 +4813,7 @@ GAME
 				{
 					name = CNConstellationModule
 					isEnabled = True
-					radioFrequency = 0
+					radioFrequency = 2
 					stagingEnabled = True
 					EVENTS
 					{
@@ -5564,17 +5564,17 @@ GAME
 			landed = False
 			landedAt = 
 			splashed = False
-			met = 1330698.390191715
+			met = 1334620.4397961891
 			lct = 128996.17006355202
-			lastUT = 1459694.560255267
+			lastUT = 1463616.6098597411
 			root = 0
-			lat = 6.5814708637170607E-09
-			lon = 144.81460073448835
-			alt = 2486749.6645394689
+			lat = 6.5820334483064897E-09
+			lon = 157.16354317264515
+			alt = 2486749.5265983213
 			hgt = -1
 			nrm = 0.0876599923,0.996147335,0.00251760334
-			rot = -0.300068408,0.642627001,0.640945554,0.293561518
-			CoM = 1.70944259E-06,0.208031997,1.98488124E-08
+			rot = -0.300032914,0.642643273,0.640962183,0.293525934
+			CoM = -1.46074453E-05,0.208033919,-1.50932465E-07
 			stg = 0
 			prst = False
 			ref = 0
@@ -5617,8 +5617,8 @@ GAME
 				attN = bottom, 8
 				mass = 0.200000003
 				shielded = False
-				temp = 261.21238733582237
-				tempExt = 261.09657738403581
+				temp = 234.94616189404036
+				tempExt = 234.94599228191339
 				tempExtUnexp = 4
 				expt = 0.5
 				state = 0
@@ -5626,7 +5626,7 @@ GAME
 				autostrutMode = Off
 				rigidAttachment = False
 				flag = Squad/Flags/default
-				rTrf = HECS2.ProbeCore (Relay Node)
+				rTrf = HECS2.ProbeCore (Relay Node 1)
 				modCost = 0
 				EVENTS
 				{
@@ -5773,7 +5773,7 @@ GAME
 				{
 					name = CNConstellationModule
 					isEnabled = True
-					radioFrequency = 0
+					radioFrequency = 2
 					stagingEnabled = True
 					EVENTS
 					{
@@ -5846,8 +5846,8 @@ GAME
 				srfN = srfAttach, 0
 				mass = 0.00499999989
 				shielded = False
-				temp = 261.14413975881382
-				tempExt = 260.95824501679897
+				temp = 234.94572790329909
+				tempExt = 234.8993853311014
 				tempExtUnexp = 4
 				expt = 0.5
 				state = 0
@@ -5930,8 +5930,8 @@ GAME
 				srfN = srfAttach, 0
 				mass = 0.00499999989
 				shielded = False
-				temp = 261.14414065745171
-				tempExt = 260.95824742517289
+				temp = 234.94572790329909
+				tempExt = 234.8993853311014
 				tempExtUnexp = 4
 				expt = 0.5
 				state = 0
@@ -6014,8 +6014,8 @@ GAME
 				srfN = srfAttach, 0
 				mass = 0.00499999989
 				shielded = False
-				temp = 261.14413975881382
-				tempExt = 260.95824501679897
+				temp = 234.94572790329909
+				tempExt = 234.8993853311014
 				tempExtUnexp = 4
 				expt = 0.5
 				state = 0
@@ -6098,8 +6098,8 @@ GAME
 				srfN = srfAttach, 0
 				mass = 0.00499999989
 				shielded = False
-				temp = 261.14413975881382
-				tempExt = 260.95824501679897
+				temp = 234.94572790329909
+				tempExt = 234.8993853311014
 				tempExtUnexp = 4
 				expt = 0.5
 				state = 0
@@ -6182,8 +6182,8 @@ GAME
 				srfN = srfAttach, 0
 				mass = 0.00499999989
 				shielded = False
-				temp = 261.14414066236714
-				tempExt = 260.958247435305
+				temp = 234.94572790329909
+				tempExt = 234.8993853311014
 				tempExtUnexp = 4
 				expt = 0.5
 				state = 0
@@ -6266,8 +6266,8 @@ GAME
 				srfN = srfAttach, 0
 				mass = 0.00499999989
 				shielded = False
-				temp = 261.14413975881382
-				tempExt = 260.95824501679897
+				temp = 234.94572790329909
+				tempExt = 234.8993853311014
 				tempExtUnexp = 4
 				expt = 0.5
 				state = 0
@@ -6346,8 +6346,8 @@ GAME
 				attN = bottom, 0
 				mass = 0.150000006
 				shielded = False
-				temp = 261.21533901114316
-				tempExt = 261.05927450650165
+				temp = 234.94597812427381
+				tempExt = 234.86572755562077
 				tempExtUnexp = 4
 				expt = 0.5
 				state = 0
@@ -6434,8 +6434,8 @@ GAME
 				attN = bottom, -1
 				mass = 0.0500000007
 				shielded = False
-				temp = 261.09840088975329
-				tempExt = 260.80238334903629
+				temp = 234.94771606151735
+				tempExt = 235.19642178272633
 				tempExtUnexp = 4
 				expt = 0.5
 				state = 0
@@ -6514,7 +6514,7 @@ GAME
 				}
 				CNCCommNetVessel
 				{
-					controlState = None
+					controlState = ProbePartial
 					canComm = True
 				}
 			}
