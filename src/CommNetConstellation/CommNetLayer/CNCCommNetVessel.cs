@@ -65,7 +65,7 @@ namespace CommNetConstellation.CommNetLayer
         protected override void OnDestroy()
         {
             base.OnDestroy();
-            CommNetNetwork.Remove(this.comm);
+            CNCCommNetNetwork.Remove(this.comm);
         }
 
         public void updateRadioFrequency(short newFrequency)

@@ -11,9 +11,15 @@ namespace CommNetConstellation.CommNetLayer
             CNCLog.Debug("CNCCommNetwork()");
         }
 
+        bool runOnce = false;
         protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
-            //CNCLog.Debug("CNCCommNetwork.SetNodeConnection()");
+            if (!runOnce)
+            {
+                CNCLog.Debug("CNCCommNetwork.SetNodeConnection()");
+                runOnce = true;
+            }
+
             if (a.isHome && b.isHome)
             {
                 this.Disconnect(a, b, true);
