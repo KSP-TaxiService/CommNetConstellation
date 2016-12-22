@@ -8,6 +8,15 @@ namespace CommNetConstellation.CommNetLayer
 {
     public class CNCCommNetHome : CommNetHome
     {
+        public void copyOf(CommNetHome stockHome)
+        {
+            this.nodeName = stockHome.nodeName;
+            this.nodeTransform = stockHome.nodeTransform;
+            this.isKSC = stockHome.isKSC;
+            this.comm = stockHome.GetComponentInChildren<CommNode>(); // maybe too early as it is null at beginning
+            this.body = stockHome.GetComponentInChildren<CelestialBody>(); // maybe too early as it is null at beginning
+        }
+
         protected override void OnNetworkInitialized()
         {
             base.OnNetworkInitialized();

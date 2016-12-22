@@ -22,26 +22,28 @@ namespace CommNetConstellation.CommNetLayer
             CommNetHome[] homes = FindObjectsOfType<CommNetHome>();
             for(int i=0; i<homes.Length; i++)
             {
-                CommNetHome home = homes[i];
-                home.gameObject.AddComponent<CNCCommNetHome>();
+                CNCCommNetHome home = homes[i].gameObject.AddComponent(typeof(CNCCommNetHome)) as CNCCommNetHome;
+                home.copyOf(homes[i]);
                 UnityEngine.Object.Destroy(homes[i]);
             }
 
             CommNetBody[] bodies = FindObjectsOfType<CommNetBody>();
             for (int i = 0; i < bodies.Length; i++)
             {
-                CommNetBody body = bodies[i];
-                body.gameObject.AddComponent<CNCCommNetBody>();
+                CNCCommNetBody body = bodies[i].gameObject.AddComponent(typeof(CNCCommNetBody)) as CNCCommNetBody;
+                body.copyOf(bodies[i]);
                 UnityEngine.Object.Destroy(bodies[i]);
             }
 
+            /*
             CommNetNode[] nodes = FindObjectsOfType<CommNetNode>();
             for (int i = 0; i < nodes.Length; i++)
             {
-                CommNetNode node = nodes[i];
-                node.gameObject.AddComponent<CNCCommNetNode>();
+                CNCCommNetNode node = nodes[i].gameObject.AddComponent(typeof(CNCCommNetNode)) as CNCCommNetNode;
+                node.copyOf(nodes[i]);
                 UnityEngine.Object.Destroy(nodes[i]);
             }
+            */
         }
 
         //override to turn off CommNetScenario's instance check

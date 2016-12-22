@@ -54,7 +54,18 @@ namespace CommNetConstellation.CommNetLayer
             GameEvents.onPlanetariumTargetChanged.Remove(new EventData<MapObject>.OnEvent(this.OnMapFocusChange));
             //GameEvents.OnGameSettingsApplied.Remove(new EventVoid.OnEvent(this.ResetNetwork));
         }
-        
+
+        bool runOnce = false;
+        protected override void Update()
+        {
+            base.Update();
+            if (!runOnce)
+            {
+                this.DebugInfo();
+                runOnce = true;
+            }
+        }
+
         protected override void OnMapFocusChange(MapObject target)
         {
             CNCLog.Debug("CNCCommNetNetwork.OnMapFocusChange() : {0}", target.name);
