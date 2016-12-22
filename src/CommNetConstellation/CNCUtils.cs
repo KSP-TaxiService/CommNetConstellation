@@ -3,10 +3,10 @@ using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using UnityEngine;
 using CommNetConstellation.CommNetLayer;
+using CommNet;
 
 namespace CommNetConstellation
 {
@@ -26,11 +26,6 @@ namespace CommNetConstellation
             }
         }
 
-        public static List<CNCCommNetVessel> getCommNetVessels()
-        {
-            return getCommNetVessels(CNCSettings.Instance.PublicRadioFrequency); // don't hardcode (int radioFrequency = 0)
-        }
-
         public static List<CNCCommNetVessel> getCommNetVessels(int targetRadioFrequency)
         {
             List<Vessel> vessels = FlightGlobals.Vessels;
@@ -48,6 +43,26 @@ namespace CommNetConstellation
             }
 
             return commnetVessels;
+        }
+
+        public static Vessel findCorrespondingVessel(CommNode commNodeRef)
+        {
+            List<Vessel> allVessels = FlightGlobals.Vessels;
+            IEqualityComparer<CommNode> comparer = commNodeRef.Comparer;
+
+            //brute-force search temporarily until I find a \omega(n) method
+            for (int i = 0; i < allVessels.Count(); i++)
+            {
+                Vessel thisVessel = allVessels.ElementAt(i);
+                if (thisVessel.connection != null)
+                {
+                    if (comparer.Equals(commNodeRef, thisVessel.connection.Comm))
+                        return thisVessel;
+                }
+            }
+
+            //not found
+            return null;
         }
     }
 }

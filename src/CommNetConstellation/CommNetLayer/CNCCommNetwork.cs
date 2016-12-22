@@ -6,20 +6,10 @@ namespace CommNetConstellation.CommNetLayer
 {
     public class CNCCommNetwork : CommNetwork
     {
-        public CNCCommNetwork() : base()
-        {
-            CNCLog.Debug("CNCCommNetwork()");
-        }
+        private short publicFreq = CNCSettings.Instance.PublicRadioFrequency;
 
-        bool runOnce = false;
         protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
-            if (!runOnce)
-            {
-                CNCLog.Debug("CNCCommNetwork.SetNodeConnection()");
-                runOnce = true;
-            }
-
             if (a.isHome && b.isHome)
             {
                 this.Disconnect(a, b, true);
@@ -30,7 +20,28 @@ namespace CommNetConstellation.CommNetLayer
                 this.Disconnect(a, b, true);
                 return false;
             }
-            
+
+            //My own Constellation rules
+            //----------
+            short aFreq = publicFreq;
+            short bFreq = publicFreq;
+
+            if (!a.isHome)
+            {
+                aFreq = ((CNCCommNetVessel)CNCUtils.findCorrespondingVessel(a).Connection).getRadioFrequency();
+            }
+            if (!b.isHome)
+            {
+                bFreq = ((CNCCommNetVessel)CNCUtils.findCorrespondingVessel(b).Connection).getRadioFrequency();
+            }
+
+            if (aFreq != bFreq && aFreq != publicFreq && bFreq != publicFreq)
+            {
+                this.Disconnect(a, b, true);
+                return false;
+            }
+            //----------
+
             Vector3d precisePosition = a.precisePosition;
             Vector3d precisePosition2 = b.precisePosition;
             double num = (precisePosition2 - precisePosition).sqrMagnitude;

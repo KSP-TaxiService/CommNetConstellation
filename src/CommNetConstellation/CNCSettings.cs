@@ -30,6 +30,7 @@ namespace CommNetConstellation
         [Persistent] public int MajorVersion;
         [Persistent] public int MinorVersion;
         [Persistent] public short PublicRadioFrequency;
+        [Persistent] public float DistanceToHideGroundStations;
         //-----
 
         public static Settings Load()

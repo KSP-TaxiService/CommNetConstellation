@@ -41,7 +41,7 @@ namespace CommNetConstellation.CommNetLayer
             {
                 GameEvents.onPlanetariumTargetChanged.Add(new EventData<MapObject>.OnEvent(this.OnMapFocusChange));
             }
-            //GameEvents.OnGameSettingsApplied.Add(new EventVoid.OnEvent(this.ResetNetwork));
+            GameEvents.OnGameSettingsApplied.Add(new EventVoid.OnEvent(this.ResetNetwork));
             CNCCommNetNetwork.Reset();
         }
 
@@ -52,9 +52,10 @@ namespace CommNetConstellation.CommNetLayer
                 CNCCommNetNetwork.Instance = null;
             }
             GameEvents.onPlanetariumTargetChanged.Remove(new EventData<MapObject>.OnEvent(this.OnMapFocusChange));
-            //GameEvents.OnGameSettingsApplied.Remove(new EventVoid.OnEvent(this.ResetNetwork));
+            GameEvents.OnGameSettingsApplied.Remove(new EventVoid.OnEvent(this.ResetNetwork));
         }
 
+        /*
         bool runOnce = false;
         protected override void Update()
         {
@@ -65,6 +66,7 @@ namespace CommNetConstellation.CommNetLayer
                 runOnce = true;
             }
         }
+        */
 
         protected override void OnMapFocusChange(MapObject target)
         {

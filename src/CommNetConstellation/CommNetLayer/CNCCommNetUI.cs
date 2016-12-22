@@ -10,6 +10,8 @@ namespace CommNetConstellation.CommNetLayer
 {
     public class CNCCommNetUI : CommNetUI
     {
+        private short publicFreq = CNCSettings.Instance.PublicRadioFrequency;
+
         public CNCCommNetUI()
         {
             //base.colorHigh = new Color(0.43f, 0.81f, 0.96f, 1f); // blue
@@ -73,47 +75,22 @@ namespace CommNetConstellation.CommNetLayer
                     thisImageIcon.color = newColor;
                 }
             }
+        }
 
-            //TODO: color links
-            //line.SetColor(newColor);
-            //line.Draw();
+        private Color getConstellationColor(CommNode a, CommNode b)
+        {
+            if(a.isHome || b.isHome)
+                return new Color(0.65f, 0.65f, 0.65f, 1f); // public
 
-            /*
-            CommNetwork commNet = CommNetNetwork.Instance.CommNet;
-            CommNetVessel commNetVessel = null;
-            CommNode commNode = null;
-            CommPath commPath = null;
+            CNCCommNetVessel vesselA = (CNCCommNetVessel)CNCUtils.findCorrespondingVessel(a).Connection;
+            CNCCommNetVessel vesselB = (CNCCommNetVessel)CNCUtils.findCorrespondingVessel(b).Connection;
 
-            if (this.vessel != null && this.vessel.connection != null && this.vessel.connection.Comm.Net != null)
-            {
-                commNetVessel = this.vessel.connection;
-                commNode = commNetVessel.Comm;
-                commPath = commNetVessel.ControlPath;
-            }
-
-            switch (CommNetUI.Mode)
-            {
-                case CommNetUI.DisplayMode.Network:
-                {
-                    int index2 = num;
-                    while (index2-- > 0)
-                    {
-                        CommLink commLink = commNet.Links[index2];
-                        float f = (float)commNet.Links[index2].GetBestSignal();
-                        float t = Mathf.Pow(f, this.colorLerpPower);
-                        if (this.swapHighLow)
-                        {
-                            this.line.SetColor(Color.Lerp(this.colorHigh, this.colorLow, t), index2);
-                        }
-                        else
-                        {
-                            this.line.SetColor(Color.Lerp(this.colorLow, this.colorHigh, t), index2);
-                        }
-                    }
-                    break;
-                }
-            }
-            */
+            if (vesselA.getRadioFrequency() == 1 || vesselB.getRadioFrequency() == 1)
+                return new Color(0.43f, 0.81f, 0.96f, 1f);
+            else if (vesselA.getRadioFrequency() == 2 || vesselB.getRadioFrequency() == 2)
+                return new Color(0.95f, 0.43f, 0.49f, 1f);
+            else
+                return new Color(0.65f, 0.65f, 0.65f, 1f); // public
         }
 
         private void updateCodes()
@@ -296,13 +273,14 @@ namespace CommNetConstellation.CommNetLayer
                             CommLink commLink = commNet.Links[index2];
                             float f = (float)commNet.Links[index2].GetBestSignal();
                             float t = Mathf.Pow(f, this.colorLerpPower);
+                            Color customHighColor = getConstellationColor(commLink.a, commLink.b);
                             if (this.swapHighLow)
                             {
-                                this.line.SetColor(Color.Lerp(this.colorHigh, this.colorLow, t), index2);
+                                this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, t), index2);
                             }
                             else
                             {
-                                this.line.SetColor(Color.Lerp(this.colorLow, this.colorHigh, t), index2);
+                                this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, t), index2);
                             }
                         }
                         break;
