@@ -9,7 +9,7 @@ namespace CommNetConstellation.CommNetLayer
 {
     public class CNCCommNetHome : CommNetHome
     {
-        private static readonly Texture2D markTexture = CNCUtils.loadImage("mark");
+        private static readonly Texture2D markTexture = CNCUtils.loadImage("groundStationMark");
 
         public void copyOf(CommNetHome stockHome)
         {
@@ -22,27 +22,30 @@ namespace CommNetConstellation.CommNetLayer
 
         public void OnGUI()
         {
+            if (HighLogic.CurrentGame == null)
+                return;
+
             if (!(HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION))
                 return;
 
-            if (HighLogic.CurrentGame != null && (HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().enableGroundStations || this.isKSC))
-            {
-                Vector3d worldPos = ScaledSpace.LocalToScaledSpace(nodeTransform.transform.position);
-                if (MapView.MapCamera.transform.InverseTransformPoint(worldPos).z < 0f) return;
-                Vector3 pos = PlanetariumCamera.Camera.WorldToScreenPoint(worldPos);
-                Rect screenRect = new Rect((pos.x - 8), (Screen.height - pos.y) - 8, 16, 16);
+            if (!HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().enableGroundStations || !this.isKSC || !MapView.MapIsEnabled)
+                return;
 
-                if (IsOccluded(nodeTransform.transform.position, this.body))
-                    return;
+            Vector3d worldPos = ScaledSpace.LocalToScaledSpace(nodeTransform.transform.position);
+            if (MapView.MapCamera.transform.InverseTransformPoint(worldPos).z < 0f) return;
+            Vector3 pos = PlanetariumCamera.Camera.WorldToScreenPoint(worldPos);
+            Rect screenRect = new Rect((pos.x - 8), (Screen.height - pos.y) - 8, 16, 16);
 
-                if (!IsOccluded(nodeTransform.transform.position, this.body) && this.IsCamDistanceToWide(nodeTransform.transform.position))
-                    return;
+            if (IsOccluded(nodeTransform.transform.position, this.body))
+                return;
 
-                Color previousColor = GUI.color;
-                GUI.color = Color.red;
-                GUI.DrawTexture(screenRect, markTexture, ScaleMode.ScaleToFit, true);
-                GUI.color = previousColor;
-            }
+            if (!IsOccluded(nodeTransform.transform.position, this.body) && this.IsCamDistanceToWide(nodeTransform.transform.position))
+                return;
+
+            Color previousColor = GUI.color;
+            GUI.color = Color.red;
+            GUI.DrawTexture(screenRect, markTexture, ScaleMode.ScaleToFit, true);
+            GUI.color = previousColor;
         }
 
         /// <summary>
