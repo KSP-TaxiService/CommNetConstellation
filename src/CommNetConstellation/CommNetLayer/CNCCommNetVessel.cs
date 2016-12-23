@@ -31,7 +31,6 @@ namespace CommNetConstellation.CommNetLayer
             CNCLog.Debug("CNCCommNetVessel.OnNetworkInitialized() @ {0}", this.Vessel.GetName());
 
             base.OnNetworkInitialized();
-            CNCCommNetNetwork.Add(this.comm);
             this.radioFrequency = getRadioFrequency(true);
         }
 
@@ -60,12 +59,6 @@ namespace CommNetConstellation.CommNetLayer
 
             //CNCLog.Debug("CNCCommNetVessel.UpdateComm()");
             base.UpdateComm();
-        }
-
-        protected override void OnDestroy()
-        {
-            base.OnDestroy();
-            CNCCommNetNetwork.Remove(this.comm);
         }
 
         public void updateRadioFrequency(short newFrequency)

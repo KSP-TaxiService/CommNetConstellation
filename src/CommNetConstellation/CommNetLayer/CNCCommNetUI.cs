@@ -12,43 +12,11 @@ namespace CommNetConstellation.CommNetLayer
     {
         private short publicFreq = CNCSettings.Instance.PublicRadioFrequency;
 
-        public CNCCommNetUI()
-        {
-            //base.colorHigh = new Color(0.43f, 0.81f, 0.96f, 1f); // blue
-        }
-
         public static new CNCCommNetUI Instance
         {
             get;
             protected set;
         }
-
-        protected override void Start()
-        {
-            base.Start();
-        }
-
-        /*
-        protected override void Awake()
-        {
-            if (CNCCommNetUI.Instance != null && CNCCommNetUI.Instance != this)
-            {
-                UnityEngine.Object.Destroy(CNCCommNetUI.Instance);
-            }
-            CNCCommNetUI.Instance = this;
-            this.lineMaterial = CNCCommNetUI.TelemetryMaterial;
-            CNCCommNetUI.LowColorBrightnessFactor = GameSettings.COMMNET_LOWCOLOR_BRIGHTNESSFACTOR;
-        }
-
-        protected override void OnDestroy()
-        {
-            base.OnDestroy();
-            if (CNCCommNetUI.Instance == this)
-            {
-                CNCCommNetUI.Instance = null;
-            }
-        }
-        */
 
         protected override void UpdateDisplay()
         {
@@ -57,8 +25,6 @@ namespace CommNetConstellation.CommNetLayer
             coloriseEachConstellation(CNCSettings.Instance.PublicRadioFrequency, new Color(0.65f, 0.65f, 0.65f, 1f));
             coloriseEachConstellation(1, new Color(0.43f, 0.81f, 0.96f, 1f));
             coloriseEachConstellation(2, new Color(0.95f, 0.43f, 0.49f, 1f));
-
-            VectorLine l = Line;
         }
 
         private void coloriseEachConstellation(int radioFrequency, Color newColor)
@@ -116,7 +82,7 @@ namespace CommNetConstellation.CommNetLayer
                     CommNetUI.ModeTrackingStation = CommNetUI.DisplayMode.Network;
                 }
             }
-            if (CNCCommNetNetwork.Instance == null)
+            if (CommNetNetwork.Instance == null)
             {
                 return;
             }
@@ -128,7 +94,7 @@ namespace CommNetConstellation.CommNetLayer
             {
                 CommNetUI.Mode = CommNetUI.ModeFlightMap;
             }
-            CommNetwork commNet = CNCCommNetNetwork.Instance.CommNet;
+            CommNetwork commNet = CommNetNetwork.Instance.CommNet;
             CommNetVessel commNetVessel = null;
             CommNode commNode = null;
             CommPath commPath = null;
@@ -216,13 +182,14 @@ namespace CommNetConstellation.CommNetLayer
                     {
                         float f = (float)commPath.First.signalStrength;
                         float t = Mathf.Pow(f, this.colorLerpPower);
+                        Color customHighColor = getConstellationColor(commPath.First.a, commPath.First.b);
                         if (this.swapHighLow)
                         {
-                            this.line.SetColor(Color.Lerp(this.colorHigh, this.colorLow, t), 0);
+                            this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, t), 0);
                         }
                         else
                         {
-                            this.line.SetColor(Color.Lerp(this.colorLow, this.colorHigh, t), 0);
+                            this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, t), 0);
                         }
                         break;
                     }
@@ -233,13 +200,14 @@ namespace CommNetConstellation.CommNetLayer
                         {
                             float f = (float)commPath[index].signalStrength;
                             float t = Mathf.Pow(f, this.colorLerpPower);
+                            Color customHighColor = getConstellationColor(commPath[index].a, commPath[index].b);
                             if (this.swapHighLow)
                             {
-                                this.line.SetColor(Color.Lerp(this.colorHigh, this.colorLow, t), index);
+                                this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, t), index);
                             }
                             else
                             {
-                                this.line.SetColor(Color.Lerp(this.colorLow, this.colorHigh, t), index);
+                                this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, t), index);
                             }
                         }
                         break;
@@ -253,13 +221,14 @@ namespace CommNetConstellation.CommNetLayer
                             CommLink commLink = enumerator.Current;
                             float f = (float)commLink.GetSignalStrength(commLink.a != commNode, commLink.b != commNode);
                             float t = Mathf.Pow(f, this.colorLerpPower);
+                            Color customHighColor = getConstellationColor(commLink.a, commLink.b);
                             if (this.swapHighLow)
                             {
-                                this.line.SetColor(Color.Lerp(this.colorHigh, this.colorLow, t), num2);
+                                this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, t), num2);
                             }
                             else
                             {
-                                this.line.SetColor(Color.Lerp(this.colorLow, this.colorHigh, t), num2);
+                                this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, t), num2);
                             }
                             num2++;
                         }
