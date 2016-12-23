@@ -14,8 +14,7 @@ namespace CommNetConstellation.CommNetLayer
             customUI = ui.gameObject.AddComponent<CNCCommNetUI>();
             UnityEngine.Object.Destroy(ui);
 
-            CommNetNetwork networkService = FindObjectOfType<CommNetNetwork>();
-            networkService.CommNet = new CNCCommNetwork();
+            CommNetNetwork.Instance.CommNet = new CNCCommNetwork();
             //customNetworkService = networkService.gameObject.AddComponent<CNCCommNetNetwork>();
             //UnityEngine.Object.Destroy(networkService);
 
@@ -57,8 +56,7 @@ namespace CommNetConstellation.CommNetLayer
         public void customResetNetwork()
         {
             CNCLog.Debug("CNCCommNetScenario.customResetNetwork()");
-            CommNetNetwork networkService = FindObjectOfType<CommNetNetwork>();
-            networkService.CommNet = new CNCCommNetwork();
+            CommNetNetwork.Instance.CommNet = new CNCCommNetwork();
             GameEvents.CommNet.OnNetworkInitialized.Fire();
         }
     }
