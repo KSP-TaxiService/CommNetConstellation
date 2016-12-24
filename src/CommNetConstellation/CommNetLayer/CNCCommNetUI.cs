@@ -43,10 +43,10 @@ namespace CommNetConstellation.CommNetLayer
             }
         }
 
-        private Color getConstellationColor(CommNode a, CommNode b)
+        private Color getConstellationColor(CommNode a, CommNode b) // TODO: switch to Constellation's getColor()
         {
-            if(a.isHome || b.isHome)
-                return new Color(0.65f, 0.65f, 0.65f, 1f); // public
+            if (a.isHome || b.isHome)
+                return Constellation.getColor(CNCCommNetScenario.Instance.constellations, publicFreq); // public
 
             CNCCommNetVessel vesselA = (CNCCommNetVessel)CNCUtils.findCorrespondingVessel(a).Connection;
             CNCCommNetVessel vesselB = (CNCCommNetVessel)CNCUtils.findCorrespondingVessel(b).Connection;
@@ -56,7 +56,7 @@ namespace CommNetConstellation.CommNetLayer
             else if (vesselA.getRadioFrequency() == 2 || vesselB.getRadioFrequency() == 2)
                 return new Color(0.95f, 0.43f, 0.49f, 1f);
             else
-                return new Color(0.65f, 0.65f, 0.65f, 1f); // public
+                return Constellation.getColor(CNCCommNetScenario.Instance.constellations, publicFreq); // public
         }
 
         private void updateCodes()

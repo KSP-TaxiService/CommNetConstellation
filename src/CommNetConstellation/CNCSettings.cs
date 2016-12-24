@@ -7,7 +7,8 @@ namespace CommNetConstellation
 {
     public class CNCSettings
     {
-        private static Settings privateInstance;
+        //Note: This can be called by a PartModule during KSP's Squad-monkey loading screen
+        private static Settings privateInstance = null;
         public static Settings Instance
         {
             get
@@ -31,6 +32,7 @@ namespace CommNetConstellation
         [Persistent] public int MinorVersion;
         [Persistent] public short PublicRadioFrequency;
         [Persistent] public float DistanceToHideGroundStations;
+        [Persistent(collectionIndex = "Constellations")] public List<Constellation> Constellations;
         //-----
 
         public static Settings Load()
@@ -40,7 +42,7 @@ namespace CommNetConstellation
             bool defaultSuccess = false;
 
             // Exploit KSP's GameDatabase to find our MM-patched cfg of default settings (from GameData/RemoteTech/Default_Settings.cfg)
-            var cfgs = GameDatabase.Instance.GetConfigs("CommNetConstellationSettings");
+            UrlDir.UrlConfig[] cfgs = GameDatabase.Instance.GetConfigs("CommNetConstellationSettings");
             for (var i = 0; i < cfgs.Length; i++)
             {
                 if (cfgs[i].url.Equals(startingSettingCFGUrl))

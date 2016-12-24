@@ -28,7 +28,7 @@ namespace CommNetConstellation.CommNetLayer
             if (!(HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION))
                 return;
 
-            if (!HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().enableGroundStations || !this.isKSC || !MapView.MapIsEnabled)
+            if (!HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().enableGroundStations || !MapView.MapIsEnabled || MapView.MapCamera == null)
                 return;
 
             Vector3d worldPos = ScaledSpace.LocalToScaledSpace(nodeTransform.transform.position);

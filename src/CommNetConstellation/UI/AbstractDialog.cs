@@ -24,8 +24,6 @@ namespace CommNetConstellation.UI
         protected bool showCloseButton = false;
         protected bool showVersion = false;
 
-        protected Settings settings;
-
         protected PopupDialog popupDialog = null;
 
         public AbstractDialog(string dialogTitle, float normalizedCenterX, float normalizedCenterY, int windowWidth, int windowHeight, string[] extraArgs)
@@ -37,7 +35,6 @@ namespace CommNetConstellation.UI
             this.normalizedCenterY = normalizedCenterY;
 
             processArguments(extraArgs);
-            this.settings = CNCSettings.Instance;
         }
 
         protected abstract bool runIntenseInfo(System.Object[] args);
@@ -108,13 +105,13 @@ namespace CommNetConstellation.UI
                                             new DialogGUIFlexibleSpace(),
                                             new DialogGUIButton("Close", dismiss),
                                             new DialogGUIFlexibleSpace(),
-                                            new DialogGUILabel((!showVersion)?"":string.Format("v{0}.{1}", settings.MajorVersion, settings.MinorVersion), false, false)
+                                            new DialogGUILabel((!showVersion)?"":string.Format("v{0}.{1}", CNCSettings.Instance.MajorVersion, CNCSettings.Instance.MinorVersion), false, false)
                                             }
                                             :
                                             new DialogGUIBase[]
                                             {
                                             new DialogGUIFlexibleSpace(),
-                                            new DialogGUILabel((!showVersion)?"":string.Format("v{0}.{1}", settings.MajorVersion, settings.MinorVersion), false, false)
+                                            new DialogGUILabel((!showVersion)?"":string.Format("v{0}.{1}", CNCSettings.Instance.MajorVersion, CNCSettings.Instance.MinorVersion), false, false)
                                             }
                                         ));
             }

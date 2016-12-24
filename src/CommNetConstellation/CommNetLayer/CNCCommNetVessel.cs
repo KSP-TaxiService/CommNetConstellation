@@ -62,7 +62,7 @@ namespace CommNetConstellation.CommNetLayer
 
         public void updateRadioFrequency(short newFrequency)
         {
-            if (newFrequency < 0 || newFrequency > short.MaxValue)
+            if (!Constellation.isFrequencyValid(newFrequency))
             {
                 CNCLog.Error("The new frequency {0} is out of the range [0,{1}]!", newFrequency, short.MaxValue);
                 return;
