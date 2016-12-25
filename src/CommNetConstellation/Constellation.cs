@@ -27,11 +27,7 @@ namespace CommNetConstellation
             if (constellations == null)
                 return null;
 
-            Constellation possibleMatch = constellations.Find(i => i.frequency == givenFreq);
-            if (possibleMatch.name == null)
-                return null;
-            else
-                return possibleMatch;
+            return constellations.Find(i => i.frequency == givenFreq);
         }
 
         public static Color getColor(List<Constellation> constellations, int givenFreq)

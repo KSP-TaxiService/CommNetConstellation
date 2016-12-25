@@ -27,7 +27,7 @@ namespace CommNetConstellation.CommNetLayer
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
                 return;
 
-            CNCLog.Debug("CNCCommNetVessel.OnNetworkInitialized() @ {0}", this.Vessel.GetName());
+            //CNCLog.Debug("CNCCommNetVessel.OnNetworkInitialized() @ {0}", this.Vessel.GetName());
 
             base.OnNetworkInitialized();
             this.radioFrequency = getRadioFrequency(true);

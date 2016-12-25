@@ -5,12 +5,18 @@ using UnityEngine;
 
 namespace CommNetConstellation.CommNetLayer
 {
-    [KSPScenario(ScenarioCreationOptions.AddToAllGames, new GameScenes[] {GameScenes.FLIGHT, GameScenes.TRACKSTATION})]
+    [KSPScenario(ScenarioCreationOptions.AddToAllGames, new GameScenes[] {GameScenes.FLIGHT, GameScenes.TRACKSTATION, GameScenes.SPACECENTER })]
     public class CNCCommNetScenario : CommNetScenario
     {
+        /* Note:
+         * 1) On entering a desired scene, OnLoad() and then Start() are called.
+         * 2) On leaving the scene, OnSave() is called
+         * 3) GameScenes.SPACECENTER is recommended so that the constellation data can be verified and error-corrected in advance
+         */
+
         private CNCCommNetUI customUI = null;
         //private CNCCommNetNetwork customNetworkService = null;
-        public List<Constellation> constellations;
+        public List<Constellation> constellations; // leave  the initialisation to OnLoad()
 
         public static new CNCCommNetScenario Instance
         {
@@ -20,9 +26,8 @@ namespace CommNetConstellation.CommNetLayer
 
         protected override void Start()
         {
-            constellations = new List<Constellation>();
             CNCCommNetScenario.Instance = this;
-
+            
             CommNetUI ui = FindObjectOfType<CommNetUI>();
             customUI = ui.gameObject.AddComponent<CNCCommNetUI>();
             UnityEngine.Object.Destroy(ui);
@@ -76,41 +81,57 @@ namespace CommNetConstellation.CommNetLayer
         public override void OnLoad(ConfigNode gameNode)
         {
             base.OnLoad(gameNode);
+            CNCLog.Verbose("Scenario content to be read:\n{0}", gameNode);
 
             if (gameNode.HasNode("Constellations"))
             {
                 ConfigNode rootNode = gameNode.GetNode("Constellations");
                 ConfigNode[] constellationNodes = rootNode.GetNodes();
 
-                for (int i = 0; i < constellationNodes.Length; i++)
+                if (constellationNodes.Length < 1) // missing constellation list
                 {
-                    ConfigNode thisNode = constellationNodes[i];
-                    Constellation newConstellation = new Constellation(short.Parse(thisNode.GetValue("frequency")),
-                                                                        thisNode.GetValue("name"), 
-                                                                        Constellation.parseColor(thisNode.GetValue("color")));
-                    constellations.Add(newConstellation);
+                    CNCLog.Error("The 'Constellations' node is malformed! Reverted to the default constellation list.");
+                    constellations = CNCSettings.Instance.Constellations;
+                }
+                else
+                {
+                    constellations = new List<Constellation>();
+
+                    for (int i = 0; i < constellationNodes.Length; i++)
+                    {
+                        Constellation newConstellation = new Constellation();
+                        ConfigNode.LoadObjectFromConfig(newConstellation, constellationNodes[i]);
+                        constellations.Add(newConstellation);
+                    }
+                    ConfigNode.LoadObjectFromConfig(this, rootNode);
                 }
             }
             else
             {
+                CNCLog.Verbose("The 'Constellations' node is not found. The default constellation list is loaded.");
                 constellations = CNCSettings.Instance.Constellations;
             }
-
         }
 
         public override void OnSave(ConfigNode gameNode)
         {
-            ConfigNode rootNode;
-
-            if (gameNode.HasNode("Constellations"))
+            if (constellations.Count < 1)
             {
-                rootNode = gameNode.GetNode("Constellations");
-                rootNode.ClearNodes();
+                CNCLog.Error("The constellation list to save to persistent.sfs is empty!");
+                base.OnSave(gameNode);
+                return;
             }
-            else
+
+            ConfigNode rootNode;
+            if (!gameNode.HasNode("Constellations"))
             {
                 rootNode = new ConfigNode("Constellations");
                 gameNode.AddNode(rootNode);
+            }
+            else
+            {
+                rootNode = gameNode.GetNode("Constellations");
+                rootNode.ClearNodes();
             }
 
             for (int i=0; i<constellations.Count; i++)
@@ -118,8 +139,9 @@ namespace CommNetConstellation.CommNetLayer
                 ConfigNode newConstellationNode = new ConfigNode("Constellation");
                 newConstellationNode = ConfigNode.CreateConfigFromObject(constellations.ElementAt<Constellation>(i), newConstellationNode);
                 rootNode.AddNode(newConstellationNode);
-            }   
+            }
 
+            CNCLog.Verbose("Scenario content to be saved:\n{0}", gameNode);
             base.OnSave(gameNode);
         }
     }

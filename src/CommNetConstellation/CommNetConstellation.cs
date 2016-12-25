@@ -18,8 +18,6 @@ namespace CommNetConstellation
 
         public void Start()
         {
-            CNCLog.Debug("CommNetConstellation.Start()");
-
             this.controlDialog = new ConstellationControlDialog("CommNet Constellation - <color=#00ff00>Control Panel</color>");
             this.launcherBtnTexture = CNCUtils.loadImage("cnclauncherbutton");
 
