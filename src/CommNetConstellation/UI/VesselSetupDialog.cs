@@ -7,19 +7,17 @@ namespace CommNetConstellation.UI
     public class VesselSetupDialog : AbstractDialog
     {
         private Vessel hostVessel;
-        private CNConstellationModule hostModule;
         private string description = "You are editing ";
         private static readonly Texture2D colorTexture = CNCUtils.loadImage("colorDisplay");
 
-        public VesselSetupDialog(string title, Vessel thisVessel, CNConstellationModule thisModule) : base(title, 
-                                                                                                            0.7f,                               //x
-                                                                                                            0.5f,                               //y
-                                                                                                            250,                                //width
-                                                                                                            220,                                //height
-                                                                                                            new string[] { "showclosebutton" }) //arguments
+        public VesselSetupDialog(string title, Vessel thisVessel) : base(title, 
+                                                                            0.7f,                               //x
+                                                                            0.5f,                               //y
+                                                                            250,                                //width
+                                                                            255,                                //height
+                                                                            new string[] { "showclosebutton" }) //arguments
         {
             this.hostVessel = thisVessel; // could be null (in editor)
-            this.hostModule = thisModule;
 
             if (this.hostVessel != null)
                 this.description += string.Format("'{0}'.\n\n", this.hostVessel.vesselName);
@@ -33,17 +31,22 @@ namespace CommNetConstellation.UI
 
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description, false, false) }));
 
-            DialogGUILabel freqLabel = new DialogGUILabel("<b>Radio frequency</b>", 50, 32);
+            DialogGUILabel freqLabel = new DialogGUILabel("<b>Radio frequency</b>", 30, 24);
             DialogGUITextInput frequencyInput = new DialogGUITextInput("12345", false, 5, null, 32, 32);
-            DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32,32), Vector2.zero, Color.yellow, colorTexture);
 
-            DialogGUIHorizontalLayout lineGroup1 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUIFlexibleSpace(), colorImage, new DialogGUIFlexibleSpace() });
+            DialogGUIHorizontalLayout lineGroup1 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), freqLabel, frequencyInput, new DialogGUIFlexibleSpace()});
             listComponments.Add(lineGroup1);
+
+            DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, Color.yellow, colorTexture); colorImage.width = 32; colorImage.height = 32;
+            DialogGUILabel constNameLabel = new DialogGUILabel("Some Name", 130, 12);
+
+            DialogGUIHorizontalLayout lineGroup3 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { colorImage, constNameLabel, new DialogGUIFlexibleSpace() });
+            listComponments.Add(lineGroup3);
 
             DialogGUIButton updateButton = new DialogGUIButton("Update", updateClick, false);
             DialogGUIButton publicButton = new DialogGUIButton("Revert to public", defaultClick, false);
 
-            DialogGUIHorizontalLayout lineGroup2 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.UpperLeft, new DialogGUIBase[] { updateButton, publicButton });
+            DialogGUIHorizontalLayout lineGroup2 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { updateButton, publicButton });
             listComponments.Add(lineGroup2);
 
             DialogGUILabel messageLabel = new DialogGUILabel("Message: <color=#dc3e44>The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog.</color>", true, false);

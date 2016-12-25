@@ -26,7 +26,7 @@ namespace CommNetConstellation
             }
         }
 
-        public static List<CNCCommNetVessel> getCommNetVessels(int targetRadioFrequency)
+        public static List<CNCCommNetVessel> getCommNetVessels(short targetRadioFrequency = -1)
         {
             List<Vessel> vessels = FlightGlobals.Vessels;
             List<CNCCommNetVessel> commnetVessels = new List<CNCCommNetVessel>();
@@ -37,7 +37,7 @@ namespace CommNetConstellation
                 if(thisVessel.Connection != null)
                 {
                     CNCCommNetVessel cncVessel = (CNCCommNetVessel)thisVessel.Connection;
-                    if(cncVessel.getRadioFrequency() == targetRadioFrequency)
+                    if(cncVessel.getRadioFrequency() == targetRadioFrequency || targetRadioFrequency == -1)
                         commnetVessels.Add(cncVessel);
                 }
             }

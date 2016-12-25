@@ -53,7 +53,6 @@
     <Compile Include="CNCLog.cs" />
     <Compile Include="CNCSettings.cs" />
     <Compile Include="CNCUtils.cs" />
-    <Compile Include="ColorPicker.cs" />
     <Compile Include="CommNetConstellation.cs" />
     <Compile Include="CommNetLayer\CNCCommNetScenario.cs" />
     <Compile Include="CommNetLayer\CNCCommNetUI.cs" />

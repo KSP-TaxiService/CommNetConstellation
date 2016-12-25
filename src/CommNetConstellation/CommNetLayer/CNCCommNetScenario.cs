@@ -111,6 +111,8 @@ namespace CommNetConstellation.CommNetLayer
                 CNCLog.Verbose("The 'Constellations' node is not found. The default constellation list is loaded.");
                 constellations = CNCSettings.Instance.Constellations;
             }
+
+            constellations.OrderBy(i => i.frequency);
         }
 
         public override void OnSave(ConfigNode gameNode)

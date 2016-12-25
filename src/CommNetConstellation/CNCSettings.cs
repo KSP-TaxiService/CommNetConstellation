@@ -35,6 +35,8 @@ namespace CommNetConstellation
         [Persistent(collectionIndex = "Constellations")] public List<Constellation> Constellations;
         //-----
 
+        public int MaxNumChars = 23;
+
         public static Settings Load()
         {
             // Create a blank object of settings

@@ -126,8 +126,9 @@ namespace CommNetConstellation.UI
             return PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f),
                                                 new Vector2(0.5f, 0.5f),
                                                 moDialog,
-                                                false, // true = ?
-                                                HighLogic.UISkin);
+                                                false,  // persistAcrossScreen
+                                                HighLogic.UISkin,
+                                                false); // isModal
         }
     }
 }

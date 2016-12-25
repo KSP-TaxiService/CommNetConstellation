@@ -14,7 +14,7 @@ namespace CommNetConstellation.CommNetLayer
         [KSPEvent(guiActive = true, guiActiveEditor =true, guiActiveUnfocused = false, guiName = "CommNet Constellation", active = true)]
         public void KSPEventConstellationSetup()
         {
-            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", this.vessel, this).launch(new System.Object[] { this.vessel });
+            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", this.vessel).launch(new System.Object[] { this.vessel });
         }
     }
 

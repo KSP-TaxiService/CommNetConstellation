@@ -27,7 +27,7 @@ namespace CommNetConstellation.CommNetLayer
             coloriseEachConstellation(2, new Color(0.95f, 0.43f, 0.49f, 1f));
         }
 
-        private void coloriseEachConstellation(int radioFrequency, Color newColor)
+        private void coloriseEachConstellation(short radioFrequency, Color newColor)
         {
             List<CNCCommNetVessel> commnetVessels = CNCUtils.getCommNetVessels(radioFrequency);
 

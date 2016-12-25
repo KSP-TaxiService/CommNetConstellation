@@ -1,6 +1,7 @@
 ﻿using CommNetConstellation.CommNetLayer;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace CommNetConstellation.UI
 {
@@ -10,7 +11,6 @@ namespace CommNetConstellation.UI
         public int textureHeight = 120;
         private float saturationSlider = 0.0F;
         private Texture2D saturationTexture;
-        ColorPicker picker;
 
         private string description = "You are editing this constellation.\n\n";
         private static readonly Texture2D colorTexture = CNCUtils.loadImage("colorDisplay");
@@ -22,7 +22,7 @@ namespace CommNetConstellation.UI
                                                                                                         350,                                //height
                                                                                                         new string[] { "showclosebutton" }) //arguments
         {
-            picker = new ColorPicker();
+
         }
 
         protected override List<DialogGUIBase> drawContentComponents()
@@ -32,7 +32,7 @@ namespace CommNetConstellation.UI
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description, false, false) }));
 
             DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 50, 32);
-            DialogGUITextInput nameInput = new DialogGUITextInput("Some Constellation Name", false, 23, null, 135, 32);
+            DialogGUITextInput nameInput = new DialogGUITextInput("Some Constellation Name", false, CNCSettings.Instance.MaxNumChars, null, 135, 32);
 
             DialogGUIHorizontalLayout lineGroup3 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { nameLabel, nameInput, new DialogGUIFlexibleSpace() });
             listComponments.Add(lineGroup3);
@@ -62,7 +62,7 @@ namespace CommNetConstellation.UI
 
         private void updateClick()
         {
-            picker.showPicker = true;
+
         }
     }
 }
