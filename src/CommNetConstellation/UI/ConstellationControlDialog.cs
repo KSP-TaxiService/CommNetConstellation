@@ -15,11 +15,11 @@ namespace CommNetConstellation.UI
         private static readonly Texture2D focusTexture = CNCUtils.loadImage("target");
 
         public ConstellationControlDialog(string title) : base(title, 
-                                                            0.8f,                           //x
-                                                            0.5f,                           //y
-                                                            (int)(1920*0.3),                //width
-                                                            (int)(1200*0.5),                //height
-                                                            new string[] { "showversion" }) //arguments
+                                                            0.8f, //x
+                                                            0.5f, //y
+                                                            (int)(1920*0.3), //width
+                                                            (int)(1200*0.5), //height
+                                                            new string[] { "showversion", "allowbginputs" }) //arguments
         {
             
         }
@@ -82,7 +82,7 @@ namespace CommNetConstellation.UI
             for (int i = 0; i < allVessels.Count; i++)
             {
                 CNCCommNetVessel thisVessel = allVessels.ElementAt<CNCCommNetVessel>(i);
-
+                //TODO: solve the issue of this image button
                 DialogGUIButton focusButton = new DialogGUIButton(Sprite.Create(focusTexture, new Rect(0, 0, 16, 16), Vector2.one), vesselFocusClick, 16, 16, false);
                 DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.vesselName, 180, 12);
                 DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: {0}", thisVessel.getRadioFrequency()), 110, 12);
@@ -114,7 +114,13 @@ namespace CommNetConstellation.UI
 
         private void deleteConstellationClick()
         {
+            MultiOptionDialog warningDialog = new MultiOptionDialog("Delete?!", "OH NOES", HighLogic.UISkin, new DialogGUIBase[]
+            {
+                new DialogGUIButton("YES", null),
+                new DialogGUIButton("NO", delegate { })
+            });
 
+            PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), warningDialog, false, HighLogic.UISkin, true, string.Empty);
         }
 
         private void vesselSetupClick()

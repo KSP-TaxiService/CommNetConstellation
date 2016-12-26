@@ -16,7 +16,7 @@ namespace CommNetConstellation.UI
         private static readonly Texture2D colorTexture = CNCUtils.loadImage("colorDisplay");
 
         public ConstellationEditDialog(string dialogTitle, Constellation thisConstellation) : base(dialogTitle,
-                                                                                                        0.7f,                               //x
+                                                                                                        0.5f,                               //x
                                                                                                         0.5f,                               //y
                                                                                                         250,                                //width
                                                                                                         350,                                //height

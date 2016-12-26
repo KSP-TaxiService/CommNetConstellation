@@ -13,6 +13,8 @@ using UnityEngine.UI;
 
 namespace CommNetConstellation.UI
 {
+    //TODO: make confirm dialog
+
     public abstract class AbstractDialog
     {
         protected bool isDisplayed = false;
@@ -23,6 +25,7 @@ namespace CommNetConstellation.UI
         protected float normalizedCenterY; //0.0f to 1.0f
         protected bool showCloseButton = false;
         protected bool showVersion = false;
+        protected bool blockBackgroundInputs = true;
 
         protected PopupDialog popupDialog = null;
 
@@ -68,8 +71,10 @@ namespace CommNetConstellation.UI
                     this.showCloseButton = true;
                 else if (arg.Equals("showversion"))
                     this.showVersion = true;
+                else if (arg.Equals("allowbginputs"))
+                    this.blockBackgroundInputs = false;
                 else
-                    CNCLog.Error("AbstractDialog argument '{0}' is unknown",arg);
+                    CNCLog.Error("AbstractDialog argument '{0}' is unknown", arg);
             }
         }
 
@@ -87,12 +92,8 @@ namespace CommNetConstellation.UI
              * ----------------------- 
              */
 
-            List<DialogGUIBase> entireComponentList = new List<DialogGUIBase>();
-
             //content
-            List<DialogGUIBase> contentComponentList = drawContentComponents();
-            for (int i = 0; i < contentComponentList.Count; i++)
-                entireComponentList.Add(contentComponentList.ElementAt(i));
+            List<DialogGUIBase> entireComponentList = drawContentComponents();
 
             //close button and some info
             //entireComponentList.Add(new DialogGUISpace(4));
@@ -128,7 +129,7 @@ namespace CommNetConstellation.UI
                                                 moDialog,
                                                 false,  // persistAcrossScreen
                                                 HighLogic.UISkin,
-                                                false); // isModal
+                                                blockBackgroundInputs); // isModal
         }
     }
 }

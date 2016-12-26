@@ -11,10 +11,10 @@ namespace CommNetConstellation.UI
         private static readonly Texture2D colorTexture = CNCUtils.loadImage("colorDisplay");
 
         public VesselSetupDialog(string title, Vessel thisVessel) : base(title, 
-                                                                            0.7f,                               //x
-                                                                            0.5f,                               //y
-                                                                            250,                                //width
-                                                                            255,                                //height
+                                                                            0.5f, //x
+                                                                            0.5f, //y
+                                                                            250, //width
+                                                                            255, //height
                                                                             new string[] { "showclosebutton" }) //arguments
         {
             this.hostVessel = thisVessel; // could be null (in editor)
@@ -31,16 +31,16 @@ namespace CommNetConstellation.UI
 
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description, false, false) }));
 
-            DialogGUILabel freqLabel = new DialogGUILabel("<b>Radio frequency</b>", 30, 24);
-            DialogGUITextInput frequencyInput = new DialogGUITextInput("12345", false, 5, null, 32, 32);
+            DialogGUILabel freqLabel = new DialogGUILabel("<b>Radio frequency</b>", 32, 24);
+             DialogGUITextInput frequencyInput = new DialogGUITextInput("12345", false, 5, null, 20, 32);
 
-            DialogGUIHorizontalLayout lineGroup1 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), freqLabel, frequencyInput, new DialogGUIFlexibleSpace()});
+            DialogGUIHorizontalLayout lineGroup1 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(50) , new DialogGUIFlexibleSpace()});
             listComponments.Add(lineGroup1);
 
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, Color.yellow, colorTexture); colorImage.width = 32; colorImage.height = 32;
-            DialogGUILabel constNameLabel = new DialogGUILabel("Some Name", 130, 12);
+            DialogGUILabel constNameLabel = new DialogGUILabel("<b>Under:</b> Some Name", 200, 12);
 
-            DialogGUIHorizontalLayout lineGroup3 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { colorImage, constNameLabel, new DialogGUIFlexibleSpace() });
+            DialogGUIHorizontalLayout lineGroup3 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { constNameLabel, colorImage });
             listComponments.Add(lineGroup3);
 
             DialogGUIButton updateButton = new DialogGUIButton("Update", updateClick, false);
