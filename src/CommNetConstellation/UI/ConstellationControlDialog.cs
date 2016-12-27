@@ -83,7 +83,7 @@ namespace CommNetConstellation.UI
             {
                 CNCCommNetVessel thisVessel = allVessels.ElementAt<CNCCommNetVessel>(i);
                 //TODO: solve the issue of this image button
-                DialogGUIButton focusButton = new DialogGUIButton(Sprite.Create(focusTexture, new Rect(0, 0, 16, 16), Vector2.one), vesselFocusClick, 16, 16, false);
+                DialogGUIButton focusButton = new DialogGUIButton(Sprite.Create(focusTexture, new Rect(0, 0, 32, 32), Vector2.zero), delegate { vesselFocusClick(thisVessel.Vessel.vesselName); }, 32, 32, false);
                 DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.vesselName, 180, 12);
                 DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: {0}", thisVessel.getRadioFrequency()), 110, 12);
                 DialogGUILabel locationLabel = new DialogGUILabel(string.Format("Orbiting: {0}", thisVessel.Vessel.mainBody.name), 120, 12);
@@ -128,9 +128,9 @@ namespace CommNetConstellation.UI
             new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", null).launch(new System.Object[] {});
         }
 
-        private void vesselFocusClick()
+        private void vesselFocusClick(string id)
         {
-
+            CNCLog.Debug("Name: " + id);
         }
 
         private void newConstellationClick()
