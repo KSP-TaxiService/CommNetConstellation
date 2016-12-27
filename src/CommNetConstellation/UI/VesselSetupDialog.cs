@@ -31,10 +31,10 @@ namespace CommNetConstellation.UI
 
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description, false, false) }));
 
-            DialogGUILabel freqLabel = new DialogGUILabel("<b>Radio frequency</b>", 32, 24);
-             DialogGUITextInput frequencyInput = new DialogGUITextInput("12345", false, 5, null, 20, 32);
+            DialogGUILabel freqLabel = new DialogGUILabel("<b>Radio frequency</b>", 40, 24);
+            DialogGUITextInput frequencyInput = new DialogGUITextInput("12345", false, 5, null, 40, 32);
 
-            DialogGUIHorizontalLayout lineGroup1 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(50) , new DialogGUIFlexibleSpace()});
+            DialogGUIHorizontalLayout lineGroup1 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(100)});
             listComponments.Add(lineGroup1);
 
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, Color.yellow, colorTexture); colorImage.width = 32; colorImage.height = 32;

@@ -19,7 +19,7 @@ namespace CommNetConstellation.UI
                                                                                                         0.5f,                               //x
                                                                                                         0.5f,                               //y
                                                                                                         250,                                //width
-                                                                                                        350,                                //height
+                                                                                                        255,                                //height
                                                                                                         new string[] { "showclosebutton" }) //arguments
         {
 
@@ -31,17 +31,18 @@ namespace CommNetConstellation.UI
 
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description, false, false) }));
 
-            DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 50, 32);
-            DialogGUITextInput nameInput = new DialogGUITextInput("Some Constellation Name", false, CNCSettings.Instance.MaxNumChars, null, 135, 32);
+            DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 40, 12);
+            DialogGUITextInput nameInput = new DialogGUITextInput("Some Constellation Name", false, CNCSettings.Instance.MaxNumChars, null, 129, 32);
 
             DialogGUIHorizontalLayout lineGroup3 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { nameLabel, nameInput, new DialogGUIFlexibleSpace() });
             listComponments.Add(lineGroup3);
 
-            DialogGUILabel freqLabel = new DialogGUILabel("<b>Radio frequency</b>", 50, 32);
-            DialogGUITextInput frequencyInput = new DialogGUITextInput("12345", false, 5, null, 32, 32);
-            DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.zero, Color.yellow, colorTexture);
+            DialogGUILabel freqLabel = new DialogGUILabel("<b>Radio frequency</b>", 50, 24);
+            DialogGUITextInput frequencyInput = new DialogGUITextInput("12345", false, 5, null, 40, 32);
+            DialogGUILabel colorLabel = new DialogGUILabel("<b>Color</b>", 30, 12);
+            DialogGUIButton colorButton = new DialogGUIButton(Sprite.Create(colorTexture, new Rect(0, 0, 32, 32), Vector2.zero), delegate { }, 32, 32, false); colorButton.width = 32; colorButton.height = 32;
 
-            DialogGUIHorizontalLayout lineGroup1 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUIFlexibleSpace(), colorImage, new DialogGUIFlexibleSpace() });
+            DialogGUIHorizontalLayout lineGroup1 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(18), colorLabel, colorButton });
             listComponments.Add(lineGroup1);
 
             DialogGUIButton updateButton = new DialogGUIButton("Update", updateClick, false);
