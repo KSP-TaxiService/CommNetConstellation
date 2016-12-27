@@ -82,10 +82,13 @@ namespace CommNetConstellation.UI
             for (int i = 0; i < allVessels.Count; i++)
             {
                 CNCCommNetVessel thisVessel = allVessels.ElementAt<CNCCommNetVessel>(i);
+                short radioFreq = thisVessel.getRadioFrequency();
+                Color color = Constellation.getColor(CNCCommNetScenario.Instance.constellations, radioFreq);
+
                 //TODO: solve the issue of this image button
                 DialogGUIButton focusButton = new DialogGUIButton(Sprite.Create(focusTexture, new Rect(0, 0, 32, 32), Vector2.zero), delegate { vesselFocusClick(thisVessel.Vessel.vesselName); }, 32, 32, false);
-                DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.vesselName, 180, 12);
-                DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: {0}", thisVessel.getRadioFrequency()), 110, 12);
+                DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.vesselName, 160, 12);
+                DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: <color={0}>{1}</color>", CNCUtils.colorToHex(color), radioFreq), 120, 12);
                 DialogGUILabel locationLabel = new DialogGUILabel(string.Format("Orbiting: {0}", thisVessel.Vessel.mainBody.name), 120, 12);
                 DialogGUIButton setupButton = new DialogGUIButton("Setup", vesselSetupClick, 70, 32, false);
 
@@ -109,15 +112,21 @@ namespace CommNetConstellation.UI
 
         private void resetConstellationClick()
         {
+            MultiOptionDialog warningDialog = new MultiOptionDialog("Revert to the default constellation name and color?", "Constellation", HighLogic.UISkin, new DialogGUIBase[]
+            {
+                new DialogGUIButton("Reset", null),
+                new DialogGUIButton("Cancel", null)
+            });
 
+            PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), warningDialog, false, HighLogic.UISkin, true, string.Empty);
         }
 
         private void deleteConstellationClick()
         {
-            MultiOptionDialog warningDialog = new MultiOptionDialog("Delete?!", "OH NOES", HighLogic.UISkin, new DialogGUIBase[]
+            MultiOptionDialog warningDialog = new MultiOptionDialog("Delete this constellation NAME?\n\nAll vessels in this constellation will be moved into the public constellation.", "Constellation", HighLogic.UISkin, new DialogGUIBase[]
             {
-                new DialogGUIButton("YES", null),
-                new DialogGUIButton("NO", delegate { })
+                new DialogGUIButton("Delete", null),
+                new DialogGUIButton("Cancel", null)
             });
 
             PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), warningDialog, false, HighLogic.UISkin, true, string.Empty);

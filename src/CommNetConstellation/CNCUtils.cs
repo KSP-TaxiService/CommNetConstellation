@@ -64,5 +64,13 @@ namespace CommNetConstellation
             //not found
             return null;
         }
+
+        //http://answers.unity3d.com/questions/1102232/how-to-get-the-color-code-in-rgb-hex-from-rgba-uni.html
+        public static string colorToHex(Color thisColor) { return string.Format("#{0:X2}{1:X2}{2:X2}", toByte(thisColor.r), toByte(thisColor.g), toByte(thisColor.b)); }
+        private static byte toByte(float f)
+        {
+            f = Mathf.Clamp01(f);
+            return (byte)(f * 255);
+        }
     }
 }

@@ -48,21 +48,12 @@ namespace CommNetConstellation
             return true;
         }
 
-        public static Color parseColor(string colorString)
-        {
-            string[] numbers = colorString.Split(',');
-            Color output = Color.black;
-            for (var i = 0; i < numbers.Length; i++)
-            {
-                output[i] = float.Parse(numbers[i]);
-            }
-            return output;
-        }
-
         public static int countVesselsOf(Constellation thisConstellation)
         {
             List<CNCCommNetVessel> allVessels = CNCUtils.getCommNetVessels();
             return allVessels.Sum(i => (i.getRadioFrequency() == thisConstellation.frequency) ? 1 : 0);
         }
+
+        
     }
 }
