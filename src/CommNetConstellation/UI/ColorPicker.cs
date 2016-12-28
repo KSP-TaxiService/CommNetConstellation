@@ -1,123 +1,105 @@
 using UnityEngine;
-using System.Collections;
 
-// relies on: http://forum.unity3d.com/threads/12031-create-random-colors?p=84625&viewfull=1#post84625
-
+// credit to Brian Jones (https://github.com/boj)
+// obtained from https://gist.github.com/boj/1181465 (warning: the original author's codes were written hurriedly, resulting in obvious bugs)
+// license - not found; I think it is released to public domain
 namespace CommNetConstellation
 {
     [KSPAddon(KSPAddon.Startup.TrackingStation, false)]
     public class ColorPicker : MonoBehaviour
     {
-
-        public bool useDefinedPosition = true;
-        public int positionLeft = 300;
-        public int positionTop = 300;
-
-        // the solid texture which everything is compared against
-        public Texture2D colorPicker = null;
-
-        // the picker being displayed
-        private Texture2D displayPicker;
-
-        // the color that has been chosen
-        public Color setColor;
-        private Color lastSetColor;
-
-        public bool useDefinedSize = false;
-        public int textureWidth = 360;
-        public int textureHeight = 120;
-
-        private float saturationSlider = 0.0F;
-        private Texture2D saturationTexture;
-
-        private Texture2D styleTexture;
-
         public bool showPicker = true;
 
-        void Awake()
+        private Texture2D displayPicker;
+        public int displayTextureWidth = 360;
+        public int displayTextureHeight = 360;
+
+        public int positionLeft;
+        public int positionTop;
+
+        public Color chosenColor;
+        private Texture2D chosenColorTexture;
+
+        private float hueSlider = 0f;
+        private float prevHueSlider = 0f;
+        private Texture2D hueTexture;
+        
+        protected void Awake()
         {
-            if (!useDefinedPosition)
-            {
-                positionLeft = (Screen.width / 2) - (textureWidth / 2);
-                positionTop = (Screen.height / 2) - (textureHeight / 2);
-            }
+            positionLeft = (Screen.width / 2) - (displayTextureWidth / 2);
+            positionTop = (Screen.height / 2) - (displayTextureHeight / 2);
 
-            // if a default color picker texture hasn't been assigned, make one dynamically
-            if (colorPicker == null)
+            renderColorPicker();
+
+            hueTexture = new Texture2D(10, displayTextureHeight, TextureFormat.ARGB32, false);
+            for (int x = 0; x < hueTexture.width; x++)
             {
-                colorPicker = new Texture2D(textureWidth, textureHeight, TextureFormat.ARGB32, false);
-                ColorHSV hsvColor;
-                for (int i = 0; i < textureWidth; i++)
+                for (int y = 0; y < hueTexture.height; y++)
                 {
-                    for (int j = 0; j < textureHeight; j++)
-                    {
-                        hsvColor = new ColorHSV((float)i, (1.0f / j) * textureHeight, 1.0f);
-                        colorPicker.SetPixel(i, j, hsvColor.ToColor());
-                    }
+                    float h = (y / (hueTexture.height*1.0f)) * 1f;
+                    hueTexture.SetPixel(x, y, new ColorHSV(h, 1f, 1f).ToColor());
                 }
             }
-            colorPicker.Apply();
-            displayPicker = colorPicker;
-
-            if (!useDefinedSize)
-            {
-                textureWidth = colorPicker.width;
-                textureHeight = colorPicker.height;
-            }
-
-            float v = 0.0F;
-            float diff = 1.0f / textureHeight;
-            saturationTexture = new Texture2D(20, textureHeight);
-            for (int i = 0; i < saturationTexture.width; i++)
-            {
-                for (int j = 0; j < saturationTexture.height; j++)
-                {
-                    saturationTexture.SetPixel(i, j, new Color(v, v, v));
-                    v += diff;
-                }
-                v = 0.0F;
-            }
-            saturationTexture.Apply();
+            hueTexture.Apply();
 
             // small color picker box texture
-            styleTexture = new Texture2D(1, 1);
-            styleTexture.SetPixel(0, 0, setColor);
+            chosenColorTexture = new Texture2D(1, 1);
+            chosenColorTexture.SetPixel(0, 0, chosenColor);
         }
 
-        void OnGUI()
+        private void renderColorPicker()
+        {
+            Texture2D colorPicker = new Texture2D(displayTextureWidth, displayTextureHeight, TextureFormat.ARGB32, false);
+            for (int x = 0; x < displayTextureWidth; x++)
+            {
+                for (int y = 0; y < displayTextureHeight; y++)
+                {
+                    float h = hueSlider;
+                    float v = (y / (displayTextureHeight * 1.0f)) * 1f;
+                    float s = (x / (displayTextureWidth * 1.0f)) * 1f;
+                    colorPicker.SetPixel(x, y, new ColorHSV(h, s, v).ToColor());
+                }
+            }
+
+            colorPicker.Apply();
+            displayPicker = colorPicker;
+        }
+
+        protected void OnGUI()
         {
             if (!showPicker) return;
 
-            GUI.Box(new Rect(positionLeft - 3, positionTop - 3, textureWidth + 60, textureHeight + 60), "");
+            GUI.Box(new Rect(positionLeft - 3, positionTop - 3, displayTextureWidth + 60, displayTextureHeight + 60), "");
 
-            if (GUI.RepeatButton(new Rect(positionLeft, positionTop, textureWidth, textureHeight), displayPicker))
+            if (hueSlider != prevHueSlider) // new Hue value
+            {
+                prevHueSlider = hueSlider;
+                renderColorPicker();
+            }
+
+            if (GUI.RepeatButton(new Rect(positionLeft, positionTop, displayTextureWidth, displayTextureHeight), displayPicker))
             {
                 int a = (int)Input.mousePosition.x;
                 int b = Screen.height - (int)Input.mousePosition.y;
 
-                setColor = displayPicker.GetPixel(a - positionLeft, -(b - positionTop));
-                lastSetColor = setColor;
+                chosenColor = displayPicker.GetPixel(a - positionLeft, -(b - positionTop));
             }
 
-            saturationSlider = GUI.VerticalSlider(new Rect(positionLeft + textureWidth + 3, positionTop, 10, textureHeight), saturationSlider, 1, -1);
-            setColor = lastSetColor + new Color(saturationSlider, saturationSlider, saturationSlider);
-            GUI.Box(new Rect(positionLeft + textureWidth + 20, positionTop, 20, textureHeight), saturationTexture);
+            hueSlider = GUI.VerticalSlider(new Rect(positionLeft + displayTextureWidth + 3, positionTop, 10, displayTextureHeight), hueSlider, 1, 0);
+            GUI.Box(new Rect(positionLeft + displayTextureWidth + 20, positionTop, 20, displayTextureHeight), hueTexture);
 
-            if (GUI.Button(new Rect(positionLeft + textureWidth - 60, positionTop + textureHeight + 10, 60, 25), "Apply"))
+            if (GUI.Button(new Rect(positionLeft + displayTextureWidth - 60, positionTop + displayTextureHeight + 10, 60, 25), "Apply"))
             {
-                setColor = styleTexture.GetPixel(0, 0);
-
-                // hide picker
-                //showPicker = false;
+                chosenColor = chosenColorTexture.GetPixel(0, 0);
+                showPicker = false;
             }
 
-            // color display
+            // box for chosen color
             GUIStyle style = new GUIStyle();
-            styleTexture.SetPixel(0, 0, setColor);
-            styleTexture.Apply();
-
-            style.normal.background = styleTexture;
-            GUI.Box(new Rect(positionLeft + textureWidth + 10, positionTop + textureHeight + 10, 30, 30), new GUIContent(""), style);
+            chosenColorTexture.SetPixel(0, 0, chosenColor);
+            chosenColorTexture.Apply();
+            style.normal.background = chosenColorTexture;
+            GUI.Box(new Rect(positionLeft + displayTextureWidth + 10, positionTop + displayTextureHeight + 10, 30, 30), new GUIContent(""), style);
         }
     }
 }
