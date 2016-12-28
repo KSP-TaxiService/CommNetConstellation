@@ -13,7 +13,9 @@ using UnityEngine.UI;
 
 namespace CommNetConstellation.UI
 {
-    //TODO: make confirm dialog
+    //TODO: change extraArgs to enum array
+    //TODO: close button need callback (or a new method ExecuteStuffAtClosing()?)
+    //TODO: resolve the issue of images being larger than 32x32
 
     public abstract class AbstractDialog
     {
@@ -92,37 +94,58 @@ namespace CommNetConstellation.UI
              * ----------------------- 
              */
 
+            List<DialogGUIBase> dialogComponentList;
+
             //content
-            List<DialogGUIBase> entireComponentList = drawContentComponents();
+            List<DialogGUIBase> contentComponentList = drawContentComponents();
+
+            if(contentComponentList == null)
+            {
+                dialogComponentList = new List<DialogGUIBase>(1);
+            }
+            else
+            {
+                dialogComponentList = new List<DialogGUIBase>(contentComponentList.Count + 1);
+                dialogComponentList.AddRange(contentComponentList);
+            }
 
             //close button and some info
-            //entireComponentList.Add(new DialogGUISpace(4));
-            if (showVersion || showCloseButton)
+            DialogGUIBase[] footer;
+            if (!showVersion && showCloseButton)
             {
-                entireComponentList.Add(new DialogGUIHorizontalLayout(
-                                            (showCloseButton) ?
-                                            new DialogGUIBase[]
-                                            {
-                                            new DialogGUIFlexibleSpace(),
-                                            new DialogGUIButton("Close", dismiss),
-                                            new DialogGUIFlexibleSpace(),
-                                            new DialogGUILabel((!showVersion)?"":string.Format("v{0}.{1}", CNCSettings.Instance.MajorVersion, CNCSettings.Instance.MinorVersion), false, false)
-                                            }
-                                            :
-                                            new DialogGUIBase[]
-                                            {
-                                            new DialogGUIFlexibleSpace(),
-                                            new DialogGUILabel((!showVersion)?"":string.Format("v{0}.{1}", CNCSettings.Instance.MajorVersion, CNCSettings.Instance.MinorVersion), false, false)
-                                            }
-                                        ));
+                footer = new DialogGUIBase[] 
+                    {
+                    new DialogGUIFlexibleSpace(),
+                    new DialogGUIButton("Close", dismiss),
+                    new DialogGUIFlexibleSpace()
+                    };
             }
+            else if(showVersion && !showCloseButton)
+            {
+                footer = new DialogGUIBase[]
+                    {
+                    new DialogGUIFlexibleSpace(),
+                    new DialogGUILabel(string.Format("v{0}.{1}", CNCSettings.Instance.MajorVersion, CNCSettings.Instance.MinorVersion), false, false)
+                    };
+            }
+            else
+            {
+                footer = new DialogGUIBase[]
+                    {
+                    new DialogGUIFlexibleSpace(),
+                    new DialogGUIButton("Close", dismiss),
+                    new DialogGUIFlexibleSpace(),
+                    new DialogGUILabel(string.Format("v{0}.{1}", CNCSettings.Instance.MajorVersion, CNCSettings.Instance.MinorVersion), false, false)
+                    };
+            }
+            dialogComponentList.Add(new DialogGUIHorizontalLayout(footer));
 
             //Spawn the dialog
             MultiOptionDialog moDialog = new MultiOptionDialog("",
                                                                dialogTitle,
                                                                HighLogic.UISkin,
                                                                new Rect(normalizedCenterX, normalizedCenterY, windowWidth, windowHeight),
-                                                               entireComponentList.ToArray());
+                                                               dialogComponentList.ToArray());
 
             return PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f),
                                                 new Vector2(0.5f, 0.5f),

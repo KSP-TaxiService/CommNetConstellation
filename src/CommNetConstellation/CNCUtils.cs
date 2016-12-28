@@ -72,5 +72,27 @@ namespace CommNetConstellation
             f = Mathf.Clamp01(f);
             return (byte)(f * 255);
         }
+
+        //https://forum.unity3d.com/threads/best-easiest-way-to-change-color-of-certain-pixels-in-a-single-sprite.223030/
+        public static Texture2D copyAndColorTexture2D(Texture2D template, Color maskColor, Color newColor)
+        {
+            Texture2D newTexture = new Texture2D(template.width, template.height);
+            newTexture.filterMode = FilterMode.Point;
+            newTexture.wrapMode = TextureWrapMode.Clamp;
+
+            for(int y = 0; y < newTexture.height; y++)
+            {
+                for (int x = 0; x < newTexture.width; x++)
+                {
+                    if (template.GetPixel(x, y) == maskColor)
+                        newTexture.SetPixel(x, y, newColor);
+                    else
+                        newTexture.SetPixel(x, y, template.GetPixel(x, y));
+                }
+            }
+
+            newTexture.Apply(); // finalise
+            return newTexture;
+        }
     }
 }

@@ -7,22 +7,18 @@ namespace CommNetConstellation.UI
 {
     public class ConstellationEditDialog : AbstractDialog
     {
-        public int textureWidth = 360;
-        public int textureHeight = 120;
-        private float saturationSlider = 0.0F;
-        private Texture2D saturationTexture;
-
         private string description = "You are editing this constellation.\n\n";
         private static readonly Texture2D colorTexture = CNCUtils.loadImage("colorDisplay");
+        private Sprite colorButtonIcon;
 
         public ConstellationEditDialog(string dialogTitle, Constellation thisConstellation) : base(dialogTitle,
-                                                                                                        0.5f,                               //x
-                                                                                                        0.5f,                               //y
-                                                                                                        250,                                //width
-                                                                                                        255,                                //height
+                                                                                                        0.5f, //x
+                                                                                                        0.5f, //y
+                                                                                                        250, //width
+                                                                                                        255, //height
                                                                                                         new string[] { "showclosebutton" }) //arguments
         {
-
+            this.colorButtonIcon = Sprite.Create(CNCUtils.copyAndColorTexture2D(colorTexture, new Color(1f, 1f, 1f), new Color(1f, 0f, 0f)), new Rect(0, 0, 32, 32), Vector2.zero);
         }
 
         protected override List<DialogGUIBase> drawContentComponents()
@@ -40,7 +36,7 @@ namespace CommNetConstellation.UI
             DialogGUILabel freqLabel = new DialogGUILabel("<b>Radio frequency</b>", 50, 24);
             DialogGUITextInput frequencyInput = new DialogGUITextInput("12345", false, 5, null, 40, 32);
             DialogGUILabel colorLabel = new DialogGUILabel("<b>Color</b>", 30, 12);
-            DialogGUIButton colorButton = new DialogGUIButton(Sprite.Create(colorTexture, new Rect(0, 0, 32, 32), Vector2.zero), delegate { }, 32, 32, false); colorButton.width = 32; colorButton.height = 32;
+            DialogGUIButton colorButton = new DialogGUIButton(colorButtonIcon, delegate { colorEditClick(Color.red);  }, 32, 32, false);
 
             DialogGUIHorizontalLayout lineGroup1 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(18), colorLabel, colorButton });
             listComponments.Add(lineGroup1);
@@ -64,6 +60,16 @@ namespace CommNetConstellation.UI
         private void updateClick()
         {
 
+        }
+
+        private void colorEditClick(Color chosenColor)
+        {
+            new ColorPickerDialog(chosenColor, userChooseColor).launch(new System.Object[] { });
+        }
+
+        public void userChooseColor(Color chosenColor)
+        {
+            CNCLog.Debug("User color: " + CNCUtils.colorToHex(chosenColor));
         }
     }
 }
