@@ -8,7 +8,7 @@ namespace CommNetConstellation.UI
     {
         private Vessel hostVessel;
         private string description = "You are editing ";
-        private static readonly Texture2D colorTexture = CNCUtils.loadImage("colorDisplay");
+        private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
 
         public VesselSetupDialog(string title, Vessel thisVessel) : base(title, 
                                                                             0.5f, //x

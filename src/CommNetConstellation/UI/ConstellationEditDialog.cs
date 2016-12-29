@@ -8,8 +8,8 @@ namespace CommNetConstellation.UI
     public class ConstellationEditDialog : AbstractDialog
     {
         private string description = "You are editing this constellation.\n\n";
-        private static readonly Texture2D colorTexture = CNCUtils.loadImage("colorDisplay");
-        private Sprite colorButtonIcon;
+        private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
+        private Texture2D colorButtonIcon;
 
         public ConstellationEditDialog(string dialogTitle, Constellation thisConstellation) : base(dialogTitle,
                                                                                                         0.5f, //x
@@ -18,7 +18,7 @@ namespace CommNetConstellation.UI
                                                                                                         255, //height
                                                                                                         new string[] { "showclosebutton" }) //arguments
         {
-            this.colorButtonIcon = Sprite.Create(CNCUtils.copyAndColorTexture2D(colorTexture, new Color(1f, 1f, 1f), new Color(1f, 0f, 0f)), new Rect(0, 0, 32, 32), Vector2.zero);
+            this.colorButtonIcon = UIUtils.createAndColor(colorTexture, new Color(1f, 1f, 1f), new Color(1f, 0f, 0f));
         }
 
         protected override List<DialogGUIBase> drawContentComponents()
@@ -28,17 +28,20 @@ namespace CommNetConstellation.UI
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description, false, false) }));
 
             DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 40, 12);
-            DialogGUITextInput nameInput = new DialogGUITextInput("Some Constellation Name", false, CNCSettings.Instance.MaxNumChars, null, 129, 32);
+            DialogGUITextInput nameInput = new DialogGUITextInput("Some Constellation Name", false, CNCSettings.Instance.MaxNumChars, null, 130, 32);
 
             DialogGUIHorizontalLayout lineGroup3 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { nameLabel, nameInput, new DialogGUIFlexibleSpace() });
             listComponments.Add(lineGroup3);
 
             DialogGUILabel freqLabel = new DialogGUILabel("<b>Radio frequency</b>", 50, 24);
-            DialogGUITextInput frequencyInput = new DialogGUITextInput("12345", false, 5, null, 40, 32);
-            DialogGUILabel colorLabel = new DialogGUILabel("<b>Color</b>", 30, 12);
-            DialogGUIButton colorButton = new DialogGUIButton(colorButtonIcon, delegate { colorEditClick(Color.red);  }, 32, 32, false);
+            DialogGUITextInput frequencyInput = new DialogGUITextInput("12345", false, 5, null, 45, 32);
+            DialogGUILabel colorLabel = new DialogGUILabel("<b>Color</b>", 32, 12);
 
-            DialogGUIHorizontalLayout lineGroup1 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(18), colorLabel, colorButton });
+            UIStyle btnStyle = UIUtils.createImageButtonStyle(colorButtonIcon);
+            DialogGUIButton colorButton = new DialogGUIButton("", delegate { colorEditClick(Color.red); }, null, 32, 32, false, btnStyle);
+            colorButton.image = btnStyle.normal.background;
+
+            DialogGUIHorizontalLayout lineGroup1 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(21), colorLabel, colorButton });
             listComponments.Add(lineGroup1);
 
             DialogGUIButton updateButton = new DialogGUIButton("Update", updateClick, false);
@@ -69,7 +72,7 @@ namespace CommNetConstellation.UI
 
         public void userChooseColor(Color chosenColor)
         {
-            CNCLog.Debug("User color: " + CNCUtils.colorToHex(chosenColor));
+            CNCLog.Debug("User color: " + UIUtils.colorToHex(chosenColor));
         }
     }
 }

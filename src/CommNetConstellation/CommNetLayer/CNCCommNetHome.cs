@@ -1,15 +1,12 @@
 ﻿using CommNet;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using CommNetConstellation.UI;
 using UnityEngine;
 
 namespace CommNetConstellation.CommNetLayer
 {
     public class CNCCommNetHome : CommNetHome
     {
-        private static readonly Texture2D markTexture = CNCUtils.loadImage("groundStationMark");
+        private static readonly Texture2D markTexture = UIUtils.loadImage("groundStationMark");
 
         public void copyOf(CommNetHome stockHome)
         {

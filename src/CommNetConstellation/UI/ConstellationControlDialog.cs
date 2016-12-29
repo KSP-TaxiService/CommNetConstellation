@@ -11,8 +11,8 @@ namespace CommNetConstellation.UI
 {
     public class ConstellationControlDialog : AbstractDialog
     {
-        private static readonly Texture2D colorTexture = CNCUtils.loadImage("colorDisplay");
-        private static readonly Texture2D focusTexture = CNCUtils.loadImage("target");
+        private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
+        private static readonly Texture2D focusTexture = UIUtils.loadImage("target");
 
         public ConstellationControlDialog(string title) : base(title, 
                                                             0.8f, //x
@@ -48,7 +48,7 @@ namespace CommNetConstellation.UI
             {
                 Constellation thisConstellation = CNCCommNetScenario.Instance.constellations.ElementAt<Constellation>(i);
 
-                DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.zero, thisConstellation.color, colorTexture); colorImage.width = 32; colorImage.height = 32;
+                DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, thisConstellation.color, colorTexture);
                 DialogGUILabel constNameLabel = new DialogGUILabel(thisConstellation.name, 130, 12);
                 DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: {0}", thisConstellation.frequency), 110, 12);
                 DialogGUILabel numSatsLabel = new DialogGUILabel(string.Format("{0} vessels", Constellation.countVesselsOf(thisConstellation)),70, 12);
@@ -85,10 +85,12 @@ namespace CommNetConstellation.UI
                 short radioFreq = thisVessel.getRadioFrequency();
                 Color color = Constellation.getColor(CNCCommNetScenario.Instance.constellations, radioFreq);
 
-                //TODO: solve the issue of this image button
-                DialogGUIButton focusButton = new DialogGUIButton(Sprite.Create(focusTexture, new Rect(0, 0, 32, 32), Vector2.zero), delegate { vesselFocusClick(thisVessel.Vessel.vesselName); }, 32, 32, false);
+                UIStyle focusStyle = UIUtils.createImageButtonStyle(focusTexture);
+                DialogGUIButton focusButton = new DialogGUIButton("", delegate { vesselFocusClick(thisVessel.Vessel.vesselName); }, null, 32, 32, false, focusStyle);
+                focusButton.image = focusStyle.normal.background;
+
                 DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.vesselName, 160, 12);
-                DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: <color={0}>{1}</color>", CNCUtils.colorToHex(color), radioFreq), 120, 12);
+                DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(color), radioFreq), 120, 12);
                 DialogGUILabel locationLabel = new DialogGUILabel(string.Format("Orbiting: {0}", thisVessel.Vessel.mainBody.name), 120, 12);
                 DialogGUIButton setupButton = new DialogGUIButton("Setup", vesselSetupClick, 70, 32, false);
 

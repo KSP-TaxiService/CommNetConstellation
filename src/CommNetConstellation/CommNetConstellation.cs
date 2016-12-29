@@ -19,7 +19,7 @@ namespace CommNetConstellation
         public void Start()
         {
             this.controlDialog = new ConstellationControlDialog("CommNet Constellation - <color=#00ff00>Control Panel</color>");
-            this.launcherBtnTexture = CNCUtils.loadImage("cnclauncherbutton");
+            this.launcherBtnTexture = UIUtils.loadImage("cnclauncherbutton");
 
             this.launcherButton = ApplicationLauncher.Instance.AddModApplication(
                 delegate { controlDialog.launch(new Object[] { }); }, controlDialog.dismiss, null, null, null, null,
