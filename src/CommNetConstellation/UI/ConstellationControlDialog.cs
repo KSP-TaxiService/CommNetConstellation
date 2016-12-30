@@ -27,7 +27,8 @@ namespace CommNetConstellation.UI
         protected override List<DialogGUIBase> drawContentComponents()
         {
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
-            
+
+            CNCLog.Debug("drawContentComponents()");
             setupConstellationList(listComponments);
             setupSatelliteList(listComponments);
 

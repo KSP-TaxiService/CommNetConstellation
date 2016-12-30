@@ -44,6 +44,8 @@ namespace CommNetConstellation.UI
 
         protected abstract bool runIntenseInfo(System.Object[] args);
         protected abstract List<DialogGUIBase> drawContentComponents();
+        protected virtual void OnUpdate() { }
+        protected virtual void OnResize() { }
 
         public void launch(System.Object[] args)
         {
@@ -146,6 +148,9 @@ namespace CommNetConstellation.UI
                                                                HighLogic.UISkin,
                                                                new Rect(normalizedCenterX, normalizedCenterY, windowWidth, windowHeight),
                                                                dialogComponentList.ToArray());
+
+            moDialog.OnUpdate = OnUpdate;
+            moDialog.OnResize = OnResize;
 
             return PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f),
                                                 new Vector2(0.5f, 0.5f),
