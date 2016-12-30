@@ -15,7 +15,7 @@ namespace CommNetConstellation.UI
                                                                             0.5f, //y
                                                                             250, //width
                                                                             255, //height
-                                                                            new string[] { "showclosebutton" }) //arguments
+                                                                            new string[] {}) //arguments
         {
             this.hostVessel = thisVessel; // could be null (in editor)
 

@@ -25,7 +25,7 @@ namespace CommNetConstellation.UI
         protected int windowHeight;
         protected float normalizedCenterX; //0.0f to 1.0f
         protected float normalizedCenterY; //0.0f to 1.0f
-        protected bool showCloseButton = false;
+        protected bool showCloseButton = true;
         protected bool showVersion = false;
         protected bool blockBackgroundInputs = true;
 
@@ -68,11 +68,14 @@ namespace CommNetConstellation.UI
 
         protected virtual void processArguments(string[] args)
         {
+            if (args == null)
+                return;
+
             for(int i=0; i<args.Length; i++)
             {
                 string arg = args[i];
-                if (arg.Equals("showclosebutton"))
-                    this.showCloseButton = true;
+                if (arg.Equals("hideclosebutton"))
+                    this.showCloseButton = false;
                 else if (arg.Equals("showversion"))
                     this.showVersion = true;
                 else if (arg.Equals("allowbginputs"))

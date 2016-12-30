@@ -19,7 +19,7 @@ namespace CommNetConstellation.UI
                                                             0.5f, //y
                                                             (int)(1920*0.3), //width
                                                             (int)(1200*0.5), //height
-                                                            new string[] { "showversion", "allowbginputs" }) //arguments
+                                                            new string[] { "showversion", "hideclosebutton", "allowbginputs" }) //arguments
         {
             
         }

@@ -16,7 +16,7 @@ namespace CommNetConstellation.UI
                                                                                                         0.5f, //y
                                                                                                         250, //width
                                                                                                         255, //height
-                                                                                                        new string[] { "showclosebutton" }) //arguments
+                                                                                                        new string[] {}) //arguments
         {
             this.colorButtonIcon = UIUtils.createAndColor(colorTexture, new Color(1f, 1f, 1f), new Color(1f, 0f, 0f));
         }
