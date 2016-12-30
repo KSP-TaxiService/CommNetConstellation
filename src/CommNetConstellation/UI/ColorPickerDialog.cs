@@ -8,120 +8,61 @@ namespace CommNetConstellation.UI
 {
     public class ColorPickerDialog : AbstractDialog
     {
-        private Color userColor;
-        private Callback<Color> returnFunction;
+        private Callback<Color> callbackForChosenColor;
 
-        // the solid texture which everything is compared against
-        public Texture2D colorPicker;
-
-        // the picker being displayed
         private Texture2D displayPicker;
+        private int displayTextureWidth = 250;
+        private int displayTextureHeight = 250;
+        //private DialogGUIImage colorPickerImage;
+        private DialogGUISprite colorPickerImage;
 
-        // the color that has been chosen
-        public Color setColor =  Color.green;
-        private Color lastSetColor = Color.white;
+        private static int dialogWidth = 250 + 10 + 5 + 10;
+        private static int dialogHeight = 300;
 
-        public int textureWidth = 360;
-        public int textureHeight = 120;
+        private Color chosenColor;
+        private Texture2D chosenColorTexture;
 
-        private float saturationSlider = 0.0F;
-        private Texture2D saturationTexture;
+        private Color currentColor;
+        private Texture2D currentColorTexture;
 
-        private Texture2D styleTexture;
+        private float hueSlider = 0f;
+        private int sliderHeight = 5;
+        private Texture2D hueTexture;
 
-        public ColorPickerDialog(Color userColor, Callback<Color> returnFunction) : base("Color Picker",
-                                                                                            0.5f, //x
-                                                                                            0.5f, //y
-                                                                                            180, //width
-                                                                                            180, //height
-                                                                                            new string[] { "showclosebutton" }) //arguments
+        public ColorPickerDialog(Color userColor, Callback<Color> callbackForChosenColor) : base("Color Picker",
+                                                                                                0.5f, //x
+                                                                                                0.5f, //y
+                                                                                                dialogWidth, //width
+                                                                                                dialogHeight, //height
+                                                                                                new string[] { "hideclosebutton", "nodragging" }) //arguments
         {
-            this.userColor = userColor;
-            this.returnFunction = returnFunction;
+            this.currentColor = userColor;
+            this.chosenColor = userColor;
+            this.callbackForChosenColor = callbackForChosenColor;
 
-            // if a default color picker texture hasn't been assigned, make one dynamically
-            if (!colorPicker)
-            {
-                colorPicker = new Texture2D(textureWidth, textureHeight, TextureFormat.ARGB32, false);
-                ColorHSV hsvColor;
-                for (int i = 0; i < textureWidth; i++)
-                {
-                    for (int j = 0; j < textureHeight; j++)
-                    {
-                        hsvColor = new ColorHSV((float)i, (1.0f / j) * textureHeight, 1.0f);
-                        colorPicker.SetPixel(i, j, hsvColor.ToColor());
-                    }
-                }
-            }
-            colorPicker.Apply();
-            displayPicker = colorPicker;
-
-            float v = 0.0F;
-            float diff = 1.0f / textureHeight;
-            saturationTexture = new Texture2D(20, textureHeight);
-            for (int i = 0; i < saturationTexture.width; i++)
-            {
-                for (int j = 0; j < saturationTexture.height; j++)
-                {
-                    saturationTexture.SetPixel(i, j, new Color(v, v, v));
-                    v += diff;
-                }
-                v = 0.0F;
-            }
-            saturationTexture.Apply();
-
-            // small color picker box texture
-            styleTexture = new Texture2D(1, 1);
-            styleTexture.SetPixel(0, 0, setColor);
+            renderColorPicker();
+            renderHueSliderTexture();
         }
 
         protected override List<DialogGUIBase> drawContentComponents()
         {
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
-            DialogGUILabel newColorLabel = new DialogGUILabel("<b>New</b>", 40, 12);
-            DialogGUILabel currentColorLabel = new DialogGUILabel("<b>Current</b>", 40, 12);
-            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { newColorLabel, new DialogGUIFlexibleSpace(), currentColorLabel }));
+            DialogGUILabel newColorLabel = new DialogGUILabel("<b>  New</b>", 40, 12);
+            DialogGUIImage newColorImage = new DialogGUIImage(new Vector2(30, 24), Vector2.zero, chosenColor, chosenColorTexture); 
+            DialogGUILabel currentColorLabel = new DialogGUILabel("<b>Current  </b>", 45, 12);
+            DialogGUIImage currentColorImage = new DialogGUIImage(new Vector2(30, 24), Vector2.zero, currentColor, currentColorTexture);
+            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUISpace(40), newColorImage, newColorLabel, new DialogGUISpace(dialogWidth - 80 - 145), currentColorLabel, currentColorImage, new DialogGUISpace(40) }));
 
-            DialogGUIImage newColorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, setColor, styleTexture);
-            DialogGUIImage currentColorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, lastSetColor, styleTexture);
-            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { newColorImage, new DialogGUIFlexibleSpace(), currentColorImage }));
+            //colorPickerImage = new DialogGUIImage(new Vector2(displayTextureWidth, displayTextureHeight), Vector2.zero, Color.white, displayPicker);
+            colorPickerImage = new DialogGUISprite(new Vector2(displayTextureWidth, displayTextureHeight), new Vector2(0, 0), Color.white, Sprite.Create(displayPicker, new Rect(0, 0, displayTextureWidth, displayTextureHeight), new Vector2(0, 0)));
+            DialogGUIImage hueSliderImage = new DialogGUIImage(new Vector2(displayTextureWidth, sliderHeight * 2), Vector2.zero, Color.white, hueTexture);
+            DialogGUISlider hueSlider = new DialogGUISlider(() => this.hueSlider, 0f, 1f, false, displayTextureWidth, sliderHeight, setHueValue);
+            listComponments.Add(new DialogGUIVerticalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { colorPickerImage, new DialogGUISpace(5f), hueSliderImage, hueSlider }));
 
-
-            DialogGUIBox box1 = new DialogGUIBox("", textureWidth + 60, textureHeight + 60);
-            listComponments.Add(box1);
-
-            /*
-            DialogGUIButton updateButton = new DialogGUIButton("Pick?", pick, false);
-            DialogGUISlider slider = new DialogGUISlider(a, -1f, 1f, false, 140, 24, b);
-            
-            setColor = lastSetColor + new Color(saturationSlider, saturationSlider, saturationSlider);
-            GUI.Box(new Rect(positionLeft + textureWidth + 20, positionTop, 20, textureHeight), saturationTexture);
-
-            if (GUI.Button(new Rect(positionLeft + textureWidth - 60, positionTop + textureHeight + 10, 60, 25), "Apply"))
-            {
-                setColor = styleTexture.GetPixel(0, 0);
-            }
-
-            // color display
-            GUIStyle style = new GUIStyle();
-            styleTexture.SetPixel(0, 0, setColor);
-            styleTexture.Apply();
-
-            style.normal.background = styleTexture;
-            GUI.Box(new Rect(positionLeft + textureWidth + 10, positionTop + textureHeight + 10, 30, 30), new GUIContent(""), style);
-            */
+            DialogGUIButton applyButton = new DialogGUIButton("Apply", applyClick);
+            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), applyButton, new DialogGUIFlexibleSpace() }));
             return listComponments;
-        }
-
-        private float a()
-        {
-            throw new NotImplementedException();
-        }
-
-        private void b(float arg0)
-        {
-            throw new NotImplementedException();
         }
 
         protected override bool runIntenseInfo(object[] args)
@@ -129,13 +70,51 @@ namespace CommNetConstellation.UI
             return true;
         }
 
-        private void pick()
+        private void renderColorPicker()
         {
-            int a = (int)Input.mousePosition.x;
-            int b = Screen.height - (int)Input.mousePosition.y;
+            Texture2D colorPicker = new Texture2D(displayTextureWidth, displayTextureHeight, TextureFormat.ARGB32, false);
+            for (int x = 0; x < displayTextureWidth; x++)
+            {
+                for (int y = 0; y < displayTextureHeight; y++)
+                {
+                    float h = hueSlider;
+                    float v = (y / (displayTextureHeight * 1.0f)) * 1f;
+                    float s = (x / (displayTextureWidth * 1.0f)) * 1f;
+                    colorPicker.SetPixel(x, y, new ColorHSV(h, s, v).ToColor());
+                }
+            }
 
-            setColor = displayPicker.GetPixel(a, b);
-            lastSetColor = setColor;
+            colorPicker.Apply();
+            displayPicker = colorPicker;
+        }
+
+        private void renderHueSliderTexture()
+        {
+            hueTexture = new Texture2D(displayTextureWidth, sliderHeight * 2, TextureFormat.ARGB32, false);
+            for (int x = 0; x < hueTexture.width; x++)
+            {
+                for (int y = 0; y < hueTexture.height; y++)
+                {
+                    float h = (x / (hueTexture.width* 1.0f)) * 1f;
+                    hueTexture.SetPixel(x, y, new ColorHSV(h, 1f, 1f).ToColor());
+                }
+            }
+            hueTexture.Apply();
+        }
+
+        private void setHueValue(float newValue)
+        {
+            this.hueSlider = newValue;
+            renderColorPicker();
+            //colorPickerImage.image = displayPicker;
+            colorPickerImage.sprite = Sprite.Create(displayPicker, new Rect(0, 0, displayTextureWidth, displayTextureHeight), new Vector2(0, 0));
+            //colorPickerImage.Dirty = true;
+        }
+
+        private void applyClick() // TODO: to be replaced by abstract dialog's close button's callback & text
+        {
+            callbackForChosenColor(chosenColor);
+            this.dismiss();
         }
     }
 }

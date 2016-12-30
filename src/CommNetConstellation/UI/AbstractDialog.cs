@@ -28,6 +28,7 @@ namespace CommNetConstellation.UI
         protected bool showCloseButton = true;
         protected bool showVersion = false;
         protected bool blockBackgroundInputs = true;
+        protected bool draggable = true;
 
         protected PopupDialog popupDialog = null;
 
@@ -80,6 +81,8 @@ namespace CommNetConstellation.UI
                     this.showVersion = true;
                 else if (arg.Equals("allowbginputs"))
                     this.blockBackgroundInputs = false;
+                else if (arg.Equals("nodragging"))
+                    this.draggable = false;
                 else
                     CNCLog.Error("AbstractDialog argument '{0}' is unknown", arg);
             }
@@ -124,6 +127,7 @@ namespace CommNetConstellation.UI
                     new DialogGUIButton("Close", dismiss),
                     new DialogGUIFlexibleSpace()
                     };
+                dialogComponentList.Add(new DialogGUIHorizontalLayout(footer));
             }
             else if(showVersion && !showCloseButton)
             {
@@ -132,8 +136,9 @@ namespace CommNetConstellation.UI
                     new DialogGUIFlexibleSpace(),
                     new DialogGUILabel(string.Format("v{0}.{1}", CNCSettings.Instance.MajorVersion, CNCSettings.Instance.MinorVersion), false, false)
                     };
+                dialogComponentList.Add(new DialogGUIHorizontalLayout(footer));
             }
-            else
+            else if(showVersion && showCloseButton)
             {
                 footer = new DialogGUIBase[]
                     {
@@ -142,8 +147,8 @@ namespace CommNetConstellation.UI
                     new DialogGUIFlexibleSpace(),
                     new DialogGUILabel(string.Format("v{0}.{1}", CNCSettings.Instance.MajorVersion, CNCSettings.Instance.MinorVersion), false, false)
                     };
+                dialogComponentList.Add(new DialogGUIHorizontalLayout(footer));
             }
-            dialogComponentList.Add(new DialogGUIHorizontalLayout(footer));
 
             //Spawn the dialog
             MultiOptionDialog moDialog = new MultiOptionDialog("",
@@ -155,12 +160,14 @@ namespace CommNetConstellation.UI
             moDialog.OnUpdate = OnUpdate;
             moDialog.OnResize = OnResize;
 
-            return PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f),
-                                                new Vector2(0.5f, 0.5f),
-                                                moDialog,
-                                                false,  // persistAcrossScreen
-                                                HighLogic.UISkin,
-                                                blockBackgroundInputs); // isModal
+            PopupDialog newDialog = PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f),
+                                                                    new Vector2(0.5f, 0.5f),
+                                                                    moDialog,
+                                                                    false,  // persistAcrossScreen
+                                                                    HighLogic.UISkin,
+                                                                    blockBackgroundInputs); // isModal
+            newDialog.SetDraggable(draggable);
+            return newDialog;
         }
     }
 }
