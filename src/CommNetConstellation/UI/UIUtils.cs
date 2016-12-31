@@ -29,7 +29,7 @@ namespace CommNetConstellation.UI
         }
 
         //https://forum.unity3d.com/threads/best-easiest-way-to-change-color-of-certain-pixels-in-a-single-sprite.223030/
-        public static Texture2D createAndColor(Texture2D template, Color maskColor, Color newColor)
+        public static Texture2D createAndColorize(Texture2D template, Color maskColor, Color newColor)
         {
             Texture2D newTexture = new Texture2D(template.width, template.height);
             newTexture.filterMode = FilterMode.Point;
@@ -48,6 +48,37 @@ namespace CommNetConstellation.UI
 
             newTexture.Apply();
             return newTexture;
+        }
+
+        public static Texture2D createAndColorize(int width, int height, Color thisColor)
+        {
+            Texture2D newTexture = new Texture2D(width, height);
+            newTexture.filterMode = FilterMode.Point;
+            newTexture.wrapMode = TextureWrapMode.Clamp;
+
+            for (int y = 0; y < newTexture.height; y++)
+            {
+                for (int x = 0; x < newTexture.width; x++)
+                {
+                    newTexture.SetPixel(x, y, thisColor);
+                }
+            }
+
+            newTexture.Apply();
+            return newTexture;
+        }
+
+        public static void colorizeFull(Texture2D thisTexture, Color thisColor)
+        {
+            for (int y = 0; y < thisTexture.height; y++)
+            {
+                for (int x = 0; x < thisTexture.width; x++)
+                {
+                    thisTexture.SetPixel(x, y, thisColor);
+                }
+            }
+
+            thisTexture.Apply();
         }
 
         public static Texture2D createAndOverlay(Texture2D baseTexture, Texture2D frontTexture)

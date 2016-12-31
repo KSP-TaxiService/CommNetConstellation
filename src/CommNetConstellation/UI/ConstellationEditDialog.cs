@@ -18,7 +18,7 @@ namespace CommNetConstellation.UI
                                                                                                         255, //height
                                                                                                         new string[] {}) //arguments
         {
-            this.colorButtonIcon = UIUtils.createAndColor(colorTexture, new Color(1f, 1f, 1f), new Color(1f, 0f, 0f));
+            this.colorButtonIcon = UIUtils.createAndColorize(colorTexture, new Color(1f, 1f, 1f), new Color(1f, 0f, 0f));
         }
 
         protected override List<DialogGUIBase> drawContentComponents()
