@@ -15,7 +15,7 @@ namespace CommNetConstellation.UI
         private DialogGUIImage colorPickerImage;
         private Texture2D colorPickerTexture;
 
-        private static int dialogWidth = 250 + 10 + 5 + 10;
+        private static int dialogWidth = 250 + 10;
         private static int dialogHeight = 300;
 
         private Color chosenColor;
@@ -43,37 +43,41 @@ namespace CommNetConstellation.UI
 
             this.chosenColorTexture = UIUtils.createAndColorize(30, 24, chosenColor);
             this.currentColorTexture = UIUtils.createAndColorize(30, 24, currentColor);
+            this.colorPickerTexture = new Texture2D(displayTextureWidth, displayTextureHeight, TextureFormat.ARGB32, false);
+            renderColorPicker(this.colorPickerTexture, hueValue);
         }
 
         protected override void OnUpdate()
         {
-            Vector2 b = Input.mousePosition;
-            Vector3 a = Camera.current.WorldToScreenPoint(colorPickerImage.uiItem.transform.position);
-            //CNCLog.Debug(EventSystem.current.IsPointerOverGameObject()+", "+ Input.GetMouseButtonDown(0) + ", " + Input.GetMouseButtonUp(0)+" "+a.x+" "+a.y);
-            //CNCLog.Debug(a.x + " " + a.y+" "+b.x+" "+b.y);
-            
+            Vector2 cursor = Input.mousePosition;
+            Vector3 pickerCenter = Camera.current.WorldToScreenPoint(colorPickerImage.uiItem.transform.position);
 
-            if (a.x- displayTextureWidth/2 <= b.x && b.x <= a.x+displayTextureWidth/2 &&
-                a.y - displayTextureHeight / 2 <= b.y && b.y <= a.y + displayTextureHeight / 2)
+            if (!EventSystem.current.IsPointerOverGameObject())
+                buttonPressing = false;
+
+            if (pickerCenter.x- displayTextureWidth/2 <= cursor.x && cursor.x <= pickerCenter.x+displayTextureWidth/2 &&
+                pickerCenter.y - displayTextureHeight / 2 <= cursor.y && cursor.y <= pickerCenter.y + displayTextureHeight / 2)
             {
-                //CNCLog.Debug(EventSystem.current.IsPointerOverGameObject() + ", " + Input.GetMouseButtonDown(0) + ", " + Input.GetMouseButtonUp(0));
-                if(!buttonPressing && Input.GetMouseButtonDown(0) && EventSystem.current.IsPointerOverGameObject()) // user pressing button
+                if(!buttonPressing && Input.GetMouseButtonDown(0)) // user pressing button
                 {
                     buttonPressing = true;
                 }
-                else if(buttonPressing && Input.GetMouseButtonUp(0) && EventSystem.current.IsPointerOverGameObject()) // user releasing button
+                else if(buttonPressing && Input.GetMouseButtonUp(0)) // user releasing button
                 {
                     buttonPressing = false;
                 }
 
                 if (buttonPressing)
                 {
-                    int localX = (int)(b.x - a.x);
-                    int localY = (int)(b.y - a.y); ;
+                    int localX = (int)(cursor.x - (pickerCenter.x - displayTextureWidth/2));
+                    int localY = (int)(cursor.y - (pickerCenter.y - displayTextureHeight/2));
 
-                    chosenColor = colorPickerTexture.GetPixel(localX, localY);
-                    chosenColorTexture = UIUtils.createAndColorize(30, 24, chosenColor);
+                    renderColorPicker(colorPickerTexture, hueValue); // wipe out cursor data
+                    chosenColor = colorPickerTexture.GetPixel(localX, localY); CNCLog.Debug(UIUtils.colorToHex(chosenColor));
+                    UIUtils.colorizeFull(chosenColorTexture, chosenColor);
                     newColorImage.uiItem.GetComponent<RawImage>().texture = chosenColorTexture;
+
+                    colorPickerImage.uiItem.GetComponent<RawImage>().texture = drawCursorOn(colorPickerTexture, localX, localY);
                 }
             }
         }
@@ -83,12 +87,12 @@ namespace CommNetConstellation.UI
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
             DialogGUILabel newColorLabel = new DialogGUILabel("<b>  New</b>", 40, 12);
-            newColorImage = new DialogGUIImage(new Vector2(30, 24), Vector2.zero, chosenColor, chosenColorTexture); 
+            newColorImage = new DialogGUIImage(new Vector2(30, 24), Vector2.zero, Color.white, chosenColorTexture); 
             DialogGUILabel currentColorLabel = new DialogGUILabel("<b>Current  </b>", 45, 12);
-            DialogGUIImage currentColorImage = new DialogGUIImage(new Vector2(30, 24), Vector2.zero, currentColor, currentColorTexture);
+            DialogGUIImage currentColorImage = new DialogGUIImage(new Vector2(30, 24), Vector2.zero, Color.white, currentColorTexture);
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUISpace(40), newColorImage, newColorLabel, new DialogGUISpace(dialogWidth - 80 - 145), currentColorLabel, currentColorImage, new DialogGUISpace(40) }));
 
-            colorPickerImage = new DialogGUIImage(new Vector2(displayTextureWidth, displayTextureHeight), Vector2.zero, Color.white, (colorPickerTexture = renderColorPicker(hueValue)));
+            colorPickerImage = new DialogGUIImage(new Vector2(displayTextureWidth, displayTextureHeight), Vector2.zero, Color.white, colorPickerTexture);
             DialogGUIImage hueSliderImage = new DialogGUIImage(new Vector2(displayTextureWidth, sliderHeight * 2), Vector2.zero, Color.white, renderHueSliderTexture());
             DialogGUISlider hueSlider = new DialogGUISlider(() => hueValue, 0f, 1f, false, displayTextureWidth, sliderHeight, setHueValue);
             listComponments.Add(new DialogGUIVerticalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { colorPickerImage, new DialogGUISpace(5f), hueSliderImage, hueSlider }));
@@ -104,9 +108,8 @@ namespace CommNetConstellation.UI
             return true;
         }
 
-        private Texture2D renderColorPicker(float hueValue)
+        private void renderColorPicker(Texture2D thisTexture, float hueValue)
         {
-            Texture2D colorPicker = new Texture2D(displayTextureWidth, displayTextureHeight, TextureFormat.ARGB32, false);
             for (int x = 0; x < displayTextureWidth; x++)
             {
                 for (int y = 0; y < displayTextureHeight; y++)
@@ -114,12 +117,10 @@ namespace CommNetConstellation.UI
                     float h = hueValue;
                     float v = (y / (displayTextureHeight * 1.0f)) * 1f;
                     float s = (x / (displayTextureWidth * 1.0f)) * 1f;
-                    colorPicker.SetPixel(x, y, new ColorHSV(h, s, v).ToColor());
+                    thisTexture.SetPixel(x, y, new ColorHSV(h, s, v).ToColor());
                 }
             }
-
-            colorPicker.Apply();
-            return colorPicker;
+            thisTexture.Apply();
         }
 
         private Texture2D renderHueSliderTexture()
@@ -140,12 +141,43 @@ namespace CommNetConstellation.UI
         private void setHueValue(float newValue)
         {
             this.hueValue = newValue;
-            colorPickerTexture = renderColorPicker(newValue);
+            renderColorPicker(colorPickerTexture, newValue);
             colorPickerImage.uiItem.GetComponent<RawImage>().texture = colorPickerTexture;
+        }
+
+        private Texture2D drawCursorOn(Texture2D thisTexture, int x, int y)
+        {
+            Color cursorColor = Color.white;
+
+            if (x - 2 >= 0) // left arm
+                thisTexture.SetPixel(x-2, y, cursorColor);
+            if (x - 3 >= 0)
+                thisTexture.SetPixel(x-3, y, cursorColor);
+
+            if (x +2  <= thisTexture.width) // right arm
+                thisTexture.SetPixel(x + 2, y, cursorColor);
+            if (x + 3 <= thisTexture.width)
+                thisTexture.SetPixel(x + 3, y, cursorColor);
+
+            if (y - 2 >= 0) // legs
+                thisTexture.SetPixel(x, y - 2, cursorColor);
+            if (y - 3 >= 0)
+                thisTexture.SetPixel(x, y - 3, cursorColor);
+
+            if (y + 2 <= thisTexture.height) // head
+                thisTexture.SetPixel(x, y + 2, cursorColor);
+            if (y + 3 <= thisTexture.height)
+                thisTexture.SetPixel(x, y + 3, cursorColor);
+
+            thisTexture.Apply();
+            return thisTexture;
         }
 
         private void applyClick() // TODO: to be replaced by abstract dialog's close button's callback & text
         {
+            UnityEngine.GameObject.DestroyImmediate(colorPickerTexture, true);
+            UnityEngine.GameObject.DestroyImmediate(chosenColorTexture, true);
+            UnityEngine.GameObject.DestroyImmediate(currentColorTexture, true);
             callbackForChosenColor(chosenColor);
             this.dismiss();
         }
