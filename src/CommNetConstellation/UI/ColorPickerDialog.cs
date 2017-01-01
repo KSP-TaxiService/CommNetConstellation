@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using System;
 
 namespace CommNetConstellation.UI
 {
@@ -26,6 +28,8 @@ namespace CommNetConstellation.UI
         private float hueValue = 0f;
         private int sliderHeight = 5;
 
+        private bool buttonPressing = false;
+
         public ColorPickerDialog(Color userColor, Callback<Color> callbackForChosenColor) : base("Color Picker",
                                                                                                 0.5f, //x
                                                                                                 0.5f, //y
@@ -43,16 +47,34 @@ namespace CommNetConstellation.UI
 
         protected override void OnUpdate()
         {
-            //TODO: Failure. Can't handle the scenario of user desiring leaving chosen color while tracking cursor within img. switch to button and press event
-            if(detectCursorWithinColorPicker(Input.mousePosition))
-            {
-                //assumed the color picker is non-draggable
-                int pickerCenterX = Screen.width / 2;
-                int pickerCenterY = Screen.height / 2 + 139;
+            Vector2 b = Input.mousePosition;
+            Vector3 a = Camera.current.WorldToScreenPoint(colorPickerImage.uiItem.transform.position);
+            //CNCLog.Debug(EventSystem.current.IsPointerOverGameObject()+", "+ Input.GetMouseButtonDown(0) + ", " + Input.GetMouseButtonUp(0)+" "+a.x+" "+a.y);
+            //CNCLog.Debug(a.x + " " + a.y+" "+b.x+" "+b.y);
+            
 
-                chosenColor = colorPickerTexture.GetPixel((int)Input.mousePosition.x - pickerCenterX, (int)Input.mousePosition.y - pickerCenterY);
-                chosenColorTexture = UIUtils.createAndColorize(30, 24, chosenColor);
-                newColorImage.uiItem.GetComponent<RawImage>().texture = chosenColorTexture;
+            if (a.x- displayTextureWidth/2 <= b.x && b.x <= a.x+displayTextureWidth/2 &&
+                a.y - displayTextureHeight / 2 <= b.y && b.y <= a.y + displayTextureHeight / 2)
+            {
+                //CNCLog.Debug(EventSystem.current.IsPointerOverGameObject() + ", " + Input.GetMouseButtonDown(0) + ", " + Input.GetMouseButtonUp(0));
+                if(!buttonPressing && Input.GetMouseButtonDown(0) && EventSystem.current.IsPointerOverGameObject()) // user pressing button
+                {
+                    buttonPressing = true;
+                }
+                else if(buttonPressing && Input.GetMouseButtonUp(0) && EventSystem.current.IsPointerOverGameObject()) // user releasing button
+                {
+                    buttonPressing = false;
+                }
+
+                if (buttonPressing)
+                {
+                    int localX = (int)(b.x - a.x);
+                    int localY = (int)(b.y - a.y); ;
+
+                    chosenColor = colorPickerTexture.GetPixel(localX, localY);
+                    chosenColorTexture = UIUtils.createAndColorize(30, 24, chosenColor);
+                    newColorImage.uiItem.GetComponent<RawImage>().texture = chosenColorTexture;
+                }
             }
         }
 
@@ -73,6 +95,7 @@ namespace CommNetConstellation.UI
 
             DialogGUIButton applyButton = new DialogGUIButton("Apply", applyClick);
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), applyButton, new DialogGUIFlexibleSpace() }));
+
             return listComponments;
         }
 
@@ -119,38 +142,12 @@ namespace CommNetConstellation.UI
             this.hueValue = newValue;
             colorPickerTexture = renderColorPicker(newValue);
             colorPickerImage.uiItem.GetComponent<RawImage>().texture = colorPickerTexture;
-
-            UIUtils.colorizeFull(chosenColorTexture, new ColorHSV(newValue, 1f, 1f).ToColor());
-            newColorImage.uiItem.GetComponent<RawImage>().texture = chosenColorTexture;
         }
 
         private void applyClick() // TODO: to be replaced by abstract dialog's close button's callback & text
         {
             callbackForChosenColor(chosenColor);
             this.dismiss();
-        }
-
-        //TODO: Need better detection and assume the dialog is draggable
-        private bool detectCursorWithinColorPicker(Vector3 cursorPosition)
-        {
-            int x = (int)cursorPosition.x;
-            int y = (int)cursorPosition.y;
-            bool withinX = false;
-            bool withinY = false;
-
-            //assumed the color picker is non-draggable
-            int pickerCenterX = Screen.width / 2;
-            int pickerCenterY = Screen.height / 2 + 139;
-
-            //CNCLog.Debug(cursorPosition.x + " " + cursorPosition.y);
-
-            if (pickerCenterX - displayTextureWidth / 2 <= x && x <= pickerCenterX + displayTextureWidth / 2)
-                withinX = true;
-
-            if (pickerCenterY - displayTextureHeight / 2 <= y && y <= pickerCenterY + displayTextureHeight / 2)
-                withinY = true;
-
-            return withinX && withinY;
         }
     }
 }
