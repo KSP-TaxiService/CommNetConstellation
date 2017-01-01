@@ -35,8 +35,9 @@ namespace CommNetConstellation.UI
                                                                                                 0.5f, //y
                                                                                                 dialogWidth, //width
                                                                                                 dialogHeight, //height
-                                                                                                new string[] { "hideclosebutton", "nodragging" }) //arguments
+                                                                                                new DialogOptions[] { DialogOptions.NonDraggable })
         {
+            this.dismissButtonText = "Apply";
             this.currentColor = userColor;
             this.chosenColor = userColor;
             this.callbackForChosenColor = callbackForChosenColor;
@@ -73,7 +74,7 @@ namespace CommNetConstellation.UI
                     int localY = (int)(cursor.y - (pickerCenter.y - displayTextureHeight/2));
 
                     renderColorPicker(colorPickerTexture, hueValue); // wipe out cursor data
-                    chosenColor = colorPickerTexture.GetPixel(localX, localY); CNCLog.Debug(UIUtils.colorToHex(chosenColor));
+                    chosenColor = colorPickerTexture.GetPixel(localX, localY);
                     UIUtils.colorizeFull(chosenColorTexture, chosenColor);
                     newColorImage.uiItem.GetComponent<RawImage>().texture = chosenColorTexture;
 
@@ -96,16 +97,15 @@ namespace CommNetConstellation.UI
             DialogGUIImage hueSliderImage = new DialogGUIImage(new Vector2(displayTextureWidth, sliderHeight * 2), Vector2.zero, Color.white, renderHueSliderTexture());
             DialogGUISlider hueSlider = new DialogGUISlider(() => hueValue, 0f, 1f, false, displayTextureWidth, sliderHeight, setHueValue);
             listComponments.Add(new DialogGUIVerticalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { colorPickerImage, new DialogGUISpace(5f), hueSliderImage, hueSlider }));
-
-            DialogGUIButton applyButton = new DialogGUIButton("Apply", applyClick);
-            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), applyButton, new DialogGUIFlexibleSpace() }));
-
             return listComponments;
         }
 
-        protected override bool runIntenseInfo(object[] args)
+        protected override void OnPreDismiss()
         {
-            return true;
+            UnityEngine.GameObject.DestroyImmediate(colorPickerTexture, true);
+            UnityEngine.GameObject.DestroyImmediate(chosenColorTexture, true);
+            UnityEngine.GameObject.DestroyImmediate(currentColorTexture, true);
+            callbackForChosenColor(chosenColor);
         }
 
         private void renderColorPicker(Texture2D thisTexture, float hueValue)
@@ -171,15 +171,6 @@ namespace CommNetConstellation.UI
 
             thisTexture.Apply();
             return thisTexture;
-        }
-
-        private void applyClick() // TODO: to be replaced by abstract dialog's close button's callback & text
-        {
-            UnityEngine.GameObject.DestroyImmediate(colorPickerTexture, true);
-            UnityEngine.GameObject.DestroyImmediate(chosenColorTexture, true);
-            UnityEngine.GameObject.DestroyImmediate(currentColorTexture, true);
-            callbackForChosenColor(chosenColor);
-            this.dismiss();
         }
     }
 }

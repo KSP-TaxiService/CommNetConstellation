@@ -19,7 +19,7 @@ namespace CommNetConstellation.UI
                                                             0.5f, //y
                                                             (int)(1920*0.3), //width
                                                             (int)(1200*0.5), //height
-                                                            new string[] { "showversion", "hideclosebutton", "allowbginputs" }) //arguments
+                                                            new DialogOptions[] { DialogOptions.ShowVersion, DialogOptions.HideCloseButton, DialogOptions.AllowBgInputs }) //arguments
         {
             
         }
@@ -106,11 +106,6 @@ namespace CommNetConstellation.UI
                 rows[i + 1] = eachRowGroupList[i];
 
             listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, rows)));
-        }
-
-        protected override bool runIntenseInfo(System.Object[] args)
-        {
-            return true;
         }
 
         private void resetConstellationClick()

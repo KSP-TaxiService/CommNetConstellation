@@ -15,7 +15,7 @@ namespace CommNetConstellation.UI
                                                                             0.5f, //y
                                                                             250, //width
                                                                             255, //height
-                                                                            new string[] {}) //arguments
+                                                                            new DialogOptions[] {})
         {
             this.hostVessel = thisVessel; // could be null (in editor)
 
@@ -53,11 +53,6 @@ namespace CommNetConstellation.UI
             listComponments.Add(new DialogGUIScrollList(Vector2.one, false, false, new DialogGUIVerticalLayout(false, false, 4, new RectOffset(5, 5, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[] { messageLabel })));
 
             return listComponments;
-        }
-
-        protected override bool runIntenseInfo(System.Object[] args)
-        {
-            return true;
         }
 
         private void updateClick()

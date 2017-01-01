@@ -16,7 +16,7 @@ namespace CommNetConstellation.UI
                                                                                                         0.5f, //y
                                                                                                         250, //width
                                                                                                         255, //height
-                                                                                                        new string[] {}) //arguments
+                                                                                                        new DialogOptions[] {})
         {
             this.colorButtonIcon = UIUtils.createAndColorize(colorTexture, new Color(1f, 1f, 1f), new Color(1f, 0f, 0f));
         }
@@ -53,11 +53,6 @@ namespace CommNetConstellation.UI
             listComponments.Add(new DialogGUIScrollList(Vector2.one, false, false, new DialogGUIVerticalLayout(false, false, 4, new RectOffset(5, 5, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[] { messageLabel })));
 
             return listComponments;
-        }
-
-        protected override bool runIntenseInfo(object[] args)
-        {
-            return true;
         }
 
         private void updateClick()

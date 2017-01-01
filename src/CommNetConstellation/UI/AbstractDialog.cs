@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,9 +12,15 @@ using UnityEngine.UI;
 
 namespace CommNetConstellation.UI
 {
-    //TODO: change extraArgs to enum array
-    //TODO: close button need callback (or a new method ExecuteStuffAtClosing()?)
     //TODO: resolve the issue of images being larger than 32x32
+
+    public enum DialogOptions
+    {
+        HideCloseButton,
+        ShowVersion,
+        AllowBgInputs,
+        NonDraggable
+    };
 
     public abstract class AbstractDialog
     {
@@ -25,6 +30,8 @@ namespace CommNetConstellation.UI
         protected int windowHeight;
         protected float normalizedCenterX; //0.0f to 1.0f
         protected float normalizedCenterY; //0.0f to 1.0f
+
+        protected string dismissButtonText = "Close";
         protected bool showCloseButton = true;
         protected bool showVersion = false;
         protected bool blockBackgroundInputs = true;
@@ -32,7 +39,7 @@ namespace CommNetConstellation.UI
 
         protected PopupDialog popupDialog = null;
 
-        public AbstractDialog(string dialogTitle, float normalizedCenterX, float normalizedCenterY, int windowWidth, int windowHeight, string[] extraArgs)
+        public AbstractDialog(string dialogTitle, float normalizedCenterX, float normalizedCenterY, int windowWidth, int windowHeight, DialogOptions[] args)
         {
             this.dialogTitle = dialogTitle;
             this.windowWidth = windowWidth;
@@ -40,51 +47,57 @@ namespace CommNetConstellation.UI
             this.normalizedCenterX = normalizedCenterX;
             this.normalizedCenterY = normalizedCenterY;
 
-            processArguments(extraArgs);
+            processArguments(args);
         }
 
-        protected abstract bool runIntenseInfo(System.Object[] args);
         protected abstract List<DialogGUIBase> drawContentComponents();
+        protected virtual void OnAwake(System.Object[] args) { }
+        protected virtual void OnPreDismiss() { }
         protected virtual void OnUpdate() { }
         protected virtual void OnResize() { }
-
+        
         public void launch(System.Object[] args)
         {
             if (this.isDisplayed)
                 return;
 
             this.isDisplayed = true;
-            if (runIntenseInfo(args))
-                popupDialog = spawnDialog();
+            OnAwake(args);
+            popupDialog = spawnDialog();
         }
 
         public void dismiss()
         {
             if (this.isDisplayed && popupDialog != null)
             {
+                OnPreDismiss();
                 popupDialog.Dismiss();
                 this.isDisplayed = false;
             }
         }
 
-        protected virtual void processArguments(string[] args)
+        private void processArguments(DialogOptions[] args)
         {
             if (args == null)
                 return;
 
             for(int i=0; i<args.Length; i++)
             {
-                string arg = args[i];
-                if (arg.Equals("hideclosebutton"))
-                    this.showCloseButton = false;
-                else if (arg.Equals("showversion"))
-                    this.showVersion = true;
-                else if (arg.Equals("allowbginputs"))
-                    this.blockBackgroundInputs = false;
-                else if (arg.Equals("nodragging"))
-                    this.draggable = false;
-                else
-                    CNCLog.Error("AbstractDialog argument '{0}' is unknown", arg);
+                switch (args[i])
+                {
+                    case DialogOptions.HideCloseButton:
+                        this.showCloseButton = false;
+                        break;
+                    case DialogOptions.ShowVersion:
+                        this.showVersion = true;
+                        break;
+                    case DialogOptions.AllowBgInputs:
+                        this.blockBackgroundInputs = false;
+                        break;
+                    case DialogOptions.NonDraggable:
+                        this.draggable = false;
+                        break;
+                }
             }
         }
 
@@ -124,7 +137,7 @@ namespace CommNetConstellation.UI
                 footer = new DialogGUIBase[] 
                     {
                     new DialogGUIFlexibleSpace(),
-                    new DialogGUIButton("Close", dismiss),
+                    new DialogGUIButton(dismissButtonText, dismiss),
                     new DialogGUIFlexibleSpace()
                     };
                 dialogComponentList.Add(new DialogGUIHorizontalLayout(footer));
@@ -143,7 +156,7 @@ namespace CommNetConstellation.UI
                 footer = new DialogGUIBase[]
                     {
                     new DialogGUIFlexibleSpace(),
-                    new DialogGUIButton("Close", dismiss),
+                    new DialogGUIButton(dismissButtonText, dismiss),
                     new DialogGUIFlexibleSpace(),
                     new DialogGUILabel(string.Format("v{0}.{1}", CNCSettings.Instance.MajorVersion, CNCSettings.Instance.MinorVersion), false, false)
                     };
