@@ -22,7 +22,7 @@ namespace CommNetConstellation
             this.launcherBtnTexture = UIUtils.loadImage("cnclauncherbutton");
 
             this.launcherButton = ApplicationLauncher.Instance.AddModApplication(
-                delegate { controlDialog.launch(new Object[] { }); }, controlDialog.dismiss, null, null, null, null,
+                delegate { controlDialog.launch(); }, controlDialog.dismiss, null, null, null, null,
                 ApplicationLauncher.AppScenes.TRACKSTATION,
                 launcherBtnTexture);
         }

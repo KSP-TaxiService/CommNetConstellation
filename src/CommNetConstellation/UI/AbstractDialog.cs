@@ -55,7 +55,12 @@ namespace CommNetConstellation.UI
         protected virtual void OnPreDismiss() { }
         protected virtual void OnUpdate() { }
         protected virtual void OnResize() { }
-        
+
+        public void launch()
+        {
+            launch(new System.Object[] { });
+        }
+
         public void launch(System.Object[] args)
         {
             if (this.isDisplayed)
