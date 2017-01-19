@@ -67,8 +67,8 @@ namespace CommNetConstellation.UI
                 return;
 
             this.isDisplayed = true;
-            OnAwake(args);
             popupDialog = spawnDialog();
+            OnAwake(args);
         }
 
         public void dismiss()
