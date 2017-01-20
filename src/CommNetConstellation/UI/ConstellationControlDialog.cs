@@ -170,12 +170,17 @@ namespace CommNetConstellation.UI
 
         private void newConstellationClick()
         {
-            new ConstellationEditDialog("Constellation - <color=#00ff00>New</color>", null).launch();
+            new ConstellationEditDialog("Constellation - <color=#00ff00>New</color>", null, createNewConstellation).launch();
         }
 
         private void editConstellationClick(Constellation thisConstellation)
         {
-            new ConstellationEditDialog("Constellation - <color=#00ff00>Edit</color>", thisConstellation).launch();
+            new ConstellationEditDialog("Constellation - <color=#00ff00>Edit</color>", thisConstellation, null).launch();
+        }
+
+        private void createNewConstellation(Constellation newConstellation)
+        {
+
         }
     }
 }

@@ -50,22 +50,6 @@ namespace CommNetConstellation.UI
             return newTexture;
         }
 
-        public static void colorize(Texture2D existingAsset, Color maskColor, Color newColor)
-        {
-            for (int y = 0; y < existingAsset.height; y++)
-            {
-                for (int x = 0; x < existingAsset.width; x++)
-                {
-                    if (existingAsset.GetPixel(x, y) == maskColor)
-                        existingAsset.SetPixel(x, y, newColor);
-                    else
-                        existingAsset.SetPixel(x, y, existingAsset.GetPixel(x, y));
-                }
-            }
-
-            existingAsset.Apply();
-        }
-
         public static Texture2D createAndColorize(int width, int height, Color thisColor)
         {
             Texture2D newTexture = new Texture2D(width, height);

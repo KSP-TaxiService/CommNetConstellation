@@ -2,46 +2,50 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.UI;
 
 namespace CommNetConstellation.UI
 {
     public class ConstellationEditDialog : AbstractDialog
     {
-        private string constellationNameTextfield = "";
-        private int frequency = 0;
         private string description = "You are creating a new constellation.";
         private string actionButtonText = "Create";
-        private Constellation constellation = null;
         private string message = "Ready";
-        private Color constColor = Color.white;
-        
-        private Texture2D colorButtonIcon;
+
+        private Constellation existingConstellation = null;
+        private string conName = "";
+        private short conFreq = 0;
+        private Color conColor = Color.white;
+
+        private Texture2D constellationTexture;
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
+        private DialogGUIImage colorImage;
 
-        private DialogGUITextInput nameInput;
-        private DialogGUITextInput frequencyInput;
-        private DialogGUIButton colorButton;
+        private Callback<Constellation> creationCallback;
 
-        public ConstellationEditDialog(string dialogTitle, Constellation thisConstellation) : base(dialogTitle,
-                                                                                                        0.5f, //x
-                                                                                                        0.5f, //y
-                                                                                                        250, //width
-                                                                                                        255, //height
-                                                                                                        new DialogOptions[] {})
+        public ConstellationEditDialog(string dialogTitle, Constellation thisConstellation, Callback<Constellation> creationCallback) : base(dialogTitle,
+                                                                                                                                        0.5f, //x
+                                                                                                                                        0.5f, //y
+                                                                                                                                        250, //width
+                                                                                                                                        255, //height
+                                                                                                                                        new DialogOptions[] {})
         {
-            this.constellation = thisConstellation;
-            if(this.constellation != null)
+            this.creationCallback = creationCallback;
+            this.existingConstellation = thisConstellation;
+
+            if(this.existingConstellation != null)
             {
-                this.description = string.Format("You are editing Constellation '{0}'.", this.constellation.name);
+                this.conName = this.existingConstellation.name;
+                this.conFreq = this.existingConstellation.frequency;
+                this.conColor = this.existingConstellation.color;
+
+                this.description = string.Format("You are editing Constellation '{0}'.", this.conName);
                 this.actionButtonText = "Update";
-                this.constellationNameTextfield = thisConstellation.name;
-                this.frequency = thisConstellation.frequency;
-                this.constColor = thisConstellation.color;
-                this.colorButtonIcon = UIUtils.createAndColorize(colorTexture, new Color(1f, 1f, 1f), this.constColor);
+                this.constellationTexture = UIUtils.createAndColorize(colorTexture, new Color(1f, 1f, 1f), this.conColor);
             }
             else
             {
-                this.colorButtonIcon = colorTexture;
+                this.constellationTexture = colorTexture;
             }
         }
 
@@ -51,57 +55,109 @@ namespace CommNetConstellation.UI
 
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description+"\n\n", false, false) }));
 
-            DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 40, 12);
-            nameInput = new DialogGUITextInput(this.constellationNameTextfield, false, CNCSettings.Instance.MaxNumChars, null, 130, 32);
-            DialogGUIHorizontalLayout nameGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { nameLabel, nameInput, new DialogGUIFlexibleSpace() });
+            DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 52, 12);
+            DialogGUITextInput nameInput = new DialogGUITextInput(this.conName, false, CNCSettings.Instance.MaxNumChars, setConNameFun, 170, 24);
+            DialogGUIHorizontalLayout nameGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { nameLabel, nameInput });
             listComponments.Add(nameGroup);
 
-            DialogGUILabel freqLabel = new DialogGUILabel("<b>Radio frequency</b>", 50, 24);
-            frequencyInput = new DialogGUITextInput(this.frequency.ToString(), false, 5, null, 45, 32);
-            DialogGUILabel colorLabel = new DialogGUILabel("<b>Color</b>", 32, 12);
-
-            UIStyle btnStyle = UIUtils.createImageButtonStyle(colorButtonIcon);
-            colorButton = new DialogGUIButton("", delegate { colorEditClick(this.constColor); }, null, 32, 32, false, btnStyle);
-            colorButton.image = btnStyle.normal.background;
-
-            DialogGUIHorizontalLayout freqColorGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(21), colorLabel, colorButton });
+            DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 52, 12);
+            DialogGUITextInput frequencyInput = new DialogGUITextInput(this.conFreq.ToString(), false, 5, setConFreq, 45, 24);
+            colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.zero, Color.white, this.constellationTexture);
+            DialogGUIButton colorButton = new DialogGUIButton("Color", colorEditClick, null, 50, 24, false);
+            DialogGUIHorizontalLayout freqColorGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(18), colorButton, colorImage });
             listComponments.Add(freqColorGroup);
 
             DialogGUIButton updateButton = new DialogGUIButton(this.actionButtonText, actionClick, false);
             DialogGUIHorizontalLayout lineGroup2 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), updateButton, new DialogGUIFlexibleSpace() });
             listComponments.Add(lineGroup2);
 
-            DialogGUILabel messageLabel = new DialogGUILabel("Message: "+message, true, false);
+            DialogGUILabel messageLabel = new DialogGUILabel(getMessage, true, false);
             listComponments.Add(new DialogGUIScrollList(Vector2.one, false, false, new DialogGUIVerticalLayout(false, false, 4, new RectOffset(5, 5, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[] { messageLabel })));
 
             return listComponments;
         }
 
-        private void actionClick()
+        private string getMessage()
         {
-
+            return "Message: " + this.message;
         }
 
-        private void colorEditClick(Color chosenColor)
+        private string setConFreq(string newFreqStr)
         {
-            new ColorPickerDialog(chosenColor, userChooseColor).launch();
+            try
+            {
+                short newFreq = short.Parse(newFreqStr);
+
+                if (newFreq < 0)
+                {
+                    message = "<color=red>This frequency cannot be negative!</color>";
+                    return newFreqStr;
+                }
+                else if (newFreq == 0) //TODO: check constellation list for existing one
+                {
+                    message = "<color=red>This frequency cannot be negative!</color>";
+                    return newFreqStr;
+                }
+                else
+                {
+                    this.conFreq = newFreq;
+                    return this.conFreq.ToString();
+                }
+            }
+            catch(FormatException e)
+            {
+                message = "<color=red>This frequency must be numeric only!</color>";
+                return newFreqStr;
+            }
+            catch(OverflowException e)
+            {
+                message = string.Format("<color=red>This frequency must be equal to or less than {0}!</color>", short.MaxValue);
+                return newFreqStr;
+            }
+        }
+
+        private string setConNameFun(string newName)
+        {
+            if (newName.Trim().Length > 0)
+            {
+                this.conName = newName;
+                return this.conName;
+            }
+            else
+            {
+                message = "<color=red>This name cannot be empty!</color>";
+                return "";
+            }
+        }
+
+        private void actionClick()
+        {
+            if(this.existingConstellation == null && creationCallback!= null)
+            {
+                Constellation newConstellation = new Constellation(this.conFreq, this.conName, this.conColor);
+                creationCallback(newConstellation);
+                message = "Created successfully.";
+            }
+            else
+            {
+                this.existingConstellation.name = this.conName;
+                this.existingConstellation.frequency = this.conFreq;
+                this.existingConstellation.color = this.conColor;
+                message = "Updated successfully.";
+            }
+        }
+
+        private void colorEditClick()
+        {
+            new ColorPickerDialog(this.conColor, userChooseColor).launch();
         }
 
         public void userChooseColor(Color newChosenColor)
         {
-            UIUtils.colorize(colorButtonIcon, constColor, newChosenColor);
-            this.constColor = newChosenColor;
-
-            Stack<Transform> stack = new Stack<Transform>(); // buggy
-            stack.Push(colorButton.uiItem.gameObject.transform);
-
-            colorButton.uiItem.gameObject.DestroyGameObjectImmediate();
-            UIStyle btnStyle = UIUtils.createImageButtonStyle(colorButtonIcon);
-            colorButton = new DialogGUIButton("", delegate { colorEditClick(this.constColor); }, null, 32, 32, false, btnStyle);
-            colorButton.image = btnStyle.normal.background;
-
-            
-            colorButton.Create(ref stack, HighLogic.UISkin);
+            this.conColor = newChosenColor;
+            Texture2D.DestroyImmediate(this.constellationTexture, true);
+            this.constellationTexture = UIUtils.createAndColorize(colorTexture, new Color(1f, 1f, 1f), this.conColor);
+            colorImage.uiItem.GetComponent<RawImage>().texture = constellationTexture;   
         }
     }
 }
