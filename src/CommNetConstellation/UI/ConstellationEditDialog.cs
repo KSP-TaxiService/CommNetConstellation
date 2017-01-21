@@ -94,6 +94,17 @@ namespace CommNetConstellation.UI
             {
                 short newFreq = short.Parse(newFreqStr);
 
+                if (this.existingConstellation != null)
+                {
+                    if (this.existingConstellation.frequency == CNCSettings.Instance.PublicRadioFrequency) //public one
+                    {
+                        if (newFreq != CNCSettings.Instance.PublicRadioFrequency)
+                        {
+                            message = "<color=red>Sorry, this public frequency is locked</color>";
+                            return CNCSettings.Instance.PublicRadioFrequency.ToString();
+                        }
+                    }
+                }
                 if (newFreq < 0)
                 {
                     message = "<color=red>This frequency cannot be negative!</color>";
@@ -138,8 +149,6 @@ namespace CommNetConstellation.UI
 
         private void actionClick()
         {
-            //TODO: lock public constellation's freq
-
             //Check errors
             if (CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == this.conFreq) && this.existingConstellation == null)
             {
@@ -161,14 +170,17 @@ namespace CommNetConstellation.UI
             else if(this.existingConstellation != null && updateCallback != null)
             {
                 this.existingConstellation.name = this.conName;
-                this.existingConstellation.frequency = this.conFreq;
                 this.existingConstellation.color = this.conColor;
+
+                if(this.existingConstellation.frequency != CNCSettings.Instance.PublicRadioFrequency) // this is not the public one
+                    this.existingConstellation.frequency = this.conFreq;
+
                 updateCallback(this.existingConstellation);
                 message = "Updated successfully";
             }
             else
             {
-                message = "Sorry, something is broken";
+                message = "Sorry, something is broken :(";
             }
         }
 
