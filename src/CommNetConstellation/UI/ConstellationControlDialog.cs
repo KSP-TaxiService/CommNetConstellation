@@ -79,7 +79,7 @@ namespace CommNetConstellation.UI
                 DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.vesselName, 160, 12);
                 DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(color), radioFreq), 120, 12);
                 DialogGUILabel locationLabel = new DialogGUILabel(string.Format("Orbiting: {0}", thisVessel.Vessel.mainBody.name), 120, 12);
-                DialogGUIButton setupButton = new DialogGUIButton("Setup", vesselSetupClick, 70, 32, false);
+                DialogGUIButton setupButton = new DialogGUIButton("Setup", delegate { vesselSetupClick(thisVessel.Vessel); }, 70, 32, false);
 
                 DialogGUIHorizontalLayout rowGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { focusButton, vesselLabel, freqLabel, locationLabel, new DialogGUIFlexibleSpace(), setupButton });
                 eachRowGroupList.Add(rowGroup);
@@ -117,17 +117,14 @@ namespace CommNetConstellation.UI
         {
             List<DialogGUIBase> rows = constellationRowLayout.children;
 
-            for (int i = 1; i < rows.Count; i++)
+            for (int i = 2; i < rows.Count; i++)
             {
                 DialogGUIBase thisRow = rows[i];
-                if (thisRow is DialogGUIHorizontalLayout) // avoid if DialogGUIContentSizer is detected
+                if (thisRow.OptionText.Equals(thisConstellation.frequency.ToString()))
                 {
-                    if (thisRow.OptionText.Equals(thisConstellation.frequency.ToString()))
-                    {
-                        rows.RemoveAt(i); // drop from the scrolllist rows
-                        thisRow.uiItem.gameObject.DestroyGameObjectImmediate(); // necessary to free memory up
-                        return i;
-                    }
+                    rows.RemoveAt(i); // drop from the scrolllist rows
+                    thisRow.uiItem.gameObject.DestroyGameObjectImmediate(); // necessary to free memory up
+                    return i;
                 }
             }
 
@@ -136,14 +133,12 @@ namespace CommNetConstellation.UI
 
         private void resetPublicConstClick()
         {
-            string message = string.Format("Revert to the default name '{0}' and color '{1}'?", CNCSettings.Instance.DefaultPublicName, CNCSettings.Instance.DefaultPublicColor.ToString());
+            string message = string.Format("Revert to the default name '{0}' and color {1}?", CNCSettings.Instance.DefaultPublicName, UIUtils.colorToHex(CNCSettings.Instance.DefaultPublicColor));
             MultiOptionDialog warningDialog = new MultiOptionDialog(message, "Constellation", HighLogic.UISkin, new DialogGUIBase[]
             {
                 new DialogGUIButton("Reset", resetPublicConstellation),
                 new DialogGUIButton("Cancel", null)
             });
-
-            //TODO: reset constellation
 
             PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), warningDialog, false, HighLogic.UISkin, true, string.Empty);
         }
@@ -174,13 +169,13 @@ namespace CommNetConstellation.UI
         {
             if (deleteConstellationGUIRow(thisConstellation) >= 1)
             {
-                //TODO: constellation deletion process
+                //TODO: constellation deletion process (moving vessels into public)
             }
         }
 
-        private void vesselSetupClick()
+        private void vesselSetupClick(Vessel thisVessel)
         {
-            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", null).launch(new System.Object[] {});
+            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", thisVessel).launch(new System.Object[] {});
         }
 
         private void vesselFocusClick(Vessel thisVessel)
@@ -206,24 +201,37 @@ namespace CommNetConstellation.UI
             constellationRowLayout.AddChild(newConstellationGUIRow);
 
             Stack<Transform> stack = new Stack<Transform>();
-            stack.Push(constellationRowLayout.uiItem.gameObject.transform);
+            stack.Push(constellationRowLayout.uiItem.gameObject.transform); // transform effect: new row goes to the end of the list 
             newConstellationGUIRow.Create(ref stack, HighLogic.UISkin);
         }
 
         private void updateConstellation(Constellation updatedConstellation)
         {
-            int deletedRowIndex = -1;
-            if((deletedRowIndex = deleteConstellationGUIRow(updatedConstellation)) >= 1)
-            {
-                DialogGUIHorizontalLayout newRow = createConstellationRow(updatedConstellation);
-                constellationRowLayout.children.Insert(deletedRowIndex, newRow); // TODO: wrong index
-
-                Stack<Transform> stack = new Stack<Transform>();
-                stack.Push(constellationRowLayout.uiItem.gameObject.transform);
-                newRow.Create(ref stack, HighLogic.UISkin);
-            }
+            updateConstellationGUIRow(updatedConstellation);
 
             //TODO: update colors in the vessel section
+            //TODO: update vessels' frequency of the constellation
+        }
+
+        private void updateConstellationGUIRow(Constellation updatedConstellation)
+        {
+            List<DialogGUIBase> rows = constellationRowLayout.children;
+
+            for (int i = 2; i < rows.Count; i++)
+            {
+                DialogGUIBase thisRow = rows[i];
+                if (thisRow.OptionText.Equals(updatedConstellation.frequency.ToString()))
+                {
+                    DialogGUIImage colorImage = thisRow.children[0] as DialogGUIImage;
+                    DialogGUILabel nameLabel = thisRow.children[1] as DialogGUILabel;
+                    DialogGUILabel freqLabel = thisRow.children[2] as DialogGUILabel;
+
+                    colorImage.uiItem.GetComponent<RawImage>().color = updatedConstellation.color;
+                    nameLabel.SetOptionText(updatedConstellation.name);
+                    freqLabel.SetOptionText("Frequency: " + updatedConstellation.frequency);
+                    return;
+                }
+            }
         }
     }
 }

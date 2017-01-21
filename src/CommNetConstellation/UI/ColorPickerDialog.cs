@@ -18,12 +18,9 @@ namespace CommNetConstellation.UI
         private static int dialogWidth = 250 + 10;
         private static int dialogHeight = 300;
 
-        private Color chosenColor;
-        private Texture2D chosenColorTexture;
-        private DialogGUIImage newColorImage;
-
         private Color currentColor;
-        private Texture2D currentColorTexture;
+        private Color chosenColor;
+        private DialogGUIImage newColorImage;       
 
         private float hueValue = 0f;
         private int sliderHeight = 5;
@@ -42,8 +39,8 @@ namespace CommNetConstellation.UI
             this.chosenColor = userColor;
             this.callbackForChosenColor = callbackForChosenColor;
 
-            this.chosenColorTexture = UIUtils.createAndColorize(30, 24, chosenColor);
-            this.currentColorTexture = UIUtils.createAndColorize(30, 24, currentColor);
+            //this.chosenColorTexture = UIUtils.createAndColorize(30, 24, chosenColor);
+            //this.currentColorTexture = UIUtils.createAndColorize(30, 24, currentColor);
             this.colorPickerTexture = new Texture2D(displayTextureWidth, displayTextureHeight, TextureFormat.ARGB32, false);
             renderColorPicker(this.colorPickerTexture, hueValue);
         }
@@ -75,8 +72,8 @@ namespace CommNetConstellation.UI
 
                     renderColorPicker(colorPickerTexture, hueValue); // wipe out cursor data
                     chosenColor = colorPickerTexture.GetPixel(localX, localY);
-                    UIUtils.colorizeFull(chosenColorTexture, chosenColor);
-                    newColorImage.uiItem.GetComponent<RawImage>().texture = chosenColorTexture;
+                    //UIUtils.colorizeFull(chosenColorTexture, chosenColor);
+                    newColorImage.uiItem.GetComponent<RawImage>().color = chosenColor;
 
                     colorPickerImage.uiItem.GetComponent<RawImage>().texture = drawCursorOn(colorPickerTexture, localX, localY);
                 }
@@ -88,9 +85,9 @@ namespace CommNetConstellation.UI
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
             DialogGUILabel newColorLabel = new DialogGUILabel("<b>  New</b>", 40, 12);
-            newColorImage = new DialogGUIImage(new Vector2(30, 24), Vector2.zero, Color.white, chosenColorTexture); 
+            newColorImage = new DialogGUIImage(new Vector2(30, 24), Vector2.zero, chosenColor, UIUtils.createAndColorize(30, 24, Color.white)); 
             DialogGUILabel currentColorLabel = new DialogGUILabel("<b>Current  </b>", 45, 12);
-            DialogGUIImage currentColorImage = new DialogGUIImage(new Vector2(30, 24), Vector2.zero, Color.white, currentColorTexture);
+            DialogGUIImage currentColorImage = new DialogGUIImage(new Vector2(30, 24), Vector2.zero, currentColor, UIUtils.createAndColorize(30, 24, Color.white));
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUISpace(40), newColorImage, newColorLabel, new DialogGUISpace(dialogWidth - 80 - 145), currentColorLabel, currentColorImage, new DialogGUISpace(40) }));
 
             colorPickerImage = new DialogGUIImage(new Vector2(displayTextureWidth, displayTextureHeight), Vector2.zero, Color.white, colorPickerTexture);
@@ -103,8 +100,8 @@ namespace CommNetConstellation.UI
         protected override void OnPreDismiss()
         {
             UnityEngine.GameObject.DestroyImmediate(colorPickerTexture, true);
-            UnityEngine.GameObject.DestroyImmediate(chosenColorTexture, true);
-            UnityEngine.GameObject.DestroyImmediate(currentColorTexture, true);
+            //UnityEngine.GameObject.DestroyImmediate(chosenColorTexture, true);
+            //UnityEngine.GameObject.DestroyImmediate(currentColorTexture, true);
             callbackForChosenColor(chosenColor);
         }
 

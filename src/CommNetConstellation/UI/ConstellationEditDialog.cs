@@ -18,7 +18,6 @@ namespace CommNetConstellation.UI
         private short conFreq = 0;
         private Color conColor = Color.white;
 
-        private Texture2D constellationTexture;
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
         private DialogGUIImage colorImage;
 
@@ -47,12 +46,12 @@ namespace CommNetConstellation.UI
 
                 this.description = string.Format("You are editing Constellation '{0}'.", this.conName);
                 this.actionButtonText = "Update";
-                this.constellationTexture = UIUtils.createAndColorize(colorTexture, new Color(1f, 1f, 1f), this.conColor);
             }
-            else
-            {
-                this.constellationTexture = colorTexture;
-            }
+        }
+
+        private string getMessage()
+        {
+            return "Message: " + this.message;
         }
 
         protected override List<DialogGUIBase> drawContentComponents()
@@ -62,13 +61,13 @@ namespace CommNetConstellation.UI
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description+"\n\n", false, false) }));
 
             DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 52, 12);
-            DialogGUITextInput nameInput = new DialogGUITextInput(this.conName, false, CNCSettings.Instance.MaxNumChars, setConNameFun, 170, 24);
+            DialogGUITextInput nameInput = new DialogGUITextInput(this.conName, false, CNCSettings.Instance.MaxNumChars, setConNameFun, 170, 25);
             DialogGUIHorizontalLayout nameGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { nameLabel, nameInput });
             listComponments.Add(nameGroup);
 
             DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 52, 12);
-            DialogGUITextInput frequencyInput = new DialogGUITextInput(this.conFreq.ToString(), false, 5, setConFreq, 45, 24);
-            colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.zero, Color.white, this.constellationTexture);
+            DialogGUITextInput frequencyInput = new DialogGUITextInput(this.conFreq.ToString(), false, 5, setConFreq, 45, 25);
+            colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.zero, this.conColor, colorTexture);
             DialogGUIButton colorButton = new DialogGUIButton("Color", colorEditClick, null, 50, 24, false);
             DialogGUIHorizontalLayout freqColorGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(18), colorButton, colorImage });
             listComponments.Add(freqColorGroup);
@@ -81,11 +80,6 @@ namespace CommNetConstellation.UI
             listComponments.Add(new DialogGUIScrollList(Vector2.one, false, false, new DialogGUIVerticalLayout(false, false, 4, new RectOffset(5, 5, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[] { messageLabel })));
 
             return listComponments;
-        }
-
-        private string getMessage()
-        {
-            return "Message: " + this.message;
         }
 
         private string setConFreq(string newFreqStr)
@@ -107,12 +101,12 @@ namespace CommNetConstellation.UI
                 }
                 if (newFreq < 0)
                 {
-                    message = "<color=red>This frequency cannot be negative!</color>";
+                    message = "<color=red>This frequency cannot be negative</color>";
                     return newFreqStr;
                 }
                 else if (CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == newFreq))
                 {
-                    message = "<color=red>This frequency is already in use!</color>";
+                    message = "<color=red>This frequency is already in use</color>";
                     return newFreqStr;
                 }
                 else
@@ -123,12 +117,12 @@ namespace CommNetConstellation.UI
             }
             catch(FormatException e)
             {
-                message = "<color=red>This frequency must be numeric only!</color>";
+                message = "<color=red>This frequency must be numeric only</color>";
                 return newFreqStr;
             }
             catch(OverflowException e)
             {
-                message = string.Format("<color=red>This frequency must be equal to or less than {0}!</color>", short.MaxValue);
+                message = string.Format("<color=red>This frequency must be equal to or less than {0}</color>", short.MaxValue);
                 return newFreqStr;
             }
         }
@@ -142,7 +136,7 @@ namespace CommNetConstellation.UI
             }
             else
             {
-                message = "<color=red>This name cannot be empty!</color>";
+                message = "<color=red>This name cannot be empty</color>";
                 return "";
             }
         }
@@ -152,12 +146,12 @@ namespace CommNetConstellation.UI
             //Check errors
             if (CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == this.conFreq) && this.existingConstellation == null)
             {
-                message = "<color=red>This frequency is already in use!</color>";
+                message = "<color=red>This frequency is already in use</color>";
                 return;
             }
             else if(this.conName.Trim().Length < 1)
             {
-                message = "<color=red>This name cannot be empty!</color>";
+                message = "<color=red>This name cannot be empty</color>";
                 return;
             }
 
@@ -192,9 +186,7 @@ namespace CommNetConstellation.UI
         public void userChooseColor(Color newChosenColor)
         {
             this.conColor = newChosenColor;
-            Texture2D.DestroyImmediate(this.constellationTexture, true);
-            this.constellationTexture = UIUtils.createAndColorize(colorTexture, new Color(1f, 1f, 1f), this.conColor);
-            colorImage.uiItem.GetComponent<RawImage>().texture = constellationTexture;   
+            colorImage.uiItem.GetComponent<RawImage>().color = this.conColor;
         }
     }
 }
