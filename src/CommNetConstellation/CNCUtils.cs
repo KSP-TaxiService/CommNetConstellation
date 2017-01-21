@@ -15,7 +15,7 @@ namespace CommNetConstellation
 
             for (int i=0; i<vessels.Count; i++)
             {
-                Vessel thisVessel = vessels.ElementAt(i);
+                Vessel thisVessel = vessels[i];
                 if(thisVessel.Connection != null)
                 {
                     CNCCommNetVessel cncVessel = (CNCCommNetVessel)thisVessel.Connection;
@@ -35,7 +35,7 @@ namespace CommNetConstellation
             //brute-force search temporarily until I find a \omega(n) method
             for (int i = 0; i < allVessels.Count(); i++)
             {
-                Vessel thisVessel = allVessels.ElementAt(i);
+                Vessel thisVessel = allVessels[i];
                 if (thisVessel.connection != null)
                 {
                     if (comparer.Equals(commNodeRef, thisVessel.connection.Comm))

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace CommNetConstellation
 {
@@ -31,6 +32,8 @@ namespace CommNetConstellation
         [Persistent] public int MajorVersion;
         [Persistent] public int MinorVersion;
         [Persistent] public short PublicRadioFrequency;
+        [Persistent] public string DefaultPublicName;
+        [Persistent] public Color DefaultPublicColor;
         [Persistent] public float DistanceToHideGroundStations;
         [Persistent(collectionIndex = "Constellations")] public List<Constellation> Constellations;
         //-----

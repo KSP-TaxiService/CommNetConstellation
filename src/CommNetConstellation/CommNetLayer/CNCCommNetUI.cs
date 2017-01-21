@@ -22,9 +22,11 @@ namespace CommNetConstellation.CommNetLayer
         {
             //base.UpdateDisplay();
             updateCodes();
-            coloriseEachConstellation(CNCSettings.Instance.PublicRadioFrequency, new Color(0.65f, 0.65f, 0.65f, 1f));
-            coloriseEachConstellation(1, new Color(0.43f, 0.81f, 0.96f, 1f));
-            coloriseEachConstellation(2, new Color(0.95f, 0.43f, 0.49f, 1f));
+            for(int i=0; i< CNCCommNetScenario.Instance.constellations.Count; i++)
+            {
+                Constellation thisConstellation = CNCCommNetScenario.Instance.constellations[i];
+                coloriseEachConstellation(thisConstellation.frequency, thisConstellation.color);
+            }
         }
 
         private void coloriseEachConstellation(short radioFrequency, Color newColor)
@@ -33,7 +35,7 @@ namespace CommNetConstellation.CommNetLayer
 
             for (int i = 0; i < commnetVessels.Count; i++)
             {
-                MapObject mapObj = commnetVessels.ElementAt(i).Vessel.mapObject;
+                MapObject mapObj = commnetVessels[i].Vessel.mapObject;
 
                 if (mapObj.type == MapObject.ObjectType.Vessel)
                 {
@@ -43,7 +45,7 @@ namespace CommNetConstellation.CommNetLayer
             }
         }
 
-        private Color getConstellationColor(CommNode a, CommNode b) // TODO: switch to Constellation's getColor()
+        private Color getConstellationColor(CommNode a, CommNode b)
         {
             if (a.isHome || b.isHome)
                 return Constellation.getColor(CNCCommNetScenario.Instance.constellations, publicFreq); // public
@@ -51,10 +53,8 @@ namespace CommNetConstellation.CommNetLayer
             CNCCommNetVessel vesselA = (CNCCommNetVessel)CNCUtils.findCorrespondingVessel(a).Connection;
             CNCCommNetVessel vesselB = (CNCCommNetVessel)CNCUtils.findCorrespondingVessel(b).Connection;
 
-            if (vesselA.getRadioFrequency() == 1 || vesselB.getRadioFrequency() == 1)
-                return new Color(0.43f, 0.81f, 0.96f, 1f);
-            else if (vesselA.getRadioFrequency() == 2 || vesselB.getRadioFrequency() == 2)
-                return new Color(0.95f, 0.43f, 0.49f, 1f);
+            if(vesselA.getRadioFrequency() == vesselB.getRadioFrequency())
+                return Constellation.getColor(CNCCommNetScenario.Instance.constellations, vesselA.getRadioFrequency());
             else
                 return Constellation.getColor(CNCCommNetScenario.Instance.constellations, publicFreq); // public
         }

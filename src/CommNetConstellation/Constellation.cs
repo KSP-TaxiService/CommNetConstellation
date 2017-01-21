@@ -35,7 +35,7 @@ namespace CommNetConstellation
         {
             Constellation possibleMatch = find(constellations, givenFreq);
             if (possibleMatch == null)
-                return new Color(0.65f, 0.65f, 0.65f, 1f); // fallback color
+                return CNCSettings.Instance.DefaultPublicColor; // fallback color
             else
                 return possibleMatch.color;
         }

@@ -48,25 +48,7 @@ namespace CommNetConstellation.UI
             eachRowGroupList.Add(creationGroup);
 
             for (int i = 0; i < CNCCommNetScenario.Instance.constellations.Count; i++)
-            {
-                Constellation thisConstellation = CNCCommNetScenario.Instance.constellations.ElementAt<Constellation>(i);
-
-                DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, thisConstellation.color, colorTexture);
-                DialogGUILabel constNameLabel = new DialogGUILabel(thisConstellation.name, 130, 12);
-                DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: {0}", thisConstellation.frequency), 110, 12);
-                DialogGUILabel numSatsLabel = new DialogGUILabel(string.Format("{0} vessels", Constellation.countVesselsOf(thisConstellation)),70, 12);
-                DialogGUIButton updateButton = new DialogGUIButton("Edit", delegate { editConstellationClick(thisConstellation); }, 50, 32, false);
-
-                DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, constNameLabel, freqLabel, numSatsLabel, new DialogGUIFlexibleSpace(), updateButton, null};
-                if (thisConstellation.frequency == CNCSettings.Instance.PublicRadioFrequency)
-                    rowGUIBase[rowGUIBase.Length - 1] = new DialogGUIButton("Reset", resetPublicConstClick, 60, 32, false);
-                else
-                    rowGUIBase[rowGUIBase.Length - 1] = new DialogGUIButton("Delete", delegate { deleteConstellationClick(thisConstellation); }, 60, 32, false);
-
-                DialogGUIHorizontalLayout constellationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, rowGUIBase);
-                constellationGroup.SetOptionText(thisConstellation.frequency.ToString()); //for quick identification
-                eachRowGroupList.Add(constellationGroup);
-            }
+                eachRowGroupList.Add(createConstellationRow(CNCCommNetScenario.Instance.constellations[i]));
 
             //Prepare a list container for the GUILayout rows
             DialogGUIBase[] rows = new DialogGUIBase[eachRowGroupList.Count + 1];
@@ -112,15 +94,66 @@ namespace CommNetConstellation.UI
             listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, rows)));
         }
 
+        private DialogGUIHorizontalLayout createConstellationRow(Constellation thisConstellation)
+        {
+            DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, thisConstellation.color, colorTexture);
+            DialogGUILabel constNameLabel = new DialogGUILabel(thisConstellation.name, 130, 12);
+            DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: {0}", thisConstellation.frequency), 110, 12);
+            DialogGUILabel numSatsLabel = new DialogGUILabel(string.Format("{0} vessels", Constellation.countVesselsOf(thisConstellation)), 70, 12);
+            DialogGUIButton updateButton = new DialogGUIButton("Edit", delegate { editConstellationClick(thisConstellation); }, 50, 32, false);
+
+            DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, constNameLabel, freqLabel, numSatsLabel, new DialogGUIFlexibleSpace(), updateButton, null };
+            if (thisConstellation.frequency == CNCSettings.Instance.PublicRadioFrequency)
+                rowGUIBase[rowGUIBase.Length - 1] = new DialogGUIButton("Reset", resetPublicConstClick, 60, 32, false);
+            else
+                rowGUIBase[rowGUIBase.Length - 1] = new DialogGUIButton("Delete", delegate { deleteConstellationClick(thisConstellation); }, 60, 32, false);
+
+            DialogGUIHorizontalLayout constellationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, rowGUIBase);
+            constellationGroup.SetOptionText(thisConstellation.frequency.ToString()); //for quick identification
+            return constellationGroup;
+        }
+
+        private int deleteConstellationGUIRow(Constellation thisConstellation)
+        {
+            List<DialogGUIBase> rows = constellationRowLayout.children;
+
+            for (int i = 1; i < rows.Count; i++)
+            {
+                DialogGUIBase thisRow = rows[i];
+                if (thisRow is DialogGUIHorizontalLayout) // avoid if DialogGUIContentSizer is detected
+                {
+                    if (thisRow.OptionText.Equals(thisConstellation.frequency.ToString()))
+                    {
+                        rows.RemoveAt(i); // drop from the scrolllist rows
+                        thisRow.uiItem.gameObject.DestroyGameObjectImmediate(); // necessary to free memory up
+                        return i;
+                    }
+                }
+            }
+
+            return -1;
+        }
+
         private void resetPublicConstClick()
         {
-            MultiOptionDialog warningDialog = new MultiOptionDialog("Revert to the default constellation name and color?", "Constellation", HighLogic.UISkin, new DialogGUIBase[]
+            string message = string.Format("Revert to the default name '{0}' and color '{1}'?", CNCSettings.Instance.DefaultPublicName, CNCSettings.Instance.DefaultPublicColor.ToString());
+            MultiOptionDialog warningDialog = new MultiOptionDialog(message, "Constellation", HighLogic.UISkin, new DialogGUIBase[]
             {
-                new DialogGUIButton("Reset", null),
+                new DialogGUIButton("Reset", resetPublicConstellation),
                 new DialogGUIButton("Cancel", null)
             });
 
+            //TODO: reset constellation
+
             PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), warningDialog, false, HighLogic.UISkin, true, string.Empty);
+        }
+
+        private void resetPublicConstellation()
+        {
+            Constellation publicConstellation = Constellation.find(CNCCommNetScenario.Instance.constellations, CNCSettings.Instance.PublicRadioFrequency);
+            publicConstellation.name = CNCSettings.Instance.DefaultPublicName;
+            publicConstellation.color = CNCSettings.Instance.DefaultPublicColor;
+            updateConstellation(publicConstellation);
         }
 
         private void deleteConstellationClick(Constellation thisConstellation)
@@ -139,21 +172,9 @@ namespace CommNetConstellation.UI
 
         private void deleteConstellation(Constellation thisConstellation)
         {
-            List<DialogGUIBase> rows = constellationRowLayout.children;
-
-            for (int i = 1; i < rows.Count; i++)
+            if (deleteConstellationGUIRow(thisConstellation) >= 1)
             {
-                DialogGUIBase thisRow = rows[i];
-                if (thisRow is DialogGUIHorizontalLayout) // avoid if DialogGUIContentSizer is detected
-                {
-                    if (thisRow.OptionText.Equals(thisConstellation.frequency.ToString()))
-                    {
-                        rows.RemoveAt(i); // drop from the scrolllist rows
-                        thisRow.uiItem.gameObject.DestroyGameObjectImmediate(); // necessary to free memory up
-                        //TODO: constellation deletion process
-                        break;
-                    }
-                }
+                //TODO: constellation deletion process
             }
         }
 
@@ -170,17 +191,39 @@ namespace CommNetConstellation.UI
 
         private void newConstellationClick()
         {
-            new ConstellationEditDialog("Constellation - <color=#00ff00>New</color>", null, createNewConstellation).launch();
+            new ConstellationEditDialog("Constellation - <color=#00ff00>New</color>", null, createNewConstellation, null).launch();
         }
 
         private void editConstellationClick(Constellation thisConstellation)
         {
-            new ConstellationEditDialog("Constellation - <color=#00ff00>Edit</color>", thisConstellation, null).launch();
+            new ConstellationEditDialog("Constellation - <color=#00ff00>Edit</color>", thisConstellation, null, updateConstellation).launch();
         }
 
         private void createNewConstellation(Constellation newConstellation)
         {
+            CNCCommNetScenario.Instance.constellations.Add(newConstellation);
+            DialogGUIHorizontalLayout newConstellationGUIRow = createConstellationRow(newConstellation);
+            constellationRowLayout.AddChild(newConstellationGUIRow);
 
+            Stack<Transform> stack = new Stack<Transform>();
+            stack.Push(constellationRowLayout.uiItem.gameObject.transform);
+            newConstellationGUIRow.Create(ref stack, HighLogic.UISkin);
+        }
+
+        private void updateConstellation(Constellation updatedConstellation)
+        {
+            int deletedRowIndex = -1;
+            if((deletedRowIndex = deleteConstellationGUIRow(updatedConstellation)) >= 1)
+            {
+                DialogGUIHorizontalLayout newRow = createConstellationRow(updatedConstellation);
+                constellationRowLayout.children.Insert(deletedRowIndex, newRow); // TODO: wrong index
+
+                Stack<Transform> stack = new Stack<Transform>();
+                stack.Push(constellationRowLayout.uiItem.gameObject.transform);
+                newRow.Create(ref stack, HighLogic.UISkin);
+            }
+
+            //TODO: update colors in the vessel section
         }
     }
 }

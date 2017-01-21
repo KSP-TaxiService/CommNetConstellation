@@ -1,8 +1,9 @@
-﻿using CommNetConstellation.CommNetLayer;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using System;
 using UnityEngine.UI;
+using CommNetConstellation.CommNetLayer;
 
 namespace CommNetConstellation.UI
 {
@@ -22,15 +23,20 @@ namespace CommNetConstellation.UI
         private DialogGUIImage colorImage;
 
         private Callback<Constellation> creationCallback;
+        private Callback<Constellation> updateCallback;
 
-        public ConstellationEditDialog(string dialogTitle, Constellation thisConstellation, Callback<Constellation> creationCallback) : base(dialogTitle,
-                                                                                                                                        0.5f, //x
-                                                                                                                                        0.5f, //y
-                                                                                                                                        250, //width
-                                                                                                                                        255, //height
-                                                                                                                                        new DialogOptions[] {})
+        public ConstellationEditDialog(string dialogTitle, 
+                                        Constellation thisConstellation, 
+                                        Callback<Constellation> creationCallback, 
+                                        Callback<Constellation> updateCallback) : base(dialogTitle,
+                                                                                    0.5f, //x
+                                                                                    0.5f, //y
+                                                                                    250, //width
+                                                                                    255, //height
+                                                                                    new DialogOptions[] {})
         {
             this.creationCallback = creationCallback;
+            this.updateCallback = updateCallback;
             this.existingConstellation = thisConstellation;
 
             if(this.existingConstellation != null)
@@ -93,9 +99,9 @@ namespace CommNetConstellation.UI
                     message = "<color=red>This frequency cannot be negative!</color>";
                     return newFreqStr;
                 }
-                else if (newFreq == 0) //TODO: check constellation list for existing one
+                else if (CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == newFreq))
                 {
-                    message = "<color=red>This frequency cannot be negative!</color>";
+                    message = "<color=red>This frequency is already in use!</color>";
                     return newFreqStr;
                 }
                 else
@@ -132,18 +138,37 @@ namespace CommNetConstellation.UI
 
         private void actionClick()
         {
-            if(this.existingConstellation == null && creationCallback!= null)
+            //TODO: lock public constellation's freq
+
+            //Check errors
+            if (CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == this.conFreq) && this.existingConstellation == null)
+            {
+                message = "<color=red>This frequency is already in use!</color>";
+                return;
+            }
+            else if(this.conName.Trim().Length < 1)
+            {
+                message = "<color=red>This name cannot be empty!</color>";
+                return;
+            }
+
+            if (this.existingConstellation == null && creationCallback!= null)
             {
                 Constellation newConstellation = new Constellation(this.conFreq, this.conName, this.conColor);
                 creationCallback(newConstellation);
-                message = "Created successfully.";
+                message = "Created successfully";
             }
-            else
+            else if(this.existingConstellation != null && updateCallback != null)
             {
                 this.existingConstellation.name = this.conName;
                 this.existingConstellation.frequency = this.conFreq;
                 this.existingConstellation.color = this.conColor;
-                message = "Updated successfully.";
+                updateCallback(this.existingConstellation);
+                message = "Updated successfully";
+            }
+            else
+            {
+                message = "Sorry, something is broken";
             }
         }
 

@@ -81,7 +81,7 @@ namespace CommNetConstellation.CommNetLayer
 
                 for (int i = 0; i < parts.Count; i++)
                 {
-                    ProtoPartModuleSnapshot thisModule = parts.ElementAt(i).FindModule("CNConstellationModule");
+                    ProtoPartModuleSnapshot thisModule = parts[i].FindModule("CNConstellationModule");
 
                     if (thisModule == null)
                         continue;
@@ -118,7 +118,7 @@ namespace CommNetConstellation.CommNetLayer
 
                     for (int i = 0; i < parts.Count && !success; i++)
                     {
-                        ProtoPartModuleSnapshot thisModule = parts.ElementAt(i).FindModule("CNConstellationModule");
+                        ProtoPartModuleSnapshot thisModule = parts[i].FindModule("CNConstellationModule");
 
                         if (thisModule != null)
                         {
