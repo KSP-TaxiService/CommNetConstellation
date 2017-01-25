@@ -9,9 +9,11 @@ namespace CommNetConstellation.UI
 {
     public class VesselSetupDialog : AbstractDialog
     {
+        private Part rightClickedPart = null;
         private Vessel hostVessel; // could be null (in editor)
-        private string description = "You are editing ";
+        private string description = "Something";
         private string message = "Ready";
+        private Callback<Vessel> updateCallback;
 
         private short conFreq = 0;
         private DialogGUITextInput frequencyInput;
@@ -19,23 +21,29 @@ namespace CommNetConstellation.UI
         private DialogGUIImage colorImage;
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
 
-        public VesselSetupDialog(string title, Vessel thisVessel) : base(title, 
-                                                                            0.5f, //x
-                                                                            0.5f, //y
-                                                                            250, //width
-                                                                            255, //height
-                                                                            new DialogOptions[] {})
+        public VesselSetupDialog(string title, Vessel vessel, Part cmdPart, Callback<Vessel>  updateCallback) : base(title, 
+                                                                                                                0.5f, //x
+                                                                                                                0.5f, //y
+                                                                                                                250, //width
+                                                                                                                255, //height
+                                                                                                                new DialogOptions[] {})
         {
-            this.hostVessel = thisVessel;
+            this.hostVessel = vessel;
+            this.rightClickedPart = cmdPart;
+            this.updateCallback = updateCallback;
 
-            if (this.hostVessel != null)
+            if (this.rightClickedPart != null) // first choice
             {
-                this.description += string.Format("'{0}'.\n\n", this.hostVessel.vesselName);
-                CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
-                this.conFreq = Constellation.find(CNCCommNetScenario.Instance.constellations, cv.getRadioFrequency()).frequency;
+                this.description = string.Format("You are editing this command part '{0}'.", this.rightClickedPart.partInfo.title);
+                CNConstellationModule cncModule = rightClickedPart.FindModuleImplementing<CNConstellationModule>();
+                this.conFreq = cncModule.radioFrequency;
             }
-            else
-                this.description += "this vessel under construction.\n\n";
+            else if (this.hostVessel != null)
+            {
+                this.description = string.Format("You are editing the whole vessel '{0}' (overriding <b>all</b> command parts).", this.hostVessel.vesselName);
+                CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
+                this.conFreq = cv.getRadioFrequency();
+            }
         }
 
         private string getMessage()
@@ -47,7 +55,7 @@ namespace CommNetConstellation.UI
         {
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
-            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description, false, false) }));
+            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description+"\n\n", false, false) }));
 
             DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 52, 12);
             frequencyInput = new DialogGUITextInput(conFreq.ToString(), false, 5, setConFreq, 45, 25);
@@ -122,16 +130,29 @@ namespace CommNetConstellation.UI
                 message = "<color=red>Please choose one of the existing constellations</color>";
                 return;
             }
+            else if (!Constellation.isFrequencyValid(this.conFreq))
+            {
+                message = string.Format("<color=red>This frequency must be between 0 and {0}</color>", short.MaxValue);
+                return;
+            }
 
-            if(this.hostVessel!=null)
+            if (rightClickedPart != null)
+            {
+                CNConstellationModule cncModule = rightClickedPart.FindModuleImplementing<CNConstellationModule>();
+                cncModule.radioFrequency = this.conFreq;
+                message = "The frequency of this command part is updated";
+            }
+            else if (this.hostVessel != null)
             {
                 CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
                 cv.updateRadioFrequency(this.conFreq);
+                message = "All individual frequencies in this entire vessel are updated to this frequency";
+
+                updateCallback(this.hostVessel);
             }
             else
             {
-                List<Part> parts = EditorLogic.fetch.ship.Parts;
-                //TODO: get the part that has the right-click part action (or the root part?)
+                message = "Something is broken ;_;";
             }
         }
 
@@ -140,7 +161,7 @@ namespace CommNetConstellation.UI
             this.conFreq = CNCSettings.Instance.PublicRadioFrequency;
             frequencyInput.SetOptionText(this.conFreq.ToString());
             updateClick();
-            message = "Reverted";
+            message = "Reverted to the public constellation";
         }
     }
 }

@@ -14,7 +14,7 @@ namespace CommNetConstellation.CommNetLayer
         [KSPEvent(guiActive = true, guiActiveEditor =true, guiActiveUnfocused = false, guiName = "CommNet Constellation", active = true)]
         public void KSPEventConstellationSetup()
         {
-            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", this.vessel).launch(new System.Object[] { this.vessel });
+            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", this.vessel, this.part, null).launch();
         }
     }
 
@@ -60,6 +60,9 @@ namespace CommNetConstellation.CommNetLayer
             base.UpdateComm();
         }
 
+        /// <summary>
+        /// Update the frequency of every command part of this vessel, even if one or more have different frequencies
+        /// </summary>
         public void updateRadioFrequency(short newFrequency)
         {
             if (!Constellation.isFrequencyValid(newFrequency))
@@ -71,23 +74,21 @@ namespace CommNetConstellation.CommNetLayer
             bool success = false;
             if (this.Vessel.loaded)
             {
-                CNConstellationModule thisModule = this.Vessel.FindPartModuleImplementing<CNConstellationModule>();
-                thisModule.radioFrequency = newFrequency;
+                List<CNConstellationModule> modules = this.Vessel.FindPartModulesImplementing<CNConstellationModule>();
+                for(int i=0; i<modules.Count;i++)
+                    modules[i].radioFrequency = newFrequency;
                 success = true;
             }
             else
             {
                 List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
-
                 for (int i = 0; i < parts.Count; i++)
                 {
                     ProtoPartModuleSnapshot thisModule = parts[i].FindModule("CNConstellationModule");
-
                     if (thisModule == null)
                         continue;
 
                     success = thisModule.moduleValues.SetValue("radioFrequency", newFrequency);
-                    break;
                 }
             }
 
@@ -102,14 +103,20 @@ namespace CommNetConstellation.CommNetLayer
             }
         }
 
+        /// <summary>
+        /// If multiple command parts of this vessel have different frequencies, pick the frequency of the first part in order of part addition in editor
+        /// </summary>
         public short getRadioFrequency(bool forceRetrievalFromModule = false)
         {
             if (forceRetrievalFromModule)
             {
                 if (this.Vessel.loaded)
                 {
-                    CNConstellationModule thisModule = this.Vessel.FindPartModuleImplementing<CNConstellationModule>();
-                    this.radioFrequency = thisModule.radioFrequency;
+                    List<CNConstellationModule> modules = this.Vessel.FindPartModulesImplementing<CNConstellationModule>();
+                    if (modules.Count >= 1)
+                        this.radioFrequency = modules[0].radioFrequency; // grab the first command part (part list is sorted in order of part addition in editor)
+                    else
+                        CNCLog.Error("getRadioFrequency(): CNConstellationModule not found!");
                 }
                 else
                 {
@@ -122,11 +129,11 @@ namespace CommNetConstellation.CommNetLayer
 
                         if (thisModule != null)
                         {
-                            this.radioFrequency = short.Parse(thisModule.moduleValues.GetValue("radioFrequency"));
+                            this.radioFrequency = short.Parse(thisModule.moduleValues.GetValue("radioFrequency")); // grab the first command part
                             success = true;
+                            break;
                         }
                     }
-
 
                     if (!success) // fallback
                     {

@@ -139,7 +139,7 @@ namespace CommNetConstellation.CommNetLayer
             for (int i=0; i<constellations.Count; i++)
             {
                 ConfigNode newConstellationNode = new ConfigNode("Constellation");
-                newConstellationNode = ConfigNode.CreateConfigFromObject(constellations.ElementAt<Constellation>(i), newConstellationNode);
+                newConstellationNode = ConfigNode.CreateConfigFromObject(constellations[i], newConstellationNode);
                 rootNode.AddNode(newConstellationNode);
             }
 

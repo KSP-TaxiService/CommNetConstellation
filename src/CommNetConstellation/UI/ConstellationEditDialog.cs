@@ -154,6 +154,11 @@ namespace CommNetConstellation.UI
                 message = "<color=red>This name cannot be empty</color>";
                 return;
             }
+            else if(!Constellation.isFrequencyValid(this.conFreq))
+            {
+                message = string.Format("<color=red>This frequency must be between 0 and {0}</color>", short.MaxValue);
+                return;
+            }
 
             if (this.existingConstellation == null && creationCallback!= null)
             {
@@ -174,7 +179,7 @@ namespace CommNetConstellation.UI
             }
             else
             {
-                message = "Sorry, something is broken :(";
+                message = "Something is broken :(";
             }
         }
 

@@ -61,7 +61,7 @@ namespace CommNetConstellation.UI
             launch(new System.Object[] { });
         }
 
-        public void launch(System.Object[] args)
+        public void launch(System.Object[] args) // TODO: clean up callers of this function (rearranging arguments)
         {
             if (this.isDisplayed)
                 return;

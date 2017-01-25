@@ -15,6 +15,7 @@ namespace CommNetConstellation.UI
         private static readonly Texture2D focusTexture = UIUtils.loadImage("target");
 
         private DialogGUIVerticalLayout constellationRowLayout;
+        private DialogGUIVerticalLayout vesselRowLayout;
 
         public ConstellationControlDialog(string title) : base(title, 
                                                             0.8f, //x
@@ -67,23 +68,7 @@ namespace CommNetConstellation.UI
 
             List<DialogGUIHorizontalLayout> eachRowGroupList = new List<DialogGUIHorizontalLayout>();
             for (int i = 0; i < allVessels.Count; i++)
-            {
-                CNCCommNetVessel thisVessel = allVessels.ElementAt<CNCCommNetVessel>(i);
-                short radioFreq = thisVessel.getRadioFrequency();
-                Color color = Constellation.getColor(CNCCommNetScenario.Instance.constellations, radioFreq);
-
-                UIStyle focusStyle = UIUtils.createImageButtonStyle(focusTexture);
-                DialogGUIButton focusButton = new DialogGUIButton("", delegate { vesselFocusClick(thisVessel.Vessel); }, null, 32, 32, false, focusStyle);
-                focusButton.image = focusStyle.normal.background;
-
-                DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.vesselName, 160, 12);
-                DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(color), radioFreq), 120, 12);
-                DialogGUILabel locationLabel = new DialogGUILabel(string.Format("Orbiting: {0}", thisVessel.Vessel.mainBody.name), 120, 12);
-                DialogGUIButton setupButton = new DialogGUIButton("Setup", delegate { vesselSetupClick(thisVessel.Vessel); }, 70, 32, false);
-
-                DialogGUIHorizontalLayout rowGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { focusButton, vesselLabel, freqLabel, locationLabel, new DialogGUIFlexibleSpace(), setupButton });
-                eachRowGroupList.Add(rowGroup);
-            }
+                eachRowGroupList.Add(createVesselRow(allVessels[i]));
 
             //Prepare a list container for the GUILayout rows
             DialogGUIBase[] rows = new DialogGUIBase[eachRowGroupList.Count + 1];
@@ -91,7 +76,8 @@ namespace CommNetConstellation.UI
             for (int i = 0; i < eachRowGroupList.Count; i++)
                 rows[i + 1] = eachRowGroupList[i];
 
-            listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, rows)));
+            vesselRowLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, rows);
+            listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, vesselRowLayout));
         }
 
         private DialogGUIHorizontalLayout createConstellationRow(Constellation thisConstellation)
@@ -111,6 +97,25 @@ namespace CommNetConstellation.UI
             DialogGUIHorizontalLayout constellationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, rowGUIBase);
             constellationGroup.SetOptionText(thisConstellation.frequency.ToString()); //for quick identification
             return constellationGroup;
+        }
+
+        private DialogGUIHorizontalLayout createVesselRow(CNCCommNetVessel thisVessel)
+        {
+            short radioFreq = thisVessel.getRadioFrequency();
+            Color color = Constellation.getColor(CNCCommNetScenario.Instance.constellations, radioFreq);
+
+            UIStyle focusStyle = UIUtils.createImageButtonStyle(focusTexture);
+            DialogGUIButton focusButton = new DialogGUIButton("", delegate { vesselFocusClick(thisVessel.Vessel); }, null, 32, 32, false, focusStyle);
+            focusButton.image = focusStyle.normal.background;
+
+            DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.vesselName, 160, 12);
+            DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(color), radioFreq), 120, 12);
+            DialogGUILabel locationLabel = new DialogGUILabel(string.Format("Orbiting: {0}", thisVessel.Vessel.mainBody.name), 120, 12);
+            DialogGUIButton setupButton = new DialogGUIButton("Setup", delegate { vesselSetupClick(thisVessel.Vessel); }, 70, 32, false);
+
+            DialogGUIHorizontalLayout vesselGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { focusButton, vesselLabel, freqLabel, locationLabel, new DialogGUIFlexibleSpace(), setupButton });
+            vesselGroup.SetOptionText(thisVessel.Vessel.id.ToString());
+            return vesselGroup;
         }
 
         private int deleteConstellationGUIRow(Constellation thisConstellation)
@@ -175,7 +180,7 @@ namespace CommNetConstellation.UI
 
         private void vesselSetupClick(Vessel thisVessel)
         {
-            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", thisVessel).launch(new System.Object[] {});
+            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", thisVessel, null, updateVessel).launch();
         }
 
         private void vesselFocusClick(Vessel thisVessel)
@@ -229,6 +234,33 @@ namespace CommNetConstellation.UI
                     colorImage.uiItem.GetComponent<RawImage>().color = updatedConstellation.color;
                     nameLabel.SetOptionText(updatedConstellation.name);
                     freqLabel.SetOptionText("Frequency: " + updatedConstellation.frequency);
+                    return;
+                }
+            }
+        }
+
+        private void updateVessel(Vessel updatedVessel)
+        {
+            if (updatedVessel == null)
+                return;
+
+            updateVesselGUIRow(updatedVessel);
+        }
+
+        private void updateVesselGUIRow(Vessel updatedVessel)
+        {
+            CNCCommNetVessel thisVessel = (CNCCommNetVessel)updatedVessel.Connection;
+            List<DialogGUIBase> rows = vesselRowLayout.children;
+
+            for (int i = 0; i < rows.Count; i++)
+            {
+                DialogGUIBase thisRow = rows[i];
+                if (thisRow.OptionText.Equals(updatedVessel.id.ToString()))
+                {
+                    Constellation thisConstellation = Constellation.find(CNCCommNetScenario.Instance.constellations, thisVessel.getRadioFrequency());
+
+                    DialogGUILabel freqLabel = thisRow.children[2] as DialogGUILabel;
+                    freqLabel.SetOptionText(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(thisConstellation.color), thisConstellation.frequency));
                     return;
                 }
             }
