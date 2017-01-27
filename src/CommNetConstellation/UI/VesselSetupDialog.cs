@@ -13,7 +13,8 @@ namespace CommNetConstellation.UI
         private Vessel hostVessel; // could be null (in editor)
         private string description = "Something";
         private string message = "Ready";
-        private Callback<Vessel> updateCallback;
+
+        private Callback<Vessel, short> updateCallback;
 
         private short conFreq = 0;
         private DialogGUITextInput frequencyInput;
@@ -21,7 +22,7 @@ namespace CommNetConstellation.UI
         private DialogGUIImage colorImage;
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
 
-        public VesselSetupDialog(string title, Vessel vessel, Part cmdPart, Callback<Vessel>  updateCallback) : base(title, 
+        public VesselSetupDialog(string title, Vessel vessel, Part cmdPart, Callback<Vessel, short>  updateCallback) : base(title, 
                                                                                                                 0.5f, //x
                                                                                                                 0.5f, //y
                                                                                                                 250, //width
@@ -136,19 +137,20 @@ namespace CommNetConstellation.UI
                 return;
             }
 
-            if (rightClickedPart != null)
+            if (rightClickedPart != null) // either in editor or flight
             {
-                CNConstellationModule cncModule = rightClickedPart.FindModuleImplementing<CNConstellationModule>();
+                CNConstellationModule cncModule = rightClickedPart.FindModuleImplementing<CNConstellationModule>(); // TODO: in flight, update has no effect
                 cncModule.radioFrequency = this.conFreq;
                 message = "The frequency of this command part is updated";
             }
             else if (this.hostVessel != null)
             {
                 CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
+                short prevFrequency = cv.getRadioFrequency();
                 cv.updateRadioFrequency(this.conFreq);
                 message = "All individual frequencies in this entire vessel are updated to this frequency";
 
-                updateCallback(this.hostVessel);
+                updateCallback(this.hostVessel, prevFrequency);
             }
             else
             {
@@ -159,8 +161,8 @@ namespace CommNetConstellation.UI
         private void defaultClick()
         {
             this.conFreq = CNCSettings.Instance.PublicRadioFrequency;
-            frequencyInput.SetOptionText(this.conFreq.ToString());
             updateClick();
+            frequencyInput.SetOptionText(this.conFreq.ToString()); // TODO: no effect?
             message = "Reverted to the public constellation";
         }
     }

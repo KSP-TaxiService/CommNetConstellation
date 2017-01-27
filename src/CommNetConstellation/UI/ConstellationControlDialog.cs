@@ -128,7 +128,9 @@ namespace CommNetConstellation.UI
                 if (thisRow.OptionText.Equals(thisConstellation.frequency.ToString()))
                 {
                     rows.RemoveAt(i); // drop from the scrolllist rows
-                    thisRow.uiItem.gameObject.DestroyGameObjectImmediate(); // necessary to free memory up
+                    for(int j = thisRow.children.Count-1 ; j >= 0; j--)// necessary to free memory up
+                        thisRow.children[j].uiItem.gameObject.DestroyGameObjectImmediate();
+                    thisRow.uiItem.gameObject.DestroyGameObjectImmediate();
                     return i;
                 }
             }
@@ -153,7 +155,7 @@ namespace CommNetConstellation.UI
             Constellation publicConstellation = Constellation.find(CNCCommNetScenario.Instance.constellations, CNCSettings.Instance.PublicRadioFrequency);
             publicConstellation.name = CNCSettings.Instance.DefaultPublicName;
             publicConstellation.color = CNCSettings.Instance.DefaultPublicColor;
-            updateConstellation(publicConstellation);
+            updateConstellation(publicConstellation, CNCSettings.Instance.PublicRadioFrequency);
         }
 
         private void deleteConstellationClick(Constellation thisConstellation)
@@ -170,11 +172,24 @@ namespace CommNetConstellation.UI
             PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), warningDialog, false, HighLogic.UISkin, true);
         }
 
-        private void deleteConstellation(Constellation thisConstellation)
+        private void deleteConstellation(Constellation deletedConstellation)
         {
-            if (deleteConstellationGUIRow(thisConstellation) >= 1)
+            if (deleteConstellationGUIRow(deletedConstellation) >= 0)
             {
-                //TODO: constellation deletion process (moving vessels into public)
+                CNCCommNetScenario.Instance.constellations.RemoveAt(CNCCommNetScenario.Instance.constellations.FindIndex(x => x.frequency == deletedConstellation.frequency));
+
+                if (Constellation.countVesselsOf(deletedConstellation) < 1) // no vessel to update
+                    return;
+
+                short publicFrequency = CNCSettings.Instance.PublicRadioFrequency;
+                List<CNCCommNetVessel> affectedVessels = CNCUtils.getCommNetVessels().FindAll(x => x.getRadioFrequency() == deletedConstellation.frequency);
+                for (int i = 0; i < affectedVessels.Count; i++)
+                {
+                    affectedVessels[i].updateRadioFrequency(publicFrequency);
+                    updateVesselGUIRow(affectedVessels[i].Vessel);
+                }
+
+                updateConstellationGUIRow(publicFrequency, -1);
             }
         }
 
@@ -201,7 +216,6 @@ namespace CommNetConstellation.UI
 
         private void createNewConstellation(Constellation newConstellation)
         {
-            CNCCommNetScenario.Instance.constellations.Add(newConstellation);
             DialogGUIHorizontalLayout newConstellationGUIRow = createConstellationRow(newConstellation);
             constellationRowLayout.AddChild(newConstellationGUIRow);
 
@@ -210,41 +224,51 @@ namespace CommNetConstellation.UI
             newConstellationGUIRow.Create(ref stack, HighLogic.UISkin);
         }
 
-        private void updateConstellation(Constellation updatedConstellation)
+        private void updateConstellation(Constellation updatedConstellation, short previousFrequency)
         {
-            updateConstellationGUIRow(updatedConstellation);
+            List<CNCCommNetVessel> affectedVessels = CNCUtils.getCommNetVessels().FindAll(x => x.getRadioFrequency() == updatedConstellation.frequency);
+            for (int i = 0; i < affectedVessels.Count; i++)
+                updateVesselGUIRow(affectedVessels[i].Vessel);
 
-            //TODO: update colors in the vessel section
-            //TODO: update vessels' frequency of the constellation
+            updateConstellationGUIRow(updatedConstellation.frequency, previousFrequency);
         }
 
-        private void updateConstellationGUIRow(Constellation updatedConstellation)
+        private void updateConstellationGUIRow(short updatedfrequency, short previousFrequency)
         {
             List<DialogGUIBase> rows = constellationRowLayout.children;
 
             for (int i = 2; i < rows.Count; i++)
             {
                 DialogGUIBase thisRow = rows[i];
-                if (thisRow.OptionText.Equals(updatedConstellation.frequency.ToString()))
+                if (thisRow.OptionText.Equals(updatedfrequency.ToString()) || thisRow.OptionText.Equals(previousFrequency.ToString()))
                 {
                     DialogGUIImage colorImage = thisRow.children[0] as DialogGUIImage;
                     DialogGUILabel nameLabel = thisRow.children[1] as DialogGUILabel;
                     DialogGUILabel freqLabel = thisRow.children[2] as DialogGUILabel;
+                    DialogGUILabel vesselLabel = thisRow.children[3] as DialogGUILabel;
 
+                    Constellation updatedConstellation = Constellation.find(CNCCommNetScenario.Instance.constellations, updatedfrequency);
                     colorImage.uiItem.GetComponent<RawImage>().color = updatedConstellation.color;
                     nameLabel.SetOptionText(updatedConstellation.name);
                     freqLabel.SetOptionText("Frequency: " + updatedConstellation.frequency);
-                    return;
+                    vesselLabel.SetOptionText(Constellation.countVesselsOf(updatedConstellation) + " vessels");
+
+                    thisRow.SetOptionText(updatedConstellation.frequency.ToString());
+                    break;
                 }
             }
         }
 
-        private void updateVessel(Vessel updatedVessel)
+        private void updateVessel(Vessel updatedVessel, short previousFrequency)
         {
             if (updatedVessel == null)
                 return;
 
+            short vesselFrequency = (updatedVessel.connection as CNCCommNetVessel).getRadioFrequency();
+
             updateVesselGUIRow(updatedVessel);
+            updateConstellationGUIRow(vesselFrequency, -1);
+            updateConstellationGUIRow(previousFrequency, -1);
         }
 
         private void updateVesselGUIRow(Vessel updatedVessel)

@@ -22,12 +22,12 @@ namespace CommNetConstellation.UI
         private DialogGUIImage colorImage;
 
         private Callback<Constellation> creationCallback;
-        private Callback<Constellation> updateCallback;
+        private Callback<Constellation, short> updateCallback;
 
         public ConstellationEditDialog(string dialogTitle, 
                                         Constellation thisConstellation, 
                                         Callback<Constellation> creationCallback, 
-                                        Callback<Constellation> updateCallback) : base(dialogTitle,
+                                        Callback<Constellation, short> updateCallback) : base(dialogTitle,
                                                                                     0.5f, //x
                                                                                     0.5f, //y
                                                                                     250, //width
@@ -163,18 +163,24 @@ namespace CommNetConstellation.UI
             if (this.existingConstellation == null && creationCallback!= null)
             {
                 Constellation newConstellation = new Constellation(this.conFreq, this.conName, this.conColor);
+                CNCCommNetScenario.Instance.constellations.Add(newConstellation);
                 creationCallback(newConstellation);
                 message = "Created successfully";
             }
             else if(this.existingConstellation != null && updateCallback != null)
             {
+                short prevFreq = this.existingConstellation.frequency;
                 this.existingConstellation.name = this.conName;
                 this.existingConstellation.color = this.conColor;
 
                 if(this.existingConstellation.frequency != CNCSettings.Instance.PublicRadioFrequency) // this is not the public one
                     this.existingConstellation.frequency = this.conFreq;
 
-                updateCallback(this.existingConstellation);
+                List<CNCCommNetVessel> affectedVessels = CNCUtils.getCommNetVessels().FindAll(x => x.getRadioFrequency() == prevFreq);
+                for (int i = 0; i < affectedVessels.Count; i++)
+                    affectedVessels[i].updateRadioFrequency(this.existingConstellation.frequency);
+
+                updateCallback(this.existingConstellation, prevFreq);
                 message = "Updated successfully";
             }
             else

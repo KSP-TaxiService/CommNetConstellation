@@ -59,7 +59,7 @@ namespace CommNetConstellation.CommNetLayer
                 return Constellation.getColor(CNCCommNetScenario.Instance.constellations, publicFreq); // public
         }
 
-        private void updateCodes()
+        private void updateCodes() // TODO: try to remove most of recycled stock codes
         {
             if (FlightGlobals.ActiveVessel == null)
             {
