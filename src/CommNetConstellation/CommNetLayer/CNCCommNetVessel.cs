@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace CommNetConstellation.CommNetLayer
 {
-    //This class is coupled with the cnc_module.cfg
+    //This class is coupled with the MM patch (cnc_module.cfg) that inserts CNConstellationModule into every command part
     public class CNConstellationModule : PartModule
     {
         [KSPField(isPersistant = true)]

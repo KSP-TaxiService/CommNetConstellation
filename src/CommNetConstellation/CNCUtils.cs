@@ -10,7 +10,7 @@ namespace CommNetConstellation
     {
         public static List<CNCCommNetVessel> getCommNetVessels(short targetRadioFrequency = -1)
         {
-            List<Vessel> vessels = FlightGlobals.Vessels;
+            List<Vessel> vessels = FlightGlobals.fetch.vessels;
             List<CNCCommNetVessel> commnetVessels = new List<CNCCommNetVessel>();
 
             for (int i=0; i<vessels.Count; i++)
@@ -29,7 +29,7 @@ namespace CommNetConstellation
 
         public static Vessel findCorrespondingVessel(CommNode commNodeRef)
         {
-            List<Vessel> allVessels = FlightGlobals.Vessels;
+            List<Vessel> allVessels = FlightGlobals.fetch.vessels;
             IEqualityComparer<CommNode> comparer = commNodeRef.Comparer;
 
             //brute-force search temporarily until I find a \omega(n) method

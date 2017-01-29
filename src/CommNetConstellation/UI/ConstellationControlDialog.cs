@@ -30,17 +30,16 @@ namespace CommNetConstellation.UI
         protected override List<DialogGUIBase> drawContentComponents()
         {
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
-
-            CNCLog.Debug("drawContentComponents()");
-            setupConstellationList(listComponments);
-            setupSatelliteList(listComponments);
+            listComponments.AddRange(setupConstellationList());
+            listComponments.AddRange(setupVesselList());
 
             return listComponments;
         }
 
-        private void setupConstellationList(List<DialogGUIBase> listComponments)
+        private List<DialogGUIBase> setupConstellationList()
         {
-            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel("\n<b>You can manage multiple constellations of vessels</b>", false, false) }));
+            List<DialogGUIBase> constellationComponments = new List<DialogGUIBase>();
+            constellationComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel("\n<b>You can manage multiple constellations of vessels</b>", false, false) }));
             
             List<DialogGUIHorizontalLayout> eachRowGroupList = new List<DialogGUIHorizontalLayout>();
 
@@ -58,12 +57,15 @@ namespace CommNetConstellation.UI
                 rows[i + 1] = eachRowGroupList[i];
 
             constellationRowLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperCenter, rows);
-            listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, constellationRowLayout));
+            constellationComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, constellationRowLayout));
+
+            return constellationComponments;
         }
 
-        private void setupSatelliteList(List<DialogGUIBase> listComponments)
+        private List<DialogGUIBase> setupVesselList()
         {
-            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel("\n<b>You can edit the constellation configuration of an eligible vessel</b>", false, false) }));
+            List<DialogGUIBase> vesselComponments = new List<DialogGUIBase>();
+            vesselComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel("\n<b>You can edit the constellation configuration of an eligible vessel</b>", false, false) }));
             List<CNCCommNetVessel> allVessels = CNCUtils.getCommNetVessels();
 
             List<DialogGUIHorizontalLayout> eachRowGroupList = new List<DialogGUIHorizontalLayout>();
@@ -77,7 +79,9 @@ namespace CommNetConstellation.UI
                 rows[i + 1] = eachRowGroupList[i];
 
             vesselRowLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, rows);
-            listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, vesselRowLayout));
+            vesselComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, vesselRowLayout));
+
+            return vesselComponments;
         }
 
         private DialogGUIHorizontalLayout createConstellationRow(Constellation thisConstellation)

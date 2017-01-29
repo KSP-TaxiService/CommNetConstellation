@@ -141,6 +141,26 @@ namespace CommNetConstellation.UI
             {
                 CNConstellationModule cncModule = rightClickedPart.FindModuleImplementing<CNConstellationModule>(); // TODO: in flight, update has no effect
                 cncModule.radioFrequency = this.conFreq;
+
+                //Vessel gv = FlightGlobals.fetch.vessels.Find(x => x.id == this.hostVessel.id);
+                //Part gp = gv.parts.Find(x => x.flightID == rightClickedPart.flightID);
+                //CNConstellationModule gm = gp.FindModuleImplementing<CNConstellationModule>(); // contain the same change!
+
+                //Problem: Somehow, there are two different copies of FlightGlobals
+                //TODO: Is a solution to this problem found yet?
+                /*
+                if (this.hostVessel != null) // in flight
+                {
+                    CNCCommNetVessel twinVessel = CNCUtils.getCommNetVessels().Find(x => x.Vessel.id == this.hostVessel.id);
+                    Part twinPart = twinVessel.Vessel.parts.Find(x => x.flightID == rightClickedPart.flightID);
+                    CNConstellationModule twinModule = twinPart.FindModuleImplementing<CNConstellationModule>(); // contain same change :S?
+                    //twinModule.radioFrequency = this.conFreq;
+                }
+                */
+                //GameEvents.onVesselSituationChange.Fire(new GameEvents.HostedFromToAction<Vessel, Vessel.Situations>(this.hostVessel, this.lastSituation, this.situation));
+
+                bool l = this.hostVessel.loaded;
+
                 message = "The frequency of this command part is updated";
             }
             else if (this.hostVessel != null)

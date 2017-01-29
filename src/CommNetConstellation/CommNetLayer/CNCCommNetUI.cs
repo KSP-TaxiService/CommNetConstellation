@@ -10,8 +10,6 @@ namespace CommNetConstellation.CommNetLayer
 {
     public class CNCCommNetUI : CommNetUI
     {
-        private short publicFreq = CNCSettings.Instance.PublicRadioFrequency;
-
         public static new CNCCommNetUI Instance
         {
             get;
@@ -48,27 +46,27 @@ namespace CommNetConstellation.CommNetLayer
         private Color getConstellationColor(CommNode a, CommNode b)
         {
             if (a.isHome || b.isHome)
-                return Constellation.getColor(CNCCommNetScenario.Instance.constellations, publicFreq); // public
+                return Constellation.getColor(CNCSettings.Instance.PublicRadioFrequency); // public
 
             CNCCommNetVessel vesselA = (CNCCommNetVessel)CNCUtils.findCorrespondingVessel(a).Connection;
             CNCCommNetVessel vesselB = (CNCCommNetVessel)CNCUtils.findCorrespondingVessel(b).Connection;
 
             if(vesselA.getRadioFrequency() == vesselB.getRadioFrequency())
-                return Constellation.getColor(CNCCommNetScenario.Instance.constellations, vesselA.getRadioFrequency());
+                return Constellation.getColor(vesselA.getRadioFrequency());
             else
-                return Constellation.getColor(CNCCommNetScenario.Instance.constellations, publicFreq); // public
+                return Constellation.getColor(CNCSettings.Instance.PublicRadioFrequency); // public
         }
 
         private void updateCodes() // TODO: try to remove most of recycled stock codes
         {
-            if (FlightGlobals.ActiveVessel == null)
+            if (FlightGlobals.fetch.activeVessel == null)
             {
                 this.useTSBehavior = true;
             }
             else
             {
                 this.useTSBehavior = false;
-                this.vessel = FlightGlobals.ActiveVessel;
+                this.vessel = FlightGlobals.fetch.activeVessel;
             }
             if (this.vessel == null || this.vessel.connection == null || this.vessel.connection.Comm.Net == null)
             {

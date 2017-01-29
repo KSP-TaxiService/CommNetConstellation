@@ -31,9 +31,9 @@ namespace CommNetConstellation
             return constellations.Find(i => i.frequency == givenFreq);
         }
 
-        public static Color getColor(List<Constellation> constellations, int givenFreq)
+        public static Color getColor(int givenFreq)
         {
-            Constellation possibleMatch = find(constellations, givenFreq);
+            Constellation possibleMatch = find(CNCCommNetScenario.Instance.constellations, givenFreq);
             if (possibleMatch == null)
                 return CNCSettings.Instance.DefaultPublicColor; // fallback color
             else
