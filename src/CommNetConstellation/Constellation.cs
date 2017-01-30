@@ -50,7 +50,7 @@ namespace CommNetConstellation
 
         public static int countVesselsOf(Constellation thisConstellation)
         {
-            List<CNCCommNetVessel> allVessels = CNCUtils.getCommNetVessels();
+            List<CNCCommNetVessel> allVessels = CNCCommNetScenario.Instance.getCommNetVessels();
             return allVessels.Sum(i => (i.getRadioFrequency() == thisConstellation.frequency) ? 1 : 0);
         }
 

@@ -8,8 +8,8 @@ namespace CommNetConstellation.CommNetLayer
 
         protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
-            short aFreq = (a.isHome)?publicFreq : ((CNCCommNetVessel)CNCUtils.findCorrespondingVessel(a).Connection).getRadioFrequency();
-            short bFreq = (b.isHome)?publicFreq : ((CNCCommNetVessel)CNCUtils.findCorrespondingVessel(b).Connection).getRadioFrequency();
+            short aFreq = (a.isHome)?publicFreq : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(a).Connection).getRadioFrequency();
+            short bFreq = (b.isHome)?publicFreq : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(b).Connection).getRadioFrequency();
 
             if (aFreq != bFreq && aFreq != publicFreq && bFreq != publicFreq)
             {

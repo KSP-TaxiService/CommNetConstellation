@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace CommNetConstellation.CommNetLayer
 {
-    //This class is coupled with the MM patch (cnc_module.cfg) that inserts CNConstellationModule into every command part
+    //This class is coupled with the MM patch (cnc_module_MM.cfg) that inserts CNConstellationModule into every command part
     public class CNConstellationModule : PartModule
     {
         [KSPField(isPersistant = true)]
@@ -27,8 +27,6 @@ namespace CommNetConstellation.CommNetLayer
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
                 return;
 
-            //CNCLog.Debug("CNCCommNetVessel.OnNetworkInitialized() @ {0}", this.Vessel.GetName());
-
             base.OnNetworkInitialized();
             this.radioFrequency = getRadioFrequency(true);
         }
@@ -38,7 +36,6 @@ namespace CommNetConstellation.CommNetLayer
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
                 return;
 
-            //CNCLog.Debug("CNCCommNetVessel.OnNetworkPostUpdate()");
             base.OnNetworkPostUpdate();
         }
 
@@ -47,7 +44,6 @@ namespace CommNetConstellation.CommNetLayer
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
                 return;
 
-            //CNCLog.Debug("CNCCommNetVessel.OnNetworkPreUpdate()");
             base.OnNetworkPreUpdate();
         }
 
@@ -56,7 +52,6 @@ namespace CommNetConstellation.CommNetLayer
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
                 return;
 
-            //CNCLog.Debug("CNCCommNetVessel.UpdateComm()");
             base.UpdateComm();
         }
 
@@ -104,6 +99,16 @@ namespace CommNetConstellation.CommNetLayer
         }
 
         /// <summary>
+        /// Update the frequency of the specific command part of this active vessel only
+        /// </summary>
+        public void updateRadioFrequency(short newFrequency, Part commandPart)
+        {
+            CNConstellationModule cncModule = commandPart.FindModuleImplementing<CNConstellationModule>();
+            cncModule.radioFrequency = newFrequency;
+            getRadioFrequency(true);
+        }
+
+        /// <summary>
         /// If multiple command parts of this vessel have different frequencies, pick the frequency of the first part in order of part addition in editor
         /// </summary>
         public short getRadioFrequency(bool forceRetrievalFromModule = false)
@@ -112,38 +117,61 @@ namespace CommNetConstellation.CommNetLayer
             {
                 if (this.Vessel.loaded)
                 {
-                    List<CNConstellationModule> modules = this.Vessel.FindPartModulesImplementing<CNConstellationModule>();
-                    if (modules.Count >= 1)
-                        this.radioFrequency = modules[0].radioFrequency; // grab the first command part (part list is sorted in order of part addition in editor)
+                    CNConstellationModule cncModule = firstCommandPartSelection(this.Vessel.parts);
+                    if(cncModule != null)
+                    {
+                        this.radioFrequency = cncModule.radioFrequency;
+                    }
                     else
-                        CNCLog.Error("getRadioFrequency(): CNConstellationModule not found!");
+                    {
+                        CNCLog.Error("Active CommNet vessel '{0}' does not have any CNConstellationModule! Reset to freq {1}", this.Vessel.GetName(), this.radioFrequency);
+                        this.radioFrequency = CNCSettings.Instance.PublicRadioFrequency;
+                    }                        
                 }
                 else
                 {
-                    bool success = false;
-                    List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
-
-                    for (int i = 0; i < parts.Count && !success; i++)
+                    ProtoPartModuleSnapshot cncModule = firstCommandPartSelection(this.Vessel.protoVessel.protoPartSnapshots);
+                    if (cncModule != null)
                     {
-                        ProtoPartModuleSnapshot thisModule = parts[i].FindModule("CNConstellationModule");
-
-                        if (thisModule != null)
-                        {
-                            this.radioFrequency = short.Parse(thisModule.moduleValues.GetValue("radioFrequency")); // grab the first command part
-                            success = true;
-                            break;
-                        }
+                        this.radioFrequency = short.Parse(cncModule.moduleValues.GetValue("radioFrequency"));
                     }
-
-                    if (!success) // fallback
+                    else
                     {
-                        CNCLog.Error("CommNet vessel '{0}' does not have the frequency module-value! Reset to freq {1}", this.Vessel.GetName(), this.radioFrequency);
+                        CNCLog.Error("Unloaded CommNet vessel '{0}' does not have the frequency module-value! Reset to freq {1}", this.Vessel.GetName(), this.radioFrequency);
                         this.radioFrequency = CNCSettings.Instance.PublicRadioFrequency;
                     }
                 }
             }
 
             return this.radioFrequency;
+        }
+
+        public CNConstellationModule firstCommandPartSelection(List<Part> parts)
+        {
+            for (int i = 0; i < parts.Count; i++) // grab the first command part (part list is sorted in order of part addition in editor)
+            {
+                CNConstellationModule thisModule;
+                if ((thisModule = parts[i].FindModuleImplementing<CNConstellationModule>()) != null)
+                {
+                    return thisModule;
+                }
+            }
+
+            return null;
+        }
+
+        public ProtoPartModuleSnapshot firstCommandPartSelection(List<ProtoPartSnapshot> parts)
+        {
+            for (int i = 0; i < parts.Count; i++)
+            {
+                ProtoPartModuleSnapshot partModule;
+                if ((partModule = parts[i].FindModule("CNConstellationModule")) != null)
+                {
+                    return partModule;
+                }
+            }
+
+            return null;
         }
     }
 }

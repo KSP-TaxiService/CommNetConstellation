@@ -1,4 +1,6 @@
 ﻿using CommNet;
+using Smooth.Algebraics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -14,7 +16,7 @@ namespace CommNetConstellation.CommNetLayer
          * 3) GameScenes.SPACECENTER is recommended so that the constellation data can be verified and error-corrected in advance
          */
 
-        private CNCCommNetUI customUI = null;
+        private CNCCommNetUI CustomCommNetUI = null;
         //private CNCCommNetNetwork customNetworkService = null;
         public List<Constellation> constellations; // leave  the initialisation to OnLoad()
 
@@ -29,7 +31,7 @@ namespace CommNetConstellation.CommNetLayer
             CNCCommNetScenario.Instance = this;
             
             CommNetUI ui = FindObjectOfType<CommNetUI>();
-            customUI = ui.gameObject.AddComponent<CNCCommNetUI>();
+            CustomCommNetUI = ui.gameObject.AddComponent<CNCCommNetUI>();
             UnityEngine.Object.Destroy(ui);
 
             CommNetNetwork.Instance.CommNet = new CNCCommNetwork();
@@ -65,15 +67,14 @@ namespace CommNetConstellation.CommNetLayer
             //if (this.customNetworkService != null)
             //    UnityEngine.Object.Destroy(this.customNetworkService);
 
-            if (this.customUI != null)
-                UnityEngine.Object.Destroy(this.customUI);
+            if (this.CustomCommNetUI != null)
+                UnityEngine.Object.Destroy(this.CustomCommNetUI);
 
             GameEvents.OnGameSettingsApplied.Remove(new EventVoid.OnEvent(this.customResetNetwork));
         }
 
         public void customResetNetwork()
         {
-            CNCLog.Debug("CNCCommNetScenario.customResetNetwork()");
             CommNetNetwork.Instance.CommNet = new CNCCommNetwork();
             GameEvents.CommNet.OnNetworkInitialized.Fire();
         }
@@ -145,6 +146,49 @@ namespace CommNetConstellation.CommNetLayer
 
             CNCLog.Verbose("Scenario content to be saved:\n{0}", gameNode);
             base.OnSave(gameNode);
+        }
+
+        public List<CNCCommNetVessel> getCommNetVessels(short targetRadioFrequency = -1)
+        {
+            List<Vessel> vessels = FlightGlobals.fetch.vessels;
+            List<CNCCommNetVessel> commnetVessels = new List<CNCCommNetVessel>();
+
+            for (int i = 0; i < vessels.Count; i++)
+            {
+                Vessel thisVessel = vessels[i];
+                if (thisVessel.Connection != null)
+                {
+                    CNCCommNetVessel cncVessel = (CNCCommNetVessel)thisVessel.Connection;
+                    if (cncVessel.getRadioFrequency() == targetRadioFrequency || targetRadioFrequency == -1)
+                    {
+                        commnetVessels.Add(cncVessel);
+                    }
+                }
+            }
+
+            return commnetVessels;
+        }
+
+        public Vessel findCorrespondingVessel(CommNode commNodeRef)
+        {
+            List<Vessel> allVessels = FlightGlobals.fetch.vessels;
+            IEqualityComparer<CommNode> comparer = commNodeRef.Comparer;
+
+            //brute-force search temporarily until I find a \omega(n) method
+            for (int i = 0; i < allVessels.Count(); i++)
+            {
+                Vessel thisVessel = allVessels[i];
+                if (thisVessel.connection != null)
+                {
+                    if (comparer.Equals(commNodeRef, thisVessel.connection.Comm))
+                    {
+                        return thisVessel;
+                    }
+                }
+            }
+
+            //not found
+            return null;
         }
     }
 }

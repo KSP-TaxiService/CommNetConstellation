@@ -66,7 +66,7 @@ namespace CommNetConstellation.UI
         {
             List<DialogGUIBase> vesselComponments = new List<DialogGUIBase>();
             vesselComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel("\n<b>You can edit the constellation configuration of an eligible vessel</b>", false, false) }));
-            List<CNCCommNetVessel> allVessels = CNCUtils.getCommNetVessels();
+            List<CNCCommNetVessel> allVessels = CNCCommNetScenario.Instance.getCommNetVessels();
 
             List<DialogGUIHorizontalLayout> eachRowGroupList = new List<DialogGUIHorizontalLayout>();
             for (int i = 0; i < allVessels.Count; i++)
@@ -106,7 +106,7 @@ namespace CommNetConstellation.UI
         private DialogGUIHorizontalLayout createVesselRow(CNCCommNetVessel thisVessel)
         {
             short radioFreq = thisVessel.getRadioFrequency();
-            Color color = Constellation.getColor(CNCCommNetScenario.Instance.constellations, radioFreq);
+            Color color = Constellation.getColor(radioFreq);
 
             UIStyle focusStyle = UIUtils.createImageButtonStyle(focusTexture);
             DialogGUIButton focusButton = new DialogGUIButton("", delegate { vesselFocusClick(thisVessel.Vessel); }, null, 32, 32, false, focusStyle);
@@ -186,7 +186,7 @@ namespace CommNetConstellation.UI
                     return;
 
                 short publicFrequency = CNCSettings.Instance.PublicRadioFrequency;
-                List<CNCCommNetVessel> affectedVessels = CNCUtils.getCommNetVessels().FindAll(x => x.getRadioFrequency() == deletedConstellation.frequency);
+                List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getRadioFrequency() == deletedConstellation.frequency);
                 for (int i = 0; i < affectedVessels.Count; i++)
                 {
                     affectedVessels[i].updateRadioFrequency(publicFrequency);
@@ -230,7 +230,7 @@ namespace CommNetConstellation.UI
 
         private void updateConstellation(Constellation updatedConstellation, short previousFrequency)
         {
-            List<CNCCommNetVessel> affectedVessels = CNCUtils.getCommNetVessels().FindAll(x => x.getRadioFrequency() == updatedConstellation.frequency);
+            List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getRadioFrequency() == updatedConstellation.frequency);
             for (int i = 0; i < affectedVessels.Count; i++)
                 updateVesselGUIRow(affectedVessels[i].Vessel);
 

@@ -1,5 +1,7 @@
 ﻿using CommNet;
 using KSP.UI.Screens.Mapview;
+using Smooth.Algebraics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,6 +12,8 @@ namespace CommNetConstellation.CommNetLayer
 {
     public class CNCCommNetUI : CommNetUI
     {
+        
+
         public static new CNCCommNetUI Instance
         {
             get;
@@ -29,7 +33,7 @@ namespace CommNetConstellation.CommNetLayer
 
         private void coloriseEachConstellation(short radioFrequency, Color newColor)
         {
-            List<CNCCommNetVessel> commnetVessels = CNCUtils.getCommNetVessels(radioFrequency);
+            List<CNCCommNetVessel> commnetVessels = CNCCommNetScenario.Instance.getCommNetVessels(radioFrequency);
 
             for (int i = 0; i < commnetVessels.Count; i++)
             {
@@ -48,8 +52,8 @@ namespace CommNetConstellation.CommNetLayer
             if (a.isHome || b.isHome)
                 return Constellation.getColor(CNCSettings.Instance.PublicRadioFrequency); // public
 
-            CNCCommNetVessel vesselA = (CNCCommNetVessel)CNCUtils.findCorrespondingVessel(a).Connection;
-            CNCCommNetVessel vesselB = (CNCCommNetVessel)CNCUtils.findCorrespondingVessel(b).Connection;
+            CNCCommNetVessel vesselA = (CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(a).Connection;
+            CNCCommNetVessel vesselB = (CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(b).Connection;
 
             if(vesselA.getRadioFrequency() == vesselB.getRadioFrequency())
                 return Constellation.getColor(vesselA.getRadioFrequency());
