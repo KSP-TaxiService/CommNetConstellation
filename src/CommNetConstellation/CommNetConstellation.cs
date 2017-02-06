@@ -1,30 +1,38 @@
 ﻿using UnityEngine;
-using CommNet;
-using CommNetConstellation.CommNetLayer;
 using CommNetConstellation.UI;
 using KSP.UI.Screens;
 
 namespace CommNetConstellation
 {
+    /// <summary>
+    /// Script to be ran in flight and tracking station
+    /// </summary>
     [KSPAddon(KSPAddon.Startup.TrackingStation, false)]
-    public class CommNetConstellationDuplicate : CommNetConstellation { } //no futher action
+    public class CommNetConstellationDuplicate : CommNetConstellation
+    {
+        public override void Start()
+        {
+            this.controlDialog = new ConstellationControlDialog("CommNet Constellation - <color=#00ff00>Control Panel</color>");
+            this.launcherButton = ApplicationLauncher.Instance.AddModApplication(
+                delegate { controlDialog.launch(); }, controlDialog.dismiss, null, null, null, null,
+                ApplicationLauncher.AppScenes.TRACKSTATION,
+                UIUtils.loadImage("cnclauncherbutton"));
+        }
+    }
 
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class CommNetConstellation : MonoBehaviour
     {
-        private ApplicationLauncherButton launcherButton = null;
-        private Texture2D launcherBtnTexture;
-        private ConstellationControlDialog controlDialog;
+        protected ApplicationLauncherButton launcherButton = null;
+        protected ConstellationControlDialog controlDialog;
 
-        public void Start()
+        public virtual void Start()
         {
             this.controlDialog = new ConstellationControlDialog("CommNet Constellation - <color=#00ff00>Control Panel</color>");
-            this.launcherBtnTexture = UIUtils.loadImage("cnclauncherbutton");
-
             this.launcherButton = ApplicationLauncher.Instance.AddModApplication(
                 delegate { controlDialog.launch(); }, controlDialog.dismiss, null, null, null, null,
-                ApplicationLauncher.AppScenes.TRACKSTATION,
-                launcherBtnTexture);
+                ApplicationLauncher.AppScenes.MAPVIEW,
+                UIUtils.loadImage("cnclauncherbutton"));
         }
 
         public void OnDestroy()

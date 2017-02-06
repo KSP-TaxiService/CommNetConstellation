@@ -6,6 +6,9 @@ using System;
 
 namespace CommNetConstellation.UI
 {
+    /// <summary>
+    /// Self-contained color picker, built on KSP's new DialogGUI components
+    /// </summary>
     public class ColorPickerDialog : AbstractDialog
     {
         private Callback<Color> callbackForChosenColor;
@@ -39,12 +42,13 @@ namespace CommNetConstellation.UI
             this.chosenColor = userColor;
             this.callbackForChosenColor = callbackForChosenColor;
 
-            //this.chosenColorTexture = UIUtils.createAndColorize(30, 24, chosenColor);
-            //this.currentColorTexture = UIUtils.createAndColorize(30, 24, currentColor);
             this.colorPickerTexture = new Texture2D(displayTextureWidth, displayTextureHeight, TextureFormat.ARGB32, false);
             renderColorPicker(this.colorPickerTexture, hueValue);
         }
 
+        /// <summary>
+        /// Detect the cursor and react to it accordingly
+        /// </summary>
         protected override void OnUpdate()
         {
             Vector2 cursor = Input.mousePosition;
@@ -72,7 +76,6 @@ namespace CommNetConstellation.UI
 
                     renderColorPicker(colorPickerTexture, hueValue); // wipe out cursor data
                     chosenColor = colorPickerTexture.GetPixel(localX, localY);
-                    //UIUtils.colorizeFull(chosenColorTexture, chosenColor);
                     newColorImage.uiItem.GetComponent<RawImage>().color = chosenColor;
 
                     colorPickerImage.uiItem.GetComponent<RawImage>().texture = drawCursorOn(colorPickerTexture, localX, localY);
@@ -97,14 +100,18 @@ namespace CommNetConstellation.UI
             return listComponments;
         }
 
+        /// <summary>
+        /// Deallocate the textures
+        /// </summary>
         protected override void OnPreDismiss()
         {
             UnityEngine.GameObject.DestroyImmediate(colorPickerTexture, true);
-            //UnityEngine.GameObject.DestroyImmediate(chosenColorTexture, true);
-            //UnityEngine.GameObject.DestroyImmediate(currentColorTexture, true);
             callbackForChosenColor(chosenColor);
         }
 
+        /// <summary>
+        /// Paint the colorful texture based on the given hue
+        /// </summary>
         private void renderColorPicker(Texture2D thisTexture, float hueValue)
         {
             for (int x = 0; x < displayTextureWidth; x++)
@@ -120,6 +127,9 @@ namespace CommNetConstellation.UI
             thisTexture.Apply();
         }
 
+        /// <summary>
+        /// Just a slider of hue values
+        /// </summary>
         private Texture2D renderHueSliderTexture()
         {
             Texture2D hueTexture = new Texture2D(displayTextureWidth, sliderHeight * 2, TextureFormat.ARGB32, false);
@@ -135,6 +145,9 @@ namespace CommNetConstellation.UI
             return hueTexture;
         }
 
+        /// <summary>
+        /// For the hue slider to call when a player chooses
+        /// </summary>
         private void setHueValue(float newValue)
         {
             this.hueValue = newValue;
@@ -142,6 +155,9 @@ namespace CommNetConstellation.UI
             colorPickerImage.uiItem.GetComponent<RawImage>().texture = colorPickerTexture;
         }
 
+        /// <summary>
+        /// Paint the cursor mark on the given texture like the Photoshop's color picker
+        /// </summary>
         private Texture2D drawCursorOn(Texture2D thisTexture, int x, int y)
         {
             Color cursorColor = Color.white;

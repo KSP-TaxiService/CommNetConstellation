@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace CommNetConstellation.CommNetLayer
 {
+    /// <summary>
+    /// PartModule to be inserted into every ModuleCommand
+    /// </summary>
     //This class is coupled with the MM patch (cnc_module_MM.cfg) that inserts CNConstellationModule into every command part
     public class CNConstellationModule : PartModule
     {
@@ -18,10 +21,16 @@ namespace CommNetConstellation.CommNetLayer
         }
     }
 
+    /// <summary>
+    /// Data structure for a CommNetVessel
+    /// </summary>
     public class CNCCommNetVessel : CommNetVessel
     {
         protected short radioFrequency;
 
+        /// <summary>
+        /// Retrieve the radio frequency from the vessel's parts (selection applied on multiple frequencies)
+        /// </summary>
         protected override void OnNetworkInitialized()
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
@@ -30,7 +39,10 @@ namespace CommNetConstellation.CommNetLayer
             base.OnNetworkInitialized();
             this.radioFrequency = getRadioFrequency(true);
         }
-
+        
+        /// <summary>
+        /// Not utilised yet
+        /// </summary>
         public override void OnNetworkPostUpdate()
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
@@ -39,6 +51,9 @@ namespace CommNetConstellation.CommNetLayer
             base.OnNetworkPostUpdate();
         }
 
+        /// <summary>
+        /// Not utilised yet
+        /// </summary>
         public override void OnNetworkPreUpdate()
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
@@ -47,6 +62,9 @@ namespace CommNetConstellation.CommNetLayer
             base.OnNetworkPreUpdate();
         }
 
+        /// <summary>
+        /// Not utilised yet
+        /// </summary>
         protected override void UpdateComm()
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
@@ -146,6 +164,9 @@ namespace CommNetConstellation.CommNetLayer
             return this.radioFrequency;
         }
 
+        /// <summary>
+        /// Selection algorithm on multiple parts with different frequenices
+        /// </summary>
         public CNConstellationModule firstCommandPartSelection(List<Part> parts)
         {
             for (int i = 0; i < parts.Count; i++) // grab the first command part (part list is sorted in order of part addition in editor)
@@ -160,6 +181,9 @@ namespace CommNetConstellation.CommNetLayer
             return null;
         }
 
+        /// <summary>
+        /// Selection algorithm on multiple protoparts with different frequenices
+        /// </summary>
         public ProtoPartModuleSnapshot firstCommandPartSelection(List<ProtoPartSnapshot> parts)
         {
             for (int i = 0; i < parts.Count; i++)

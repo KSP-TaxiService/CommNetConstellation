@@ -4,10 +4,16 @@ using UnityEngine;
 
 namespace CommNetConstellation.UI
 {
+    /// <summary>
+    /// Swiss Army knife for interface use cases
+    /// </summary>
     public class UIUtils
     {
         private static string TextureDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location).Parent.Name + "/Textures/";
 
+        /// <summary>
+        /// Read KSP's GameDatabase for the desired texture
+        /// </summary>
         public static Texture2D loadImage(string fileName)
         {
             string str = TextureDirectory + fileName;
@@ -20,6 +26,9 @@ namespace CommNetConstellation.UI
             }
         }
 
+        /// <summary>
+        /// Convert the color to hex string (#RRGGBB)
+        /// </summary>
         //http://answers.unity3d.com/questions/1102232/how-to-get-the-color-code-in-rgb-hex-from-rgba-uni.html
         public static string colorToHex(Color thisColor) { return string.Format("#{0:X2}{1:X2}{2:X2}", toByte(thisColor.r), toByte(thisColor.g), toByte(thisColor.b)); }
         private static byte toByte(float f)
@@ -28,6 +37,9 @@ namespace CommNetConstellation.UI
             return (byte)(f * 255);
         }
 
+        /// <summary>
+        /// Create new texture and fill up with given color
+        /// </summary>
         //https://forum.unity3d.com/threads/best-easiest-way-to-change-color-of-certain-pixels-in-a-single-sprite.223030/
         public static Texture2D createAndColorize(int width, int height, Color thisColor)
         {
@@ -47,19 +59,25 @@ namespace CommNetConstellation.UI
             return newTexture;
         }
 
-        public static void colorize(Texture2D thisTexture, Color thisColor)
+        /// <summary>
+        /// Fill the existing texture with the given color
+        /// </summary>
+        public static void colorize(Texture2D existingTexture, Color thisColor)
         {
-            for (int y = 0; y < thisTexture.height; y++)
+            for (int y = 0; y < existingTexture.height; y++)
             {
-                for (int x = 0; x < thisTexture.width; x++)
+                for (int x = 0; x < existingTexture.width; x++)
                 {
-                    thisTexture.SetPixel(x, y, thisColor);
+                    existingTexture.SetPixel(x, y, thisColor);
                 }
             }
 
-            thisTexture.Apply();
+            existingTexture.Apply();
         }
 
+        /// <summary>
+        /// Overlay two base and topmost textures to create a new texture
+        /// </summary>
         public static Texture2D createAndOverlay(Texture2D baseTexture, Texture2D frontTexture)
         {
             Texture2D newTexture = new Texture2D(baseTexture.width, baseTexture.height);
@@ -81,6 +99,9 @@ namespace CommNetConstellation.UI
             return newTexture;
         }
 
+        /// <summary>
+        /// Build a button style for the different states
+        /// </summary>
         public static UIStyle createImageButtonStyle(Texture2D iconTexture)
         {
             Texture2D activeButtonTx = createAndOverlay(loadImage("activeButtonBg"), iconTexture);

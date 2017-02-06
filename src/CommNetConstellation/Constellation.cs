@@ -5,17 +5,23 @@ using UnityEngine;
 
 namespace CommNetConstellation
 {
+    /// <summary>
+    /// Data structure to be saved to the persistent.sfs
+    /// </summary>
     public class Constellation
     {
         [Persistent] public short frequency;
         [Persistent] public string name;
         [Persistent] public Color color;
 
-        public Constellation()
-        {
-            //empty constructor for ConfigNode.LoadObjectFromConfig()
-        }
+        /// <summary>
+        /// Empty constructor for ConfigNode.LoadObjectFromConfig()
+        /// </summary>
+        public Constellation() { }
 
+        /// <summary>
+        /// Parameter constructor for other uses
+        /// </summary>
         public Constellation(short frequency, string name, Color color)
         {
             this.frequency = frequency;
@@ -23,23 +29,21 @@ namespace CommNetConstellation
             this.color = color;
         }
 
-        public static Constellation find(List<Constellation> constellations, int givenFreq)
-        {
-            if (constellations == null)
-                return null;
-
-            return constellations.Find(i => i.frequency == givenFreq);
-        }
-
+        /// <summary>
+        /// Retrieve the constellation color assoicated with the frequency
+        /// </summary>
         public static Color getColor(int givenFreq)
         {
-            Constellation possibleMatch = find(CNCCommNetScenario.Instance.constellations, givenFreq);
+            Constellation possibleMatch = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == givenFreq);
             if (possibleMatch == null)
                 return CNCSettings.Instance.DefaultPublicColor; // fallback color
             else
                 return possibleMatch.color;
         }
 
+        /// <summary>
+        /// Sanitize the user-origin frequency prior to the commit
+        /// </summary>
         public static bool isFrequencyValid(int givenFreq)
         {
             if (givenFreq < 0 || givenFreq > short.MaxValue)
@@ -48,12 +52,12 @@ namespace CommNetConstellation
             return true;
         }
 
-        public static int countVesselsOf(Constellation thisConstellation)
+        /// <summary>
+        /// Count the number of existing vessels of the given constellation
+        /// </summary>
+        public static int countVessels(Constellation thisConstellation)
         {
-            List<CNCCommNetVessel> allVessels = CNCCommNetScenario.Instance.getCommNetVessels();
-            return allVessels.Sum(i => (i.getRadioFrequency() == thisConstellation.frequency) ? 1 : 0);
+            return CNCCommNetScenario.Instance.getCommNetVessels().Sum(i => (i.getRadioFrequency() == thisConstellation.frequency) ? 1 : 0);
         }
-
-        
     }
 }

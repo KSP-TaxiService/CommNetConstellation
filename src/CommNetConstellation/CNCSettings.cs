@@ -1,14 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace CommNetConstellation
 {
+    /// <summary>
+    /// Expose this class to the public for consumption
+    /// </summary>
     public class CNCSettings
     {
         //Note: This can be called by a PartModule during KSP's Squad-monkey loading screen
+        //so don't be surprised if the post-loading logging does not have the setting verbose
         private static Settings privateInstance = null;
         public static Settings Instance
         {
@@ -22,12 +24,15 @@ namespace CommNetConstellation
         }
     }
 
+    /// <summary>
+    /// Data structure to be populated from the setting cfg (obtained from KSP's GameDatabase; can be patched via MM)
+    /// </summary>
     public class Settings
     {
         public bool SettingsLoaded = false;
         private static string startingSettingCFGUrl = "CommNetConstellation/cnc_settings/CommNetConstellationSettings";
 
-        //Global settings to be read from the setting cfg
+        //Global settings
         //-----
         [Persistent] public int MajorVersion;
         [Persistent] public int MinorVersion;
@@ -38,7 +43,7 @@ namespace CommNetConstellation
         [Persistent(collectionIndex = "Constellations")] public List<Constellation> Constellations;
         //-----
 
-        public int MaxNumChars = 23;
+        public int MaxLengthName = 25;
 
         public static Settings Load()
         {
@@ -46,7 +51,7 @@ namespace CommNetConstellation
             Settings settings = new Settings();
             bool defaultSuccess = false;
 
-            // Exploit KSP's GameDatabase to find our MM-patched cfg of default settings (from GameData/RemoteTech/Default_Settings.cfg)
+            // Exploit KSP's GameDatabase to find our MM-patched cfg of default settings
             UrlDir.UrlConfig[] cfgs = GameDatabase.Instance.GetConfigs("CommNetConstellationSettings");
             for (var i = 0; i < cfgs.Length; i++)
             {

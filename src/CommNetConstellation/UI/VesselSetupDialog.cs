@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using System.Linq;
-using Smooth.Algebraics;
 
 namespace CommNetConstellation.UI
 {
@@ -112,7 +111,7 @@ namespace CommNetConstellation.UI
 
         private string getConstellationName()
         {
-            Constellation thisConstellation = Constellation.find(CNCCommNetScenario.Instance.constellations, conFreq);
+            Constellation thisConstellation = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == conFreq);
 
             if (thisConstellation != null)
             {
@@ -172,7 +171,7 @@ namespace CommNetConstellation.UI
         {
             this.conFreq = CNCSettings.Instance.PublicRadioFrequency;
             updateClick();
-            frequencyInput.SetOptionText(this.conFreq.ToString()); // TODO: no effect?
+            frequencyInput.SetOptionText(this.conFreq.ToString());
             message = "Reverted to the public constellation";
         }
     }

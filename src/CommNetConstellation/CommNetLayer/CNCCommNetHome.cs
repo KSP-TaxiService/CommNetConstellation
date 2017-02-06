@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace CommNetConstellation.CommNetLayer
 {
+    /// <summary>
+    /// Customise the home nodes
+    /// </summary>
     public class CNCCommNetHome : CommNetHome
     {
         private static readonly Texture2D markTexture = UIUtils.loadImage("groundStationMark");
@@ -13,10 +16,14 @@ namespace CommNetConstellation.CommNetLayer
             this.nodeName = stockHome.nodeName;
             this.nodeTransform = stockHome.nodeTransform;
             this.isKSC = stockHome.isKSC;
-            this.comm = stockHome.GetComponentInChildren<CommNode>(); // maybe too early as it is null at beginning
-            this.body = stockHome.GetComponentInChildren<CelestialBody>(); // maybe too early as it is null at beginning
+            this.body = stockHome.GetComponentInParent<CelestialBody>();
+
+            //comm, lat, alt, lon are initialised by CreateNode() later
         }
 
+        /// <summary>
+        /// Draw graphic components on screen like RemoteTech's ground-station marks
+        /// </summary>
         public void OnGUI()
         {
             if (HighLogic.CurrentGame == null)
@@ -29,7 +36,10 @@ namespace CommNetConstellation.CommNetLayer
                 return;
 
             Vector3d worldPos = ScaledSpace.LocalToScaledSpace(nodeTransform.transform.position);
-            if (MapView.MapCamera.transform.InverseTransformPoint(worldPos).z < 0f) return;
+
+            if (MapView.MapCamera.transform.InverseTransformPoint(worldPos).z < 0f)
+                return;
+
             Vector3 pos = PlanetariumCamera.Camera.WorldToScreenPoint(worldPos);
             Rect screenRect = new Rect((pos.x - 8), (Screen.height - pos.y) - 8, 16, 16);
 
@@ -43,10 +53,12 @@ namespace CommNetConstellation.CommNetLayer
             GUI.color = Color.red;
             GUI.DrawTexture(screenRect, markTexture, ScaleMode.ScaleToFit, true);
             GUI.color = previousColor;
+
+            //TODO: display the ground station name when the cursor is hovering above this
         }
 
         /// <summary>
-        /// Checks whether the location is behind the body
+        /// Check whether this vector3 location is behind the body
         /// Original code by regex from https://github.com/NathanKell/RealSolarSystem/blob/master/Source/KSCSwitcher.cs
         /// </summary>
         private bool IsOccluded(Vector3d loc, CelestialBody body)
@@ -59,11 +71,9 @@ namespace CommNetConstellation.CommNetLayer
         }
 
         /// <summary>
-        /// Calculates the distance between the camera position and the ground station, and
-        /// returns true if the distance is >= DistanceToHideGroundStations from the settings file.
+        /// Calculate the distance between the camera position and the ground station, and
+        /// return true if the distance is >= DistanceToHideGroundStations from the settings file.
         /// </summary>
-        /// <param name="loc">Position of the ground station</param>
-        /// <returns>True if the distance is to wide, otherwise false</returns>
         private bool IsCamDistanceToWide(Vector3d loc)
         {
             Vector3d camPos = ScaledSpace.ScaledToLocalSpace(PlanetariumCamera.Camera.transform.position);

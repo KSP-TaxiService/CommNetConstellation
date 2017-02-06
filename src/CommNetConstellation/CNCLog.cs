@@ -1,5 +1,8 @@
 ﻿namespace CommNetConstellation
 {
+    /// <summary>
+    /// Debug-purpose logging
+    /// </summary>
     public class CNCLog
     {
         public static readonly string NAME_LOG_PREFIX = "CommNet Constellation";
@@ -16,7 +19,7 @@
 
         public static void Error(string message, params object[] param)
         {
-            UnityEngine.Debug.LogError(string.Format("{0} -> ERROR: {1}", NAME_LOG_PREFIX, string.Format(message, param)));
+            UnityEngine.Debug.LogError(string.Format("{0} -> error: {1}", NAME_LOG_PREFIX, string.Format(message, param)));
         }
     }
 }

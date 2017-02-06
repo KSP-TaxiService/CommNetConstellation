@@ -1,12 +1,12 @@
 ﻿using CommNet;
-using Smooth.Algebraics;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace CommNetConstellation.CommNetLayer
 {
+    /// <summary>
+    /// This class is the key that allows to break into and customise KSP's CommNet. This is possibly the secondary model in the Model–view–controller sense
+    /// </summary>
     [KSPScenario(ScenarioCreationOptions.AddToAllGames, new GameScenes[] {GameScenes.FLIGHT, GameScenes.TRACKSTATION, GameScenes.SPACECENTER })]
     public class CNCCommNetScenario : CommNetScenario
     {
@@ -17,7 +17,6 @@ namespace CommNetConstellation.CommNetLayer
          */
 
         private CNCCommNetUI CustomCommNetUI = null;
-        //private CNCCommNetNetwork customNetworkService = null;
         public List<Constellation> constellations; // leave  the initialisation to OnLoad()
 
         public static new CNCCommNetScenario Instance
@@ -30,14 +29,15 @@ namespace CommNetConstellation.CommNetLayer
         {
             CNCCommNetScenario.Instance = this;
             
+            //Steal the CommNet user interface
             CommNetUI ui = FindObjectOfType<CommNetUI>();
             CustomCommNetUI = ui.gameObject.AddComponent<CNCCommNetUI>();
             UnityEngine.Object.Destroy(ui);
 
+            //Steal the CommNet service
             CommNetNetwork.Instance.CommNet = new CNCCommNetwork();
-            //customNetworkService = networkService.gameObject.AddComponent<CNCCommNetNetwork>();
-            //UnityEngine.Object.Destroy(networkService);
 
+            //Steal the CommNet ground stations
             CommNetHome[] homes = FindObjectsOfType<CommNetHome>();
             for(int i=0; i<homes.Length; i++)
             {
@@ -46,6 +46,7 @@ namespace CommNetConstellation.CommNetLayer
                 UnityEngine.Object.Destroy(homes[i]);
             }
 
+            //Steal the CommNet celestial bodies
             CommNetBody[] bodies = FindObjectsOfType<CommNetBody>();
             for (int i = 0; i < bodies.Length; i++)
             {
@@ -64,9 +65,6 @@ namespace CommNetConstellation.CommNetLayer
 
         private void OnDestroy()
         {
-            //if (this.customNetworkService != null)
-            //    UnityEngine.Object.Destroy(this.customNetworkService);
-
             if (this.CustomCommNetUI != null)
                 UnityEngine.Object.Destroy(this.CustomCommNetUI);
 
@@ -148,7 +146,10 @@ namespace CommNetConstellation.CommNetLayer
             base.OnSave(gameNode);
         }
 
-        public List<CNCCommNetVessel> getCommNetVessels(short targetRadioFrequency = -1)
+        /// <summary>
+        /// Obtain all communicable vessels that has the given frequency
+        /// </summary>
+        public List<CNCCommNetVessel> getCommNetVessels(short targetFrequency = -1) // TODO: Cache it (maybe dict) and use GameEvents to remove and add?
         {
             List<Vessel> vessels = FlightGlobals.fetch.vessels;
             List<CNCCommNetVessel> commnetVessels = new List<CNCCommNetVessel>();
@@ -159,7 +160,7 @@ namespace CommNetConstellation.CommNetLayer
                 if (thisVessel.Connection != null)
                 {
                     CNCCommNetVessel cncVessel = (CNCCommNetVessel)thisVessel.Connection;
-                    if (cncVessel.getRadioFrequency() == targetRadioFrequency || targetRadioFrequency == -1)
+                    if (cncVessel.getRadioFrequency() == targetFrequency || targetFrequency == -1)
                     {
                         commnetVessels.Add(cncVessel);
                     }
@@ -169,18 +170,21 @@ namespace CommNetConstellation.CommNetLayer
             return commnetVessels;
         }
 
-        public Vessel findCorrespondingVessel(CommNode commNodeRef)
+        /// <summary>
+        /// Find the vessel that has the given comm node
+        /// </summary>
+        public Vessel findCorrespondingVessel(CommNode commNode)
         {
             List<Vessel> allVessels = FlightGlobals.fetch.vessels;
-            IEqualityComparer<CommNode> comparer = commNodeRef.Comparer;
+            IEqualityComparer<CommNode> comparer = commNode.Comparer;
 
-            //brute-force search temporarily until I find a \omega(n) method
+            //brute-force search temporarily until I find a \omega(n) method //TODO: switch to cache (maybe dict)
             for (int i = 0; i < allVessels.Count(); i++)
             {
                 Vessel thisVessel = allVessels[i];
                 if (thisVessel.connection != null)
                 {
-                    if (comparer.Equals(commNodeRef, thisVessel.connection.Comm))
+                    if (comparer.Equals(commNode, thisVessel.connection.Comm))
                     {
                         return thisVessel;
                     }

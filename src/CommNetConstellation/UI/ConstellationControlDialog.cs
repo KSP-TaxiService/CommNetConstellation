@@ -89,7 +89,7 @@ namespace CommNetConstellation.UI
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, thisConstellation.color, colorTexture);
             DialogGUILabel constNameLabel = new DialogGUILabel(thisConstellation.name, 130, 12);
             DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: {0}", thisConstellation.frequency), 110, 12);
-            DialogGUILabel numSatsLabel = new DialogGUILabel(string.Format("{0} vessels", Constellation.countVesselsOf(thisConstellation)), 70, 12);
+            DialogGUILabel numSatsLabel = new DialogGUILabel(string.Format("{0} vessels", Constellation.countVessels(thisConstellation)), 70, 12);
             DialogGUIButton updateButton = new DialogGUIButton("Edit", delegate { editConstellationClick(thisConstellation); }, 50, 32, false);
 
             DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, constNameLabel, freqLabel, numSatsLabel, new DialogGUIFlexibleSpace(), updateButton, null };
@@ -156,7 +156,7 @@ namespace CommNetConstellation.UI
 
         private void resetPublicConstellation()
         {
-            Constellation publicConstellation = Constellation.find(CNCCommNetScenario.Instance.constellations, CNCSettings.Instance.PublicRadioFrequency);
+            Constellation publicConstellation = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency ==  CNCSettings.Instance.PublicRadioFrequency);
             publicConstellation.name = CNCSettings.Instance.DefaultPublicName;
             publicConstellation.color = CNCSettings.Instance.DefaultPublicColor;
             updateConstellation(publicConstellation, CNCSettings.Instance.PublicRadioFrequency);
@@ -182,7 +182,7 @@ namespace CommNetConstellation.UI
             {
                 CNCCommNetScenario.Instance.constellations.RemoveAt(CNCCommNetScenario.Instance.constellations.FindIndex(x => x.frequency == deletedConstellation.frequency));
 
-                if (Constellation.countVesselsOf(deletedConstellation) < 1) // no vessel to update
+                if (Constellation.countVessels(deletedConstellation) < 1) // no vessel to update
                     return;
 
                 short publicFrequency = CNCSettings.Instance.PublicRadioFrequency;
@@ -251,11 +251,11 @@ namespace CommNetConstellation.UI
                     DialogGUILabel freqLabel = thisRow.children[2] as DialogGUILabel;
                     DialogGUILabel vesselLabel = thisRow.children[3] as DialogGUILabel;
 
-                    Constellation updatedConstellation = Constellation.find(CNCCommNetScenario.Instance.constellations, updatedfrequency);
+                    Constellation updatedConstellation = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == updatedfrequency);
                     colorImage.uiItem.GetComponent<RawImage>().color = updatedConstellation.color;
                     nameLabel.SetOptionText(updatedConstellation.name);
                     freqLabel.SetOptionText("Frequency: " + updatedConstellation.frequency);
-                    vesselLabel.SetOptionText(Constellation.countVesselsOf(updatedConstellation) + " vessels");
+                    vesselLabel.SetOptionText(Constellation.countVessels(updatedConstellation) + " vessels");
 
                     thisRow.SetOptionText(updatedConstellation.frequency.ToString());
                     break;
@@ -285,7 +285,7 @@ namespace CommNetConstellation.UI
                 DialogGUIBase thisRow = rows[i];
                 if (thisRow.OptionText.Equals(updatedVessel.id.ToString()))
                 {
-                    Constellation thisConstellation = Constellation.find(CNCCommNetScenario.Instance.constellations, thisVessel.getRadioFrequency());
+                    Constellation thisConstellation = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == thisVessel.getRadioFrequency());
 
                     DialogGUILabel freqLabel = thisRow.children[2] as DialogGUILabel;
                     freqLabel.SetOptionText(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(thisConstellation.color), thisConstellation.frequency));

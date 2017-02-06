@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,6 +21,9 @@ namespace CommNetConstellation.UI
         NonDraggable
     };
 
+    /// <summary>
+    /// Easy-to-use popup dialog with some customisations
+    /// </summary>
     public abstract class AbstractDialog
     {
         protected bool isDisplayed = false;
@@ -54,14 +56,20 @@ namespace CommNetConstellation.UI
         protected virtual void OnAwake(System.Object[] args) { }
         protected virtual void OnPreDismiss() { }
         protected virtual void OnUpdate() { }
-        protected virtual void OnResize() { }
+        protected virtual void OnResize() { } // no idea how resizing works
 
+        /// <summary>
+        /// Spawn the dialog without any argument
+        /// </summary>
         public void launch()
         {
             launch(new System.Object[] { });
         }
 
-        public void launch(System.Object[] args) // TODO: clean up callers of this function (rearranging arguments)
+        /// <summary>
+        /// Spawn the dialog with arguments passed
+        /// </summary>
+        public void launch(System.Object[] args)
         {
             if (this.isDisplayed)
                 return;
@@ -71,6 +79,9 @@ namespace CommNetConstellation.UI
             OnAwake(args);
         }
 
+        /// <summary>
+        /// Close and deallocate the dialog
+        /// </summary>
         public void dismiss()
         {
             if (this.isDisplayed && popupDialog != null)
@@ -81,6 +92,9 @@ namespace CommNetConstellation.UI
             }
         }
 
+        /// <summary>
+        /// Read the constructor arguments
+        /// </summary>
         private void processArguments(DialogOptions[] args)
         {
             if (args == null)
@@ -106,6 +120,9 @@ namespace CommNetConstellation.UI
             }
         }
 
+        /// <summary>
+        /// Build and return the not-spawned dialog
+        /// </summary>
         private PopupDialog spawnDialog()
         {
             /* This dialog looks like below

@@ -61,7 +61,7 @@ namespace CommNetConstellation.UI
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description+"\n\n", false, false) }));
 
             DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 52, 12);
-            DialogGUITextInput nameInput = new DialogGUITextInput(this.conName, false, CNCSettings.Instance.MaxNumChars, setConNameFun, 170, 25);
+            DialogGUITextInput nameInput = new DialogGUITextInput(this.conName, false, CNCSettings.Instance.MaxLengthName, setConNameFun, 170, 25);
             DialogGUIHorizontalLayout nameGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { nameLabel, nameInput });
             listComponments.Add(nameGroup);
 
