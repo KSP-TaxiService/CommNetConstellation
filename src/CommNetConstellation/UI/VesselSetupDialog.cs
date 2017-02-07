@@ -7,6 +7,9 @@ using System.Linq;
 
 namespace CommNetConstellation.UI
 {
+    /// <summary>
+    /// Edit the constellation membership of this vessel (Controller)
+    /// </summary>
     public class VesselSetupDialog : AbstractDialog
     {
         private Part rightClickedPart = null;
@@ -16,10 +19,10 @@ namespace CommNetConstellation.UI
 
         private Callback<Vessel, short> updateCallback;
 
-        private short conFreq = 0;
+        private short inputFreq = 0;
         private DialogGUITextInput frequencyInput;
 
-        private DialogGUIImage colorImage;
+        private DialogGUIImage constellationColorImage;
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
 
         public VesselSetupDialog(string title, Vessel vessel, Part cmdPart, Callback<Vessel, short>  updateCallback) : base(title, 
@@ -37,19 +40,14 @@ namespace CommNetConstellation.UI
             {
                 this.description = string.Format("You are editing this command part '{0}'.", this.rightClickedPart.partInfo.title);
                 CNConstellationModule cncModule = rightClickedPart.FindModuleImplementing<CNConstellationModule>();
-                this.conFreq = cncModule.radioFrequency;
+                this.inputFreq = cncModule.radioFrequency;
             }
             else if (this.hostVessel != null)
             {
                 this.description = string.Format("You are editing the whole vessel '{0}' (overriding <b>all</b> command parts).", this.hostVessel.vesselName);
                 CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
-                this.conFreq = cv.getRadioFrequency();
+                this.inputFreq = cv.getRadioFrequency();
             }
-        }
-
-        private string getMessage()
-        {
-            return "Message: " + this.message;
         }
 
         protected override List<DialogGUIBase> drawContentComponents()
@@ -59,28 +57,38 @@ namespace CommNetConstellation.UI
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description+"\n\n", false, false) }));
 
             DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 52, 12);
-            frequencyInput = new DialogGUITextInput(conFreq.ToString(), false, 5, setConFreq, 45, 25);
+            frequencyInput = new DialogGUITextInput(inputFreq.ToString(), false, CNCSettings.MaxDigits, setConstellFreq, 45, 25);
             DialogGUIHorizontalLayout freqGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(100)});
             listComponments.Add(freqGroup);
 
-            colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, Color.white, colorTexture);
+            constellationColorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, Color.white, colorTexture);
             DialogGUILabel constNameLabel = new DialogGUILabel(getConstellationName, 200, 12);
-            DialogGUIHorizontalLayout constellationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { constNameLabel, colorImage });
+            DialogGUIHorizontalLayout constellationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { constNameLabel, constellationColorImage });
             listComponments.Add(constellationGroup);
 
             DialogGUIButton updateButton = new DialogGUIButton("Update", updateClick, false);
             DialogGUIButton publicButton = new DialogGUIButton("Revert to public", defaultClick, false);
+            DialogGUIHorizontalLayout actionGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { updateButton, publicButton });
+            listComponments.Add(actionGroup);
 
-            DialogGUIHorizontalLayout lineGroup2 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { updateButton, publicButton });
-            listComponments.Add(lineGroup2);
-
-            DialogGUILabel messageLabel = new DialogGUILabel(getMessage, true, false);
+            DialogGUILabel messageLabel = new DialogGUILabel(getStatusMessage, true, false);
             listComponments.Add(new DialogGUIScrollList(Vector2.one, false, false, new DialogGUIVerticalLayout(false, false, 4, new RectOffset(5, 5, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[] { messageLabel })));
 
             return listComponments;
         }
 
-        private string setConFreq(string newFreqStr)
+        /// <summary>
+        /// For the dialog's status box to display
+        /// </summary>
+        private string getStatusMessage()
+        {
+            return "Message: " + this.message;
+        }
+
+        /// <summary>
+        /// For the dialog to call upon new user input
+        /// </summary>
+        private string setConstellFreq(string newFreqStr)
         {
             try
             {
@@ -93,8 +101,8 @@ namespace CommNetConstellation.UI
                 }
                 else
                 {
-                    this.conFreq = newFreq;
-                    return this.conFreq.ToString();
+                    this.inputFreq = newFreq;
+                    return this.inputFreq.ToString();
                 }
             }
             catch (FormatException e)
@@ -109,29 +117,36 @@ namespace CommNetConstellation.UI
             }
         }
 
+        /// <summary>
+        /// For the dialog to get the constellation name based on the frequency in the textfield
+        /// </summary>
         private string getConstellationName()
         {
-            Constellation thisConstellation = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == conFreq);
+            Constellation thisConstellation = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == inputFreq);
 
             if (thisConstellation != null)
             {
-                colorImage.uiItem.GetComponent<RawImage>().color = thisConstellation.color;
-                return "<b>Under:</b> " + thisConstellation.name;
+                constellationColorImage.uiItem.GetComponent<RawImage>().color = thisConstellation.color;
+                return "<b>Constellation:</b> " + thisConstellation.name;
             }
 
-            colorImage.uiItem.GetComponent<RawImage>().color = Color.clear;
-            return "<b>Under:</b> Unrecognised";
+            constellationColorImage.uiItem.GetComponent<RawImage>().color = Color.clear;
+            //message = "The constellation associated with this frequency is <color=red>not found</color>. Please choose one of the existing constellations";
+            return "<b>Constellation:</b> Unrecognised";
         }
 
+        /// <summary>
+        /// Action to update the frequency of the vessel
+        /// </summary>
         private void updateClick()
         {
             //Check errors
-            if (!CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == this.conFreq))
+            if (!CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == this.inputFreq))
             {
                 message = "<color=red>Please choose one of the existing constellations</color>";
                 return;
             }
-            else if (!Constellation.isFrequencyValid(this.conFreq))
+            else if (!Constellation.isFrequencyValid(this.inputFreq))
             {
                 message = string.Format("<color=red>This frequency must be between 0 and {0}</color>", short.MaxValue);
                 return;
@@ -142,12 +157,12 @@ namespace CommNetConstellation.UI
                 if(this.hostVessel != null) // flight
                 {
                     CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
-                    cv.updateRadioFrequency(this.conFreq, rightClickedPart);
+                    cv.updateRadioFrequency(this.inputFreq, rightClickedPart);
                 }
                 else // editor
                 {
                     CNConstellationModule cncModule = rightClickedPart.FindModuleImplementing<CNConstellationModule>();
-                    cncModule.radioFrequency = this.conFreq;
+                    cncModule.radioFrequency = this.inputFreq;
                 }
 
                 message = "The frequency of this command part is updated";
@@ -156,7 +171,7 @@ namespace CommNetConstellation.UI
             {
                 CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
                 short prevFrequency = cv.getRadioFrequency();
-                cv.updateRadioFrequency(this.conFreq);
+                cv.updateRadioFrequency(this.inputFreq);
                 message = "All individual frequencies in this entire vessel are updated to this frequency";
 
                 updateCallback(this.hostVessel, prevFrequency);
@@ -167,11 +182,14 @@ namespace CommNetConstellation.UI
             }
         }
 
+        /// <summary>
+        /// Action to reset the vessel's frequency to the public one
+        /// </summary>
         private void defaultClick()
         {
-            this.conFreq = CNCSettings.Instance.PublicRadioFrequency;
+            this.inputFreq = CNCSettings.Instance.PublicRadioFrequency;
             updateClick();
-            frequencyInput.SetOptionText(this.conFreq.ToString());
+            frequencyInput.SetOptionText(this.inputFreq.ToString());
             message = "Reverted to the public constellation";
         }
     }

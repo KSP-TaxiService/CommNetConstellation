@@ -11,8 +11,6 @@ using UnityEngine.UI;
 
 namespace CommNetConstellation.UI
 {
-    //TODO: resolve the issue of images being larger than 32x32
-
     public enum DialogOptions
     {
         HideCloseButton,
