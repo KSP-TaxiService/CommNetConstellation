@@ -42,7 +42,6 @@ namespace CommNetConstellation
         [Persistent] public short PublicRadioFrequency;
         [Persistent] public string DefaultPublicName;
         [Persistent] public Color DefaultPublicColor;
-        [Persistent] public float DistanceToHideGroundStations;
         [Persistent(collectionIndex = "Constellations")] public List<Constellation> Constellations;
         //-----
 

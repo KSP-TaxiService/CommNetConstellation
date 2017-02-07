@@ -10,6 +10,7 @@ namespace CommNetConstellation.CommNetLayer
     public class CNCCommNetHome : CommNetHome
     {
         private static readonly Texture2D markTexture = UIUtils.loadImage("groundStationMark");
+        private static GUIStyle groundStationHeadline;
 
         public void copyOf(CommNetHome stockHome)
         {
@@ -19,6 +20,12 @@ namespace CommNetConstellation.CommNetLayer
             this.body = stockHome.GetComponentInParent<CelestialBody>();
 
             //comm, lat, alt, lon are initialised by CreateNode() later
+
+            groundStationHeadline = new GUIStyle(HighLogic.Skin.label)
+            {
+                fontSize = 12,
+                normal = { textColor = Color.yellow }
+            };
         }
 
         /// <summary>
@@ -40,48 +47,45 @@ namespace CommNetConstellation.CommNetLayer
             if (MapView.MapCamera.transform.InverseTransformPoint(worldPos).z < 0f)
                 return;
 
-            Vector3 pos = PlanetariumCamera.Camera.WorldToScreenPoint(worldPos);
-            Rect screenRect = new Rect((pos.x - 8), (Screen.height - pos.y) - 8, 16, 16);
+            Vector3 position = PlanetariumCamera.Camera.WorldToScreenPoint(worldPos);
+            Rect groundStationRect = new Rect((position.x - 8), (Screen.height - position.y) - 8, 16, 16);
 
-            if (IsOccluded(nodeTransform.transform.position, this.body))
+            if (isOccluded(nodeTransform.transform.position, this.body))
                 return;
 
-            if (!IsOccluded(nodeTransform.transform.position, this.body) && this.IsCamDistanceToWide(nodeTransform.transform.position))
+            if (!isOccluded(nodeTransform.transform.position, this.body) && MapView.MapCamera.Distance > MapView.fetch.max3DlineDrawDist)
                 return;
 
+            //draw the dot
             Color previousColor = GUI.color;
             GUI.color = Color.red;
-            GUI.DrawTexture(screenRect, markTexture, ScaleMode.ScaleToFit, true);
+            GUI.DrawTexture(groundStationRect, markTexture, ScaleMode.ScaleToFit, true);
             GUI.color = previousColor;
 
-            //TODO: display the ground station name when the cursor is hovering above this
+            //draw the headline below the dot
+            if (UIUtils.ContainsMouse(groundStationRect))
+            {
+                Rect headlineRect = groundStationRect;
+                Vector2 nameDim = CNCCommNetHome.groundStationHeadline.CalcSize(new GUIContent(this.nodeName));
+                headlineRect.x -= nameDim.x/2;
+                headlineRect.y -= nameDim.y + 5;
+                headlineRect.width = nameDim.x;
+                headlineRect.height = nameDim.y;
+                GUI.Label(headlineRect, this.nodeName, CNCCommNetHome.groundStationHeadline);
+            }
         }
 
         /// <summary>
         /// Check whether this vector3 location is behind the body
         /// Original code by regex from https://github.com/NathanKell/RealSolarSystem/blob/master/Source/KSCSwitcher.cs
         /// </summary>
-        private bool IsOccluded(Vector3d loc, CelestialBody body)
+        private bool isOccluded(Vector3d position, CelestialBody body)
         {
             Vector3d camPos = ScaledSpace.ScaledToLocalSpace(PlanetariumCamera.Camera.transform.position);
 
-            if (Vector3d.Angle(camPos - loc, body.position - loc) > 90)
+            if (Vector3d.Angle(camPos - position, body.position - position) > 90)
                 return false;
             return true;
-        }
-
-        /// <summary>
-        /// Calculate the distance between the camera position and the ground station, and
-        /// return true if the distance is >= DistanceToHideGroundStations from the settings file.
-        /// </summary>
-        private bool IsCamDistanceToWide(Vector3d loc)
-        {
-            Vector3d camPos = ScaledSpace.ScaledToLocalSpace(PlanetariumCamera.Camera.transform.position);
-            float distance = Vector3.Distance(camPos, loc);
-
-            if (distance >= CNCSettings.Instance.DistanceToHideGroundStations)
-                return true;
-            return false;
         }
     }
 }

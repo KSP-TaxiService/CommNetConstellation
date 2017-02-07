@@ -1,4 +1,5 @@
 ﻿using CommNet;
+using CommNetConstellation.UI;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -42,7 +43,7 @@ namespace CommNetConstellation.CommNetLayer
             {
                 MapObject mapObj = commnetVessels[i].Vessel.mapObject;
 
-                if (mapObj.type == MapObject.ObjectType.Vessel)
+                if (mapObj.type == MapObject.ObjectType.Vessel) //TODO: hide vessels behind body (is it really useful?)
                 {
                     Image thisImageIcon = mapObj.uiNode.GetComponentInChildren<Image>();
                     thisImageIcon.color = newColor;
