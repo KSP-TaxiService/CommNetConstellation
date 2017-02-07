@@ -211,7 +211,8 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         private void onVesselCountChanged(Vessel v)
         {
-            this.dirtyCommNetVesselList = true;
+            if(v.vesselType != VesselType.Debris && v.vesselType != VesselType.EVA && v.vesselType != VesselType.Flag && v.vesselType != VesselType.SpaceObject)
+                this.dirtyCommNetVesselList = true;
         }
     }
 }
