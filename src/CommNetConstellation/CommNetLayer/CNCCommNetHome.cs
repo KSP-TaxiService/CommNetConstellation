@@ -14,6 +14,8 @@ namespace CommNetConstellation.CommNetLayer
 
         public void copyOf(CommNetHome stockHome)
         {
+            CNCLog.Verbose("CommNet Home '{0}' added", stockHome.nodeName);
+
             this.nodeName = stockHome.nodeName;
             this.nodeTransform = stockHome.nodeTransform;
             this.isKSC = stockHome.isKSC;
@@ -33,7 +35,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public void OnGUI()
         {
-            if (HighLogic.CurrentGame == null)
+            if (HighLogic.CurrentGame == null || MapView.MapCamera == null)
                 return;
 
             if (!(HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION))

@@ -17,7 +17,9 @@ namespace CommNetConstellation.CommNetLayer
          */
 
         private CNCCommNetUI CustomCommNetUI = null;
-        public List<Constellation> constellations; // leave  the initialisation to OnLoad()
+        public List<Constellation> constellations; // leave the initialisation to OnLoad()
+        private List<CNCCommNetVessel> commVessels;
+        private bool dirtyCommNetVesselList;
 
         public static new CNCCommNetScenario Instance
         {
@@ -28,7 +30,9 @@ namespace CommNetConstellation.CommNetLayer
         protected override void Start()
         {
             CNCCommNetScenario.Instance = this;
-            
+            this.commVessels = new List<CNCCommNetVessel>();
+            this.dirtyCommNetVesselList = true;
+
             //Steal the CommNet user interface
             CommNetUI ui = FindObjectOfType<CommNetUI>();
             CustomCommNetUI = ui.gameObject.AddComponent<CNCCommNetUI>();
@@ -61,6 +65,9 @@ namespace CommNetConstellation.CommNetLayer
             //override to turn off CommNetScenario's instance check
 
             GameEvents.OnGameSettingsApplied.Add(new EventVoid.OnEvent(this.customResetNetwork));
+            GameEvents.onVesselCreate.Add(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
+            GameEvents.onVesselDestroy.Add(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
+            GameEvents.onNewVesselCreated.Add(new EventData<Vessel>.OnEvent(this.onVesselCountChanged)); // unclear what "new vessel" is
         }
 
         private void OnDestroy()
@@ -68,11 +75,19 @@ namespace CommNetConstellation.CommNetLayer
             if (this.CustomCommNetUI != null)
                 UnityEngine.Object.Destroy(this.CustomCommNetUI);
 
+            this.constellations.Clear();
+            this.commVessels.Clear();
+
             GameEvents.OnGameSettingsApplied.Remove(new EventVoid.OnEvent(this.customResetNetwork));
+            GameEvents.onVesselCreate.Remove(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
+            GameEvents.onVesselDestroy.Remove(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
+            GameEvents.onNewVesselCreated.Remove(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
         }
 
         public void customResetNetwork()
         {
+            CNCLog.Verbose("CommNet Network is rebooted");
+
             CommNetNetwork.Instance.CommNet = new CNCCommNetwork();
             GameEvents.CommNet.OnNetworkInitialized.Fire();
         }
@@ -147,27 +162,14 @@ namespace CommNetConstellation.CommNetLayer
         }
 
         /// <summary>
-        /// Obtain all communicable vessels that has the given frequency
+        /// Obtain all communicable vessels that have the given frequency
         /// </summary>
-        public List<CNCCommNetVessel> getCommNetVessels(short targetFrequency = -1) // TODO: Cache it (maybe dict) and use GameEvents to remove and add?
+        public List<CNCCommNetVessel> getCommNetVessels(short targetFrequency = -1)
         {
-            List<Vessel> vessels = FlightGlobals.fetch.vessels;
-            List<CNCCommNetVessel> commnetVessels = new List<CNCCommNetVessel>();
+            if (this.dirtyCommNetVesselList)
+                cacheCommNetVessels();
 
-            for (int i = 0; i < vessels.Count; i++)
-            {
-                Vessel thisVessel = vessels[i];
-                if (thisVessel.Connection != null)
-                {
-                    CNCCommNetVessel cncVessel = (CNCCommNetVessel)thisVessel.Connection;
-                    if (cncVessel.getRadioFrequency() == targetFrequency || targetFrequency == -1)
-                    {
-                        commnetVessels.Add(cncVessel);
-                    }
-                }
-            }
-
-            return commnetVessels;
+            return commVessels.Where(x => x.getRadioFrequency() == targetFrequency || targetFrequency == -1).ToList();
         }
 
         /// <summary>
@@ -175,24 +177,41 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public Vessel findCorrespondingVessel(CommNode commNode)
         {
-            List<Vessel> allVessels = FlightGlobals.fetch.vessels;
-            IEqualityComparer<CommNode> comparer = commNode.Comparer;
+            if (this.dirtyCommNetVesselList)
+                cacheCommNetVessels();
 
-            //brute-force search temporarily until I find a \omega(n) method //TODO: switch to cache (maybe dict)
-            for (int i = 0; i < allVessels.Count(); i++)
+            IEqualityComparer<CommNode> comparer = commNode.Comparer;
+            return commVessels.Find(x => comparer.Equals(commNode, x.Comm)).Vessel;
+        }
+
+        /// <summary>
+        /// Cache eligible vessels of the FlightGlobals
+        /// </summary>
+        private void cacheCommNetVessels()
+        {
+            CNCLog.Verbose("CommNetVessel Cache cleared - {0} entries gone", this.commVessels.Count);
+            this.commVessels.Clear();
+
+            List<Vessel> allVessels = FlightGlobals.fetch.vessels;
+            for (int i = 0; i < allVessels.Count; i++)
             {
-                Vessel thisVessel = allVessels[i];
-                if (thisVessel.connection != null)
+                if (allVessels[i].connection != null)
                 {
-                    if (comparer.Equals(commNode, thisVessel.connection.Comm))
-                    {
-                        return thisVessel;
-                    }
+                    CNCLog.Verbose("Caching CommNetVessel '{0}'", allVessels[i].vesselName);
+                    this.commVessels.Add(allVessels[i].connection as CNCCommNetVessel);
                 }
             }
 
-            //not found
-            return null;
+            this.dirtyCommNetVesselList = false;
+        }
+
+        /// <summary>
+        /// GameEvent call for newly-created vessels (launch, staging, new asteriod etc)
+        /// NOTE: Vessel v is fresh bread straight from the oven before any curation is done on this (i.e. debris.Connection is valid)
+        /// </summary>
+        private void onVesselCountChanged(Vessel v)
+        {
+            this.dirtyCommNetVesselList = true;
         }
     }
 }

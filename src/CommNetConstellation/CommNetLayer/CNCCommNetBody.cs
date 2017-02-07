@@ -9,6 +9,8 @@ namespace CommNetConstellation.CommNetLayer
     {
         public void copyOf(CommNetBody stockBody)
         {
+            CNCLog.Verbose("CommNet Body '{0}' added", stockBody.name);
+
             this.body = stockBody.GetComponentInChildren<CelestialBody>();
 
             //this.occluder is initalised by OnNetworkInitialized() later
