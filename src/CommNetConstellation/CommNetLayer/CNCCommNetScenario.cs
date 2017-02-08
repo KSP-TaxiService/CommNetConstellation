@@ -7,7 +7,7 @@ namespace CommNetConstellation.CommNetLayer
     /// <summary>
     /// This class is the key that allows to break into and customise KSP's CommNet. This is possibly the secondary model in the Model–view–controller sense
     /// </summary>
-    [KSPScenario(ScenarioCreationOptions.AddToAllGames, new GameScenes[] {GameScenes.FLIGHT, GameScenes.TRACKSTATION, GameScenes.SPACECENTER })]
+    [KSPScenario(ScenarioCreationOptions.AddToAllGames, new GameScenes[] {GameScenes.FLIGHT, GameScenes.TRACKSTATION, GameScenes.EDITOR })]
     public class CNCCommNetScenario : CommNetScenario
     {
         /* Note:
@@ -24,7 +24,7 @@ namespace CommNetConstellation.CommNetLayer
         public static new CNCCommNetScenario Instance
         {
             get;
-            set;
+            protected set;
         }
 
         protected override void Start()
@@ -32,6 +32,8 @@ namespace CommNetConstellation.CommNetLayer
             CNCCommNetScenario.Instance = this;
             this.commVessels = new List<CNCCommNetVessel>();
             this.dirtyCommNetVesselList = true;
+
+            CNCLog.Verbose("CommNet Scenario booting");
 
             //Steal the CommNet user interface
             CommNetUI ui = FindObjectOfType<CommNetUI>();
@@ -86,7 +88,7 @@ namespace CommNetConstellation.CommNetLayer
 
         public void customResetNetwork()
         {
-            CNCLog.Verbose("CommNet Network is rebooted");
+            CNCLog.Verbose("CommNet Network rebooted");
 
             CommNetNetwork.Instance.CommNet = new CNCCommNetwork();
             GameEvents.CommNet.OnNetworkInitialized.Fire();
@@ -166,8 +168,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public List<CNCCommNetVessel> getCommNetVessels(short targetFrequency = -1)
         {
-            if (this.dirtyCommNetVesselList)
-                cacheCommNetVessels();
+            cacheCommNetVessels();
 
             return commVessels.Where(x => x.getRadioFrequency() == targetFrequency || targetFrequency == -1).ToList();
         }
@@ -177,8 +178,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public Vessel findCorrespondingVessel(CommNode commNode)
         {
-            if (this.dirtyCommNetVesselList)
-                cacheCommNetVessels();
+            cacheCommNetVessels();
 
             IEqualityComparer<CommNode> comparer = commNode.Comparer;
             return commVessels.Find(x => comparer.Equals(commNode, x.Comm)).Vessel;
@@ -189,13 +189,16 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         private void cacheCommNetVessels()
         {
+            if (!this.dirtyCommNetVesselList)
+                return;
+
             CNCLog.Verbose("CommNetVessel Cache cleared - {0} entries gone", this.commVessels.Count);
             this.commVessels.Clear();
 
             List<Vessel> allVessels = FlightGlobals.fetch.vessels;
             for (int i = 0; i < allVessels.Count; i++)
             {
-                if (allVessels[i].connection != null)
+                if (allVessels[i].connection != null && allVessels[i].vesselType != VesselType.Debris)
                 {
                     CNCLog.Verbose("Caching CommNetVessel '{0}'", allVessels[i].vesselName);
                     this.commVessels.Add(allVessels[i].connection as CNCCommNetVessel);
@@ -211,8 +214,13 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         private void onVesselCountChanged(Vessel v)
         {
-            if(v.vesselType != VesselType.Debris && v.vesselType != VesselType.EVA && v.vesselType != VesselType.Flag && v.vesselType != VesselType.SpaceObject)
+            if (v.vesselType == VesselType.Base || v.vesselType == VesselType.Lander || v.vesselType == VesselType.Plane ||
+               v.vesselType == VesselType.Probe || v.vesselType == VesselType.Relay || v.vesselType == VesselType.Rover ||
+               v.vesselType == VesselType.Ship || v.vesselType == VesselType.Station)
+            {
+                CNCLog.Verbose("Change in the vessel list detected. Cache refresh required.");
                 this.dirtyCommNetVesselList = true;
+            }
         }
     }
 }

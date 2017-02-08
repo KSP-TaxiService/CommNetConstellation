@@ -33,9 +33,6 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected override void OnNetworkInitialized()
         {
-            if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
-                return;
-
             base.OnNetworkInitialized();
             this.radioFrequency = getRadioFrequency(true);
         }
@@ -45,9 +42,6 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public override void OnNetworkPostUpdate()
         {
-            if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
-                return;
-
             base.OnNetworkPostUpdate();
         }
 
@@ -56,9 +50,6 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public override void OnNetworkPreUpdate()
         {
-            if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
-                return;
-
             base.OnNetworkPreUpdate();
         }
 
@@ -67,9 +58,6 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected override void UpdateComm()
         {
-            if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
-                return;
-
             base.UpdateComm();
         }
 
@@ -121,7 +109,11 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public void updateRadioFrequency(short newFrequency, Part commandPart)
         {
+            if (commandPart == null)
+                return;
+
             CNConstellationModule cncModule = commandPart.FindModuleImplementing<CNConstellationModule>();
+            CNCLog.Verbose("Update the frequency of the command part '{1}' in the CommNet vessel '{0}' from {3} to {2}", this.Vessel.GetName(), commandPart.partInfo.title, newFrequency, cncModule.radioFrequency);
             cncModule.radioFrequency = newFrequency;
             getRadioFrequency(true);
         }
@@ -159,6 +151,8 @@ namespace CommNetConstellation.CommNetLayer
                         this.radioFrequency = CNCSettings.Instance.PublicRadioFrequency;
                     }
                 }
+
+                CNCLog.Verbose("Read the frequency {1} from the CommNet vessel '{0}''s data", this.Vessel.GetName(), this.radioFrequency);
             }
 
             return this.radioFrequency;

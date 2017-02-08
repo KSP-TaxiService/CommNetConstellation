@@ -11,6 +11,7 @@ namespace CommNetConstellation.CommNetLayer
     {
         private static readonly Texture2D markTexture = UIUtils.loadImage("groundStationMark");
         private static GUIStyle groundStationHeadline;
+        private bool loadCompleted = false;
 
         public void copyOf(CommNetHome stockHome)
         {
@@ -28,6 +29,8 @@ namespace CommNetConstellation.CommNetLayer
                 fontSize = 12,
                 normal = { textColor = Color.yellow }
             };
+
+            loadCompleted = true;
         }
 
         /// <summary>
@@ -35,7 +38,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public void OnGUI()
         {
-            if (HighLogic.CurrentGame == null || MapView.MapCamera == null)
+            if (HighLogic.CurrentGame == null || !loadCompleted)
                 return;
 
             if (!(HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION))
