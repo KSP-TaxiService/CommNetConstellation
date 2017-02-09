@@ -69,64 +69,66 @@ namespace CommNetConstellation.CommNetLayer
         }
 
         /// <summary>
-        /// Contain relevant codes of stock UpdateDisplay() with few changes 
+        /// Render the CommNet presentation
         /// </summary>
-        private void updateView() //TODO: rework this as KSP codes can't be used
+        private void updateView()
         {
-            int numLinks = 0;
-            CommNetwork commNet = CommNetNetwork.Instance.CommNet;
-            CommNetVessel commNetVessel = null;
-            CommNode commNode = null;
-            CommPath commPath = null;
+            CommNetwork net = CommNetNetwork.Instance.CommNet;
+            CommNetVessel cnvessel = null;
+            CommNode node = null;
+            CommPath path = null;
 
             if (this.vessel != null && this.vessel.connection != null && this.vessel.connection.Comm.Net != null)
-            {
-                commNetVessel = this.vessel.connection;
-                commNode = commNetVessel.Comm;
-                commPath = commNetVessel.ControlPath;
-            }
+			{
+                cnvessel = this.vessel.connection;
+                node = cnvessel.Comm;
+                path = cnvessel.ControlPath;
+			}
 
             //work out how many connections to paint
+            int numLinks = 0;
             switch (CommNetUI.Mode)
             {
                 case CommNetUI.DisplayMode.None:
                     numLinks = 0;
                     break;
+
                 case CommNetUI.DisplayMode.FirstHop:
-                    if (commNetVessel.ControlState == VesselControlState.Probe || commNetVessel.ControlState == VesselControlState.Kerbal || commPath == null || commPath.Count == 0)
-                    {
-                        numLinks = 0;
-                    }
-                    else
-                    {
-                        commPath.First.GetPoints(this.points);
-                        numLinks = 1;
-                    }
-                    break;
                 case CommNetUI.DisplayMode.Path:
-                    if (commNetVessel.ControlState == VesselControlState.Probe || commNetVessel.ControlState == VesselControlState.Kerbal || commPath == null || commPath.Count == 0)
+                    if (cnvessel.ControlState == VesselControlState.Probe || cnvessel.ControlState == VesselControlState.Kerbal ||
+                        path == null || path.Count == 0)
                     {
                         numLinks = 0;
                     }
                     else
                     {
-                        commPath.GetPoints(this.points, true);
-                        numLinks = commPath.Count;
+                        if (CommNetUI.Mode == CommNetUI.DisplayMode.FirstHop)
+                        {
+                            path.First.GetPoints(this.points);
+                            numLinks = 1;
+                        }
+                        else
+                        {
+                            path.GetPoints(this.points, true);
+                            numLinks = path.Count;
+                        }
                     }
                     break;
+
                 case CommNetUI.DisplayMode.VesselLinks:
-                    numLinks = commNode.Count;
-                    commNode.GetLinkPoints(this.points);
+                    numLinks = node.Count;
+                    node.GetLinkPoints(this.points);
                     break;
+
                 case CommNetUI.DisplayMode.Network:
-                    if (commNet.Links.Count == 0)
+                    if (net.Links.Count == 0)
                     {
                         numLinks = 0;
                     }
                     else
                     {
-                        commNet.GetLinkPoints(this.points);
-                        numLinks = commNet.Links.Count;
+                        numLinks = net.Links.Count;
+                        net.GetLinkPoints(this.points);
                     }
                     break;
             }// end of switch
@@ -136,77 +138,55 @@ namespace CommNetConstellation.CommNetLayer
             {
                 case CommNetUI.DisplayMode.FirstHop:
                 {
-                    float f = (float)commPath.First.signalStrength;
-                    float t = Mathf.Pow(f, this.colorLerpPower);
-                    Color customHighColor = getConstellationColor(commPath.First.a, commPath.First.b);
+                    float lvl = Mathf.Pow((float)path.First.signalStrength, this.colorLerpPower);
+                    Color customHighColor = getConstellationColor(path.First.a, path.First.b);
                     if (this.swapHighLow)
-                    {
-                        this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, t), 0);
-                    }
+                        this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, lvl), 0);
                     else
-                    {
-                        this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, t), 0);
-                    }
+                        this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, lvl), 0);
                     break;
                 }
                 case CommNetUI.DisplayMode.Path:
                 {
-                    int index = numLinks;
-                    while (index-- > 0)
+                    int linkIndex = numLinks;
+                    for(int i=linkIndex-1; i>=0; i--)
                     {
-                        float f = (float)commPath[index].signalStrength;
-                        float t = Mathf.Pow(f, this.colorLerpPower);
-                        Color customHighColor = getConstellationColor(commPath[index].a, commPath[index].b);
+                        float lvl = Mathf.Pow((float)path[i].signalStrength, this.colorLerpPower);
+                        Color customHighColor = getConstellationColor(path[i].a, path[i].b);
                         if (this.swapHighLow)
-                        {
-                            this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, t), index);
-                        }
+                            this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, lvl), i);
                         else
-                        {
-                            this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, t), index);
-                        }
+                            this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, lvl), i);
                     }
                     break;
                 }
                 case CommNetUI.DisplayMode.VesselLinks:
                 {
-                    Dictionary<CommNode, CommLink>.ValueCollection.Enumerator enumerator = commNode.Values.GetEnumerator();
-                    int num2 = 0;
-                    while (enumerator.MoveNext())
+                    int linkIndex = 0;
+                    for (int i=0; i<node.Values.Count; i++)
                     {
-                        CommLink commLink = enumerator.Current;
-                        float f = (float)commLink.GetSignalStrength(commLink.a != commNode, commLink.b != commNode);
-                        float t = Mathf.Pow(f, this.colorLerpPower);
-                        Color customHighColor = getConstellationColor(commLink.a, commLink.b);
+                        CommLink link = node.Values.ElementAt(i);
+                        float lvl = Mathf.Pow((float)link.GetSignalStrength(link.a != node, link.b != node), this.colorLerpPower);
+                        Color customHighColor = getConstellationColor(link.a, link.b);
                         if (this.swapHighLow)
-                        {
-                            this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, t), num2);
-                        }
+                            this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, lvl), linkIndex++);
                         else
-                        {
-                            this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, t), num2);
-                        }
-                        num2++;
+                            this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, lvl), linkIndex++);
                     }
                     break;
                 }
                 case CommNetUI.DisplayMode.Network:
                 {
-                    int index2 = numLinks;
-                    while (index2-- > 0)
+                    for (int i = numLinks-1; i >= 0; i--)
                     {
-                        CommLink commLink = commNet.Links[index2];
-                        float f = (float)commNet.Links[index2].GetBestSignal();
+                        CommLink commLink = net.Links[i];
+                        float f = (float)net.Links[i].GetBestSignal();
                         float t = Mathf.Pow(f, this.colorLerpPower);
                         Color customHighColor = getConstellationColor(commLink.a, commLink.b);
                         if (this.swapHighLow)
-                        {
-                            this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, t), index2);
-                        }
+                            this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, t), i);
                         else
-                        {
-                            this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, t), index2);
-                        }
+                            this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, t), i);
                     }
                     break;
                 }
