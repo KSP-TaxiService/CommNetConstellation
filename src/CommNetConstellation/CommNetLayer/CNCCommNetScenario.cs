@@ -17,6 +17,7 @@ namespace CommNetConstellation.CommNetLayer
          */
 
         private CNCCommNetUI CustomCommNetUI = null;
+        private CNCCommNetNetwork CustomCommNetNetwork = null;
         public List<Constellation> constellations; // leave the initialisation to OnLoad()
         private List<CNCCommNetVessel> commVessels;
         private bool dirtyCommNetVesselList;
@@ -33,17 +34,20 @@ namespace CommNetConstellation.CommNetLayer
             this.commVessels = new List<CNCCommNetVessel>();
             this.dirtyCommNetVesselList = true;
 
-            CNCLog.Verbose("CommNet Scenario booting");
+            CNCLog.Verbose("CommNet Scenario loading ...");
 
-            //Steal the CommNet user interface
-            CommNetUI ui = FindObjectOfType<CommNetUI>();
-            CustomCommNetUI = ui.gameObject.AddComponent<CNCCommNetUI>();
+            //Replace the CommNet user interface
+            CommNetUI ui = FindObjectOfType<CommNetUI>(); // the order of the three lines is important
+            CustomCommNetUI = gameObject.AddComponent<CNCCommNetUI>(); // gameObject.AddComponent<>() is "new" keyword for Monohebaviour class
             UnityEngine.Object.Destroy(ui);
 
-            //Steal the CommNet service
-            CommNetNetwork.Instance.CommNet = new CNCCommNetwork();
+            //Replace the CommNet network
+            CommNetNetwork net = FindObjectOfType<CommNetNetwork>();
+            CustomCommNetNetwork = gameObject.AddComponent<CNCCommNetNetwork>();
+            UnityEngine.Object.Destroy(net);
+            //CommNetNetwork.Instance.GetType().GetMethod("set_Instance").Invoke(CustomCommNetNetwork, null); // reflection to bypass Instance's protected set // don't seem to work
 
-            //Steal the CommNet ground stations
+            //Replace the CommNet ground stations
             CommNetHome[] homes = FindObjectsOfType<CommNetHome>();
             for(int i=0; i<homes.Length; i++)
             {
@@ -52,7 +56,7 @@ namespace CommNetConstellation.CommNetLayer
                 UnityEngine.Object.Destroy(homes[i]);
             }
 
-            //Steal the CommNet celestial bodies
+            //Replace the CommNet celestial bodies
             CommNetBody[] bodies = FindObjectsOfType<CommNetBody>();
             for (int i = 0; i < bodies.Length; i++)
             {
@@ -60,16 +64,16 @@ namespace CommNetConstellation.CommNetLayer
                 customBody.copyOf(bodies[i]);
                 UnityEngine.Object.Destroy(bodies[i]);
             }
+
+            CNCLog.Verbose("CommNet Scenario loading done! ");
         }
 
         public override void OnAwake()
         {
             //override to turn off CommNetScenario's instance check
 
-            GameEvents.OnGameSettingsApplied.Add(new EventVoid.OnEvent(this.customResetNetwork));
             GameEvents.onVesselCreate.Add(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
             GameEvents.onVesselDestroy.Add(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
-            GameEvents.onNewVesselCreated.Add(new EventData<Vessel>.OnEvent(this.onVesselCountChanged)); // unclear what "new vessel" is
         }
 
         private void OnDestroy()
@@ -77,21 +81,14 @@ namespace CommNetConstellation.CommNetLayer
             if (this.CustomCommNetUI != null)
                 UnityEngine.Object.Destroy(this.CustomCommNetUI);
 
+            if (this.CustomCommNetNetwork != null)
+                UnityEngine.Object.Destroy(this.CustomCommNetNetwork);
+
             this.constellations.Clear();
             this.commVessels.Clear();
 
-            GameEvents.OnGameSettingsApplied.Remove(new EventVoid.OnEvent(this.customResetNetwork));
             GameEvents.onVesselCreate.Remove(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
             GameEvents.onVesselDestroy.Remove(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
-            GameEvents.onNewVesselCreated.Remove(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
-        }
-
-        public void customResetNetwork()
-        {
-            CNCLog.Verbose("CommNet Network rebooted");
-
-            CommNetNetwork.Instance.CommNet = new CNCCommNetwork();
-            GameEvents.CommNet.OnNetworkInitialized.Fire();
         }
 
         public override void OnLoad(ConfigNode gameNode)

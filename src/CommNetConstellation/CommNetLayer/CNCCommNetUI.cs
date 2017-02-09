@@ -69,9 +69,9 @@ namespace CommNetConstellation.CommNetLayer
         }
 
         /// <summary>
-        /// Contain relevant codes of stock UpdateDisplay() with few changes
+        /// Contain relevant codes of stock UpdateDisplay() with few changes 
         /// </summary>
-        private void updateView()
+        private void updateView() //TODO: rework this as KSP codes can't be used
         {
             int numLinks = 0;
             CommNetwork commNet = CommNetNetwork.Instance.CommNet;
