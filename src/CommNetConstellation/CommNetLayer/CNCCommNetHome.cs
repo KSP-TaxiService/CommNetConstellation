@@ -15,7 +15,7 @@ namespace CommNetConstellation.CommNetLayer
 
         public void copyOf(CommNetHome stockHome)
         {
-            CNCLog.Debug("CommNet Home '{0}' added", stockHome.nodeName);
+            CNCLog.Verbose("CommNet Home '{0}' added", stockHome.nodeName);
 
             this.nodeName = stockHome.nodeName;
             this.nodeTransform = stockHome.nodeTransform;
@@ -58,7 +58,7 @@ namespace CommNetConstellation.CommNetLayer
             if (isOccluded(nodeTransform.transform.position, this.body))
                 return;
 
-            if (!isOccluded(nodeTransform.transform.position, this.body) && MapView.MapCamera.Distance > MapView.fetch.max3DlineDrawDist)
+            if (!isOccluded(nodeTransform.transform.position, this.body) && this.IsCamDistanceToWide(nodeTransform.transform.position))
                 return;
 
             //draw the dot
@@ -91,6 +91,20 @@ namespace CommNetConstellation.CommNetLayer
             if (Vector3d.Angle(camPos - position, body.position - position) > 90)
                 return false;
             return true;
+        }
+
+        /// <summary>
+        /// Calculate the distance between the camera position and the ground station, and
+        /// return true if the distance is >= DistanceToHideGroundStations from the settings file.
+        /// </summary>
+        private bool IsCamDistanceToWide(Vector3d loc)
+        {
+            Vector3d camPos = ScaledSpace.ScaledToLocalSpace(PlanetariumCamera.Camera.transform.position);
+            float distance = Vector3.Distance(camPos, loc);
+
+            if (distance >= CNCSettings.Instance.DistanceToHideGroundStations)
+                return true;
+            return false;
         }
     }
 }

@@ -96,11 +96,11 @@ namespace CommNetConstellation.CommNetLayer
             if (success)
             {
                 this.radioFrequency = newFrequency;
-                CNCLog.Verbose("Update CommNet vessel '{0}''s frequency to {1}", this.Vessel.GetName(), newFrequency);
+                CNCLog.Debug("Update CommNet vessel '{0}''s frequency to {1}", this.Vessel.GetName(), newFrequency);
             }
             else
             {
-                CNCLog.Error("Unable to update CommNet vessel '{0}''s frequency to {1}!", this.Vessel.GetName(), newFrequency);
+                CNCLog.Error("Can't update CommNet vessel '{0}''s frequency to {1}!", this.Vessel.GetName(), newFrequency);
             }
         }
 
@@ -132,9 +132,9 @@ namespace CommNetConstellation.CommNetLayer
                     {
                         this.radioFrequency = cncModule.radioFrequency;
                     }
-                    else
+                    else // does this even occurs, given KSP adds the CNC module to active vessel?
                     {
-                        CNCLog.Error("Active CommNet vessel '{0}' does not have any CNConstellationModule! Reset to freq {1}", this.Vessel.GetName(), this.radioFrequency); //TODO: Add module
+                        CNCLog.Error("Active CommNet vessel '{0}' does not have any CNConstellationModule! Reset to freq {1}", this.Vessel.GetName(), this.radioFrequency);
                         this.radioFrequency = CNCSettings.Instance.PublicRadioFrequency;
                     }                        
                 }
@@ -147,8 +147,11 @@ namespace CommNetConstellation.CommNetLayer
                     }
                     else
                     {
-                        CNCLog.Error("Unloaded CommNet vessel '{0}' does not have the frequency module-value! Reset to freq {1}", this.Vessel.GetName(), this.radioFrequency);
-                        this.radioFrequency = CNCSettings.Instance.PublicRadioFrequency;
+                        CNConstellationModule realcncModule = gameObject.AddComponent<CNConstellationModule>(); // don't use new keyword. PartModule is Monobehavior
+                        addModuleToCommandParts(this.Vessel.protoVessel.protoPartSnapshots, realcncModule);
+                        CNCLog.Verbose("Unloaded CommNet vessel '{0}' don't have any CNConstellationModule. All command parts receive new CNConstellationModule with default freq {1}", this.Vessel.GetName(), realcncModule.radioFrequency);
+
+                        this.radioFrequency = realcncModule.radioFrequency;
                     }
                 }
 
@@ -190,6 +193,20 @@ namespace CommNetConstellation.CommNetLayer
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Add given module to all command parts of unloaded vessels
+        /// </summary>
+        private void addModuleToCommandParts(List<ProtoPartSnapshot> parts, CNConstellationModule newModule)
+        {
+            for (int i = 0; i < parts.Count; i++)
+            {
+                if (parts[i].FindModule("ModuleCommand") != null)
+                {
+                    parts[i].modules.Add(new ProtoPartModuleSnapshot(newModule));
+                }
+            }
         }
     }
 }
