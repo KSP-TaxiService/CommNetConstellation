@@ -26,7 +26,7 @@ namespace CommNetConstellation.CommNetLayer
             }
 
             GameEvents.OnGameSettingsApplied.Add(new EventVoid.OnEvent(this.ResetNetwork));
-            //CommNetNetwork.Reset(); // Please retain this so that KSP can properly reset
+            ResetNetwork(); // Please retain this so that KSP can properly reset
         }
 
         protected new void ResetNetwork()

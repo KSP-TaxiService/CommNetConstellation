@@ -197,7 +197,7 @@ namespace CommNetConstellation.CommNetLayer
             {
                 if (allVessels[i].connection != null && allVessels[i].vesselType != VesselType.Debris)
                 {
-                    CNCLog.Verbose("Caching CommNetVessel '{0}'", allVessels[i].vesselName);
+                    CNCLog.Debug("Caching CommNetVessel '{0}'", allVessels[i].vesselName);
                     this.commVessels.Add(allVessels[i].connection as CNCCommNetVessel);
                 }
             }
