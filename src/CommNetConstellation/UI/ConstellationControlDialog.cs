@@ -236,6 +236,8 @@ namespace CommNetConstellation.UI
         // VESSELS
         /////////////////////
 
+        //TODO: Add sort orders: freq, vessel name, body, vessel types
+
         /////////////////////
         // GUI
         private List<DialogGUIBase> setupVesselList()

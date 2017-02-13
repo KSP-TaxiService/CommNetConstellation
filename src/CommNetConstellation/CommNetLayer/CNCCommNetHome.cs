@@ -15,7 +15,7 @@ namespace CommNetConstellation.CommNetLayer
 
         public void copyOf(CommNetHome stockHome)
         {
-            CNCLog.Verbose("CommNet Home '{0}' added", stockHome.nodeName);
+            CNCLog.Debug("CommNet Home '{0}' added", stockHome.nodeName);
 
             this.nodeName = stockHome.nodeName;
             this.nodeTransform = stockHome.nodeTransform;

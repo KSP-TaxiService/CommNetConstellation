@@ -14,7 +14,9 @@
 
         public static void Debug(string message, params object[] param)
         {
+#if DEBUG
             UnityEngine.Debug.Log(string.Format("{0} -> debug: {1}", NAME_LOG_PREFIX, string.Format(message, param)));
+#endif
         }
 
         public static void Error(string message, params object[] param)

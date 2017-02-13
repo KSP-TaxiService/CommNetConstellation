@@ -189,7 +189,7 @@ namespace CommNetConstellation.CommNetLayer
             if (!this.dirtyCommNetVesselList)
                 return;
 
-            CNCLog.Verbose("CommNetVessel Cache cleared - {0} entries gone", this.commVessels.Count);
+            CNCLog.Verbose("CommNetVessel cache - {0} entries deleted", this.commVessels.Count);
             this.commVessels.Clear();
 
             List<Vessel> allVessels = FlightGlobals.fetch.vessels;
@@ -201,6 +201,8 @@ namespace CommNetConstellation.CommNetLayer
                     this.commVessels.Add(allVessels[i].connection as CNCCommNetVessel);
                 }
             }
+
+            CNCLog.Verbose("CommNetVessel cache - {0} entries added", this.commVessels.Count);
 
             this.dirtyCommNetVesselList = false;
         }
@@ -215,7 +217,7 @@ namespace CommNetConstellation.CommNetLayer
                v.vesselType == VesselType.Probe || v.vesselType == VesselType.Relay || v.vesselType == VesselType.Rover ||
                v.vesselType == VesselType.Ship || v.vesselType == VesselType.Station)
             {
-                CNCLog.Verbose("Change in the vessel list detected. Cache refresh required.");
+                CNCLog.Debug("Change in the vessel list detected. Cache refresh required.");
                 this.dirtyCommNetVesselList = true;
             }
         }

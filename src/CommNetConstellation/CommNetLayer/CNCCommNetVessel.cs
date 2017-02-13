@@ -134,7 +134,7 @@ namespace CommNetConstellation.CommNetLayer
                     }
                     else
                     {
-                        CNCLog.Error("Active CommNet vessel '{0}' does not have any CNConstellationModule! Reset to freq {1}", this.Vessel.GetName(), this.radioFrequency);
+                        CNCLog.Error("Active CommNet vessel '{0}' does not have any CNConstellationModule! Reset to freq {1}", this.Vessel.GetName(), this.radioFrequency); //TODO: Add module
                         this.radioFrequency = CNCSettings.Instance.PublicRadioFrequency;
                     }                        
                 }
@@ -152,7 +152,7 @@ namespace CommNetConstellation.CommNetLayer
                     }
                 }
 
-                CNCLog.Verbose("Read the frequency {1} from the CommNet vessel '{0}''s data", this.Vessel.GetName(), this.radioFrequency);
+                CNCLog.Debug("Read the frequency {1} from the CommNet vessel '{0}''s data", this.Vessel.GetName(), this.radioFrequency);
             }
 
             return this.radioFrequency;

@@ -18,7 +18,7 @@ namespace CommNetConstellation.CommNetLayer
             CNCLog.Verbose("CommNet Network booting");
 
             CommNetNetwork.Instance = this;
-            CommNetNetwork.Instance.CommNet = new CNCCommNetwork();
+            this.CommNet = new CNCCommNetwork();
 
             if (HighLogic.LoadedScene == GameScenes.TRACKSTATION)
             {
@@ -26,7 +26,7 @@ namespace CommNetConstellation.CommNetLayer
             }
 
             GameEvents.OnGameSettingsApplied.Add(new EventVoid.OnEvent(this.ResetNetwork));
-            CommNetNetwork.Reset(); // Please retain this so that KSP can properly reset
+            //CommNetNetwork.Reset(); // Please retain this so that KSP can properly reset
         }
 
         protected new void ResetNetwork()
