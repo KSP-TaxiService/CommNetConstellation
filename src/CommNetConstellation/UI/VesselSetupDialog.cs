@@ -22,6 +22,9 @@ namespace CommNetConstellation.UI
         private short inputFreq = 0;
         private DialogGUITextInput frequencyInput;
 
+        private bool membershipFlag = false;
+        private DialogGUIToggle membershipToggle;
+
         private DialogGUIImage constellationColorImage;
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
 
@@ -29,7 +32,7 @@ namespace CommNetConstellation.UI
                                                                                                                 0.5f, //x
                                                                                                                 0.5f, //y
                                                                                                                 250, //width
-                                                                                                                255, //height
+                                                                                                                295, //height
                                                                                                                 new DialogOptions[] {})
         {
             this.hostVessel = vessel;
@@ -41,12 +44,14 @@ namespace CommNetConstellation.UI
                 this.description = string.Format("You are editing this command part '{0}'.", this.rightClickedPart.partInfo.title);
                 CNConstellationModule cncModule = rightClickedPart.FindModuleImplementing<CNConstellationModule>();
                 this.inputFreq = cncModule.radioFrequency;
+                this.membershipFlag = cncModule.communicationMembershipFlag;
             }
             else if (this.hostVessel != null)
             {
                 this.description = string.Format("You are editing the whole vessel '{0}' (overriding <b>all</b> command parts).", this.hostVessel.vesselName);
                 CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
                 this.inputFreq = cv.getRadioFrequency();
+                this.membershipFlag = cv.getMembershipFlag();
             }
         }
 
@@ -58,8 +63,8 @@ namespace CommNetConstellation.UI
 
             DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 52, 12);
             frequencyInput = new DialogGUITextInput(inputFreq.ToString(), false, CNCSettings.MaxDigits, setConstellFreq, 45, 25);
-            DialogGUIHorizontalLayout freqGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(100)});
-            listComponments.Add(freqGroup);
+            DialogGUIHorizontalLayout freqGRoup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(100) });
+            listComponments.Add(freqGRoup);
 
             constellationColorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, Color.white, colorTexture);
             DialogGUILabel constNameLabel = new DialogGUILabel(getConstellationName, 200, 12);
@@ -70,6 +75,9 @@ namespace CommNetConstellation.UI
             DialogGUIButton publicButton = new DialogGUIButton("Revert to public", defaultClick, false);
             DialogGUIHorizontalLayout actionGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { updateButton, publicButton });
             listComponments.Add(actionGroup);
+
+            membershipToggle = new DialogGUIToggle(this.membershipFlag, "<b>Talk to constellation members only</b>", membershipFlagToggle);
+            listComponments.Add(membershipToggle);
 
             DialogGUILabel messageLabel = new DialogGUILabel(getStatusMessage, true, false);
             listComponments.Add(new DialogGUIScrollList(Vector2.one, false, false, new DialogGUIVerticalLayout(false, false, 4, new RectOffset(5, 5, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[] { messageLabel })));
@@ -191,6 +199,38 @@ namespace CommNetConstellation.UI
             updateClick();
             frequencyInput.SetOptionText(this.inputFreq.ToString());
             message = "Reverted to the public constellation";
+        }
+
+        /// <summary>
+        /// Action to toggle the vessel's membership flag
+        /// </summary>
+        private void membershipFlagToggle(bool flag)
+        {
+            if (rightClickedPart != null) // either in editor or flight
+            {
+                if (this.hostVessel != null) // flight
+                {
+                    CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
+                    cv.updateMembershipFlag(flag, rightClickedPart);
+                }
+                else // editor
+                {
+                    CNConstellationModule cncModule = rightClickedPart.FindModuleImplementing<CNConstellationModule>();
+                    cncModule.communicationMembershipFlag = flag;
+                }
+
+                message = "The communication membership of this command part is updated";
+            }
+            else if (this.hostVessel != null) // tracking station
+            {
+                CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
+                cv.updateMembershipFlag(flag);
+                message = "All individual membership flags in this entire vessel are updated";
+            }
+            else
+            {
+                message = "Something is broken ;_;";
+            }
         }
     }
 }
