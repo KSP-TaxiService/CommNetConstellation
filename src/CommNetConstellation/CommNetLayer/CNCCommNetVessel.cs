@@ -1,5 +1,6 @@
 ﻿using CommNet;
 using CommNetConstellation.UI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -36,8 +37,16 @@ namespace CommNetConstellation.CommNetLayer
         {
             base.OnNetworkInitialized();
             validateAndUpgrade(this.Vessel);
-            this.radioFrequency = getRadioFrequency(true);
-            this.communicationMembershipFlag = getMembershipFlag(true);
+
+            try
+            {
+                this.radioFrequency = getRadioFrequency(true);
+                this.communicationMembershipFlag = getMembershipFlag(true);
+            }
+            catch (Exception e)
+            {
+                CNCLog.Error("Vessel '{0}' doesn't have any CommNet capability, likely a mislabelled junk", this.Vessel.GetName());
+            }
         }
 
         /// <summary>
