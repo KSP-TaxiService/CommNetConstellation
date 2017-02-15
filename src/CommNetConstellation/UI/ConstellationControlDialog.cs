@@ -1,9 +1,11 @@
 ﻿using CommNetConstellation.CommNetLayer;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using static MapViewFiltering;
 
 namespace CommNetConstellation.UI
 {
@@ -12,12 +14,15 @@ namespace CommNetConstellation.UI
     /// </summary>
     public class ConstellationControlDialog : AbstractDialog
     {
+        public enum VesselListSort {LAUNCHDATE, RADIOFREQ, VESSELNAME, CBODY };
+
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
         private static readonly Texture2D focusTexture = UIUtils.loadImage("target");
 
         private DialogGUIVerticalLayout constellationRowLayout;
         private DialogGUIVerticalLayout vesselRowLayout;
         private DialogGUIScrollList vesselScrollPane;
+        private VesselListSort currentVesselSort;
 
         public ConstellationControlDialog(string title) : base(title, 
                                                             0.8f, //x
@@ -57,8 +62,9 @@ namespace CommNetConstellation.UI
         private List<DialogGUIBase> setupConstellationList()
         {
             List<DialogGUIBase> constellationComponments = new List<DialogGUIBase>();
-            constellationComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel("\n<b>You can manage multiple constellations of vessels.</b>", false, false) }));
-            
+            //constellationComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel("\n<b>You can manage multiple constellations of vessels.</b>", false, false) }));
+            constellationComponments.Add(new DialogGUILabel("\n<b>You can manage multiple constellations of vessels.</b>", false, false));
+
             List<DialogGUIHorizontalLayout> eachRowGroupList = new List<DialogGUIHorizontalLayout>();
 
             DialogGUIButton createButton = new DialogGUIButton("New constellation", newConstellationClick, false);
@@ -247,17 +253,18 @@ namespace CommNetConstellation.UI
         // VESSELS
         /////////////////////
 
-        //TODO: Add sort orders: freq, vessel name, body, vessel types
-
         /////////////////////
         // GUI
         private List<DialogGUIBase> setupVesselList()
         {
+            currentVesselSort = VesselListSort.LAUNCHDATE;
+
             List<DialogGUIBase> vesselComponments = new List<DialogGUIBase>();
-            vesselComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel("\n<b>You can edit the constellation configuration of a vessel.</b>", false, false) }));
+            //vesselComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel("\n<b>You can edit the constellation configuration of a vessel.</b>", false, false) }));
+            vesselComponments.Add(new DialogGUILabel("\n<b>You can edit the constellation configuration of a vessel.</b>", false, false));
 
             List<DialogGUIHorizontalLayout> eachRowGroupList = new List<DialogGUIHorizontalLayout>();
-            eachRowGroupList.AddRange(createVesselRows(MapViewFiltering.vesselTypeFilter));
+            eachRowGroupList.AddRange(populateVesselRows(MapViewFiltering.vesselTypeFilter));
 
             //Prepare a list container for the GUILayout rows
             DialogGUIBase[] rows = new DialogGUIBase[eachRowGroupList.Count + 1];
@@ -268,6 +275,13 @@ namespace CommNetConstellation.UI
             vesselRowLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, rows);
             vesselScrollPane = new DialogGUIScrollList(Vector2.one, false, true, vesselRowLayout);
             vesselComponments.Add(vesselScrollPane);
+
+            DialogGUILabel sortLabel = new DialogGUILabel("Sort by");
+            DialogGUIButton launchSortBtn = new DialogGUIButton("Launch time", delegate { currentVesselSort = VesselListSort.LAUNCHDATE; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
+            DialogGUIButton freqSortBtn = new DialogGUIButton("Radio frequency", delegate { currentVesselSort = VesselListSort.RADIOFREQ; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
+            DialogGUIButton nameSortBtn = new DialogGUIButton("Vessel name", delegate { currentVesselSort = VesselListSort.VESSELNAME; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
+            DialogGUIButton bodySortBtn = new DialogGUIButton("Celestial body", delegate { currentVesselSort = VesselListSort.CBODY; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
+            vesselComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { sortLabel, launchSortBtn, freqSortBtn, nameSortBtn, bodySortBtn }));
 
             return vesselComponments;
         }
@@ -332,7 +346,7 @@ namespace CommNetConstellation.UI
                 thisRow.uiItem.gameObject.DestroyGameObjectImmediate(); // necessary to free memory up
             }
             
-            List<DialogGUIHorizontalLayout> newRows = createVesselRows(filter);
+            List<DialogGUIHorizontalLayout> newRows = populateVesselRows(filter);
             Stack<Transform> stack = new Stack<Transform>(); // some data on hierarchy of GUI components
             stack.Push(vesselRowLayout.uiItem.gameObject.transform); // need the reference point of the parent GUI component for position and size
             for (int i = 0; i < newRows.Count; i++)
@@ -340,39 +354,45 @@ namespace CommNetConstellation.UI
                 rows.Add(newRows[i]);
                 rows.Last().Create(ref stack, HighLogic.UISkin); // required to force the GUI creation
             }
-
-            ScrollRect scrolls = vesselScrollPane.uiItem.GetComponentInChildren<ScrollRect>();
-            scrolls.verticalNormalizedPosition = 1f; // TODO: weird bug
         }
 
-        private List<DialogGUIHorizontalLayout> createVesselRows(MapViewFiltering.VesselTypeFilter filter)
+        private List<DialogGUIHorizontalLayout> populateVesselRows(VesselTypeFilter filter)
         {
-            bool probeOn = (filter & MapViewFiltering.VesselTypeFilter.Probes) == MapViewFiltering.VesselTypeFilter.Probes;
-            bool roverOn = (filter & MapViewFiltering.VesselTypeFilter.Rovers) == MapViewFiltering.VesselTypeFilter.Rovers;
-            bool landerOn = (filter & MapViewFiltering.VesselTypeFilter.Landers) == MapViewFiltering.VesselTypeFilter.Landers;
-            bool shipOn = (filter & MapViewFiltering.VesselTypeFilter.Ships) == MapViewFiltering.VesselTypeFilter.Ships;
-            bool stationOn = (filter & MapViewFiltering.VesselTypeFilter.Stations) == MapViewFiltering.VesselTypeFilter.Stations;
-            bool baseOn = (filter & MapViewFiltering.VesselTypeFilter.Bases) == MapViewFiltering.VesselTypeFilter.Bases;
-            bool planeOn = (filter & MapViewFiltering.VesselTypeFilter.Plane) == MapViewFiltering.VesselTypeFilter.Plane;
-            bool relayOn = (filter & MapViewFiltering.VesselTypeFilter.Relay) == MapViewFiltering.VesselTypeFilter.Relay;
-
             List<DialogGUIHorizontalLayout> newRows = new List<DialogGUIHorizontalLayout>();
             List<CNCCommNetVessel> allVessels = CNCCommNetScenario.Instance.getCommNetVessels();
+            IOrderedEnumerable<CNCCommNetVessel> sortedVessels;
 
-            for(int i=0; i<allVessels.Count; i++)
+            switch (currentVesselSort)
             {
-                if ((allVessels[i].Vessel.vesselType == VesselType.Probe && probeOn) ||
-                    (allVessels[i].Vessel.vesselType == VesselType.Rover && roverOn) ||
-                    (allVessels[i].Vessel.vesselType == VesselType.Lander && landerOn) ||
-                    (allVessels[i].Vessel.vesselType == VesselType.Ship && shipOn) ||
-                    (allVessels[i].Vessel.vesselType == VesselType.Station && stationOn) ||
-                    (allVessels[i].Vessel.vesselType == VesselType.Base && baseOn) ||
-                    (allVessels[i].Vessel.vesselType == VesselType.Plane && planeOn) ||
-                    (allVessels[i].Vessel.vesselType == VesselType.Relay && relayOn))
-                {
-                    newRows.Add(createVesselRow(allVessels[i]));
-                }
+                case VesselListSort.RADIOFREQ:
+                    sortedVessels = allVessels.OrderBy(x => x.getRadioFrequency());
+                    break;
+                case VesselListSort.VESSELNAME:
+                    sortedVessels = allVessels.OrderBy(x => x.Vessel.GetName());
+                    break;
+                case VesselListSort.CBODY:
+                    sortedVessels = allVessels.OrderBy(x => x.Vessel.mainBody.name);
+                    break;
+                default:
+                    sortedVessels = allVessels.OrderBy(x => x.Vessel.launchTime);
+                    break;
             }
+
+            IEnumerator<CNCCommNetVessel> itr = sortedVessels.GetEnumerator();
+            while(itr.MoveNext())
+            {
+                CNCCommNetVessel thisVessel = itr.Current;
+                if (MapViewFiltering.CheckAgainstFilter(thisVessel.Vessel))
+                    newRows.Add(createVesselRow(thisVessel));
+            }
+
+            /*
+            for (int i=0; i< allVessels.Count; i++)
+            {
+                if (MapViewFiltering.CheckAgainstFilter(allVessels[i].Vessel))
+                    newRows.Add(createVesselRow(allVessels[i]));
+            }
+            */
 
             return newRows;
         }
