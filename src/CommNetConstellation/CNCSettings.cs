@@ -11,6 +11,7 @@ namespace CommNetConstellation
     {
         public static readonly int MaxLengthName = 25;
         public static readonly int MaxDigits = 5;
+        public static readonly float ScreenMessageDuration = 5f;
 
         //Note: This can be called by a PartModule during KSP's Squad-monkey loading screen
         //so don't be surprised if the post-loading logging does not have the setting verbose
