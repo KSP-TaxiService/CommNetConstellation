@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using UnityEngine.UI;
 using CommNetConstellation.CommNetLayer;
+using TMPro;
 
 namespace CommNetConstellation.UI
 {
@@ -15,8 +16,6 @@ namespace CommNetConstellation.UI
         private string description = "You are creating a new constellation.";
         private string actionButtonText = "Create";
 
-        private string constellName = "";
-        private short constellFreq = 0;
         private Color conColor = Color.white;
         private Constellation existingConstellation = null;
 
@@ -25,6 +24,8 @@ namespace CommNetConstellation.UI
 
         private Callback<Constellation> creationCallback;
         private Callback<Constellation, short> updateCallback;
+        private DialogGUITextInput nameInput;
+        private DialogGUITextInput frequencyInput;
 
         public ConstellationEditDialog(string dialogTitle, 
                                         Constellation thisConstellation, 
@@ -42,28 +43,34 @@ namespace CommNetConstellation.UI
 
             if(this.existingConstellation != null)
             {
-                this.constellName = this.existingConstellation.name;
-                this.constellFreq = this.existingConstellation.frequency;
                 this.conColor = this.existingConstellation.color;
 
-                this.description = string.Format("You are editing Constellation '{0}'.", this.constellName);
+                this.description = string.Format("You are editing Constellation '{0}'.", this.existingConstellation.name);
                 this.actionButtonText = "Update";
             }
         }
 
         protected override List<DialogGUIBase> drawContentComponents()
         {
+            string constellName = "";
+            short constellFreq = 0;
+            if (this.existingConstellation != null)
+            {
+                constellName = this.existingConstellation.name;
+                constellFreq = this.existingConstellation.frequency;
+            }
+
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description+"\n\n", false, false) }));
 
             DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 52, 12);
-            DialogGUITextInput nameInput = new DialogGUITextInput(this.constellName, false, CNCSettings.MaxLengthName, setConstellName, 170, 25);
+            nameInput = new DialogGUITextInput(constellName, false, CNCSettings.MaxLengthName, setConstellName, 170, 25);
             DialogGUIHorizontalLayout nameGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { nameLabel, nameInput });
             listComponments.Add(nameGroup);
 
             DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 52, 12);
-            DialogGUITextInput frequencyInput = new DialogGUITextInput(this.constellFreq.ToString(), false, CNCSettings.MaxDigits, setConstellFreq, 47, 25);
+            frequencyInput = new DialogGUITextInput(constellFreq.ToString(), false, CNCSettings.MaxDigits, setConstellFreq, 47, 25);
             constellationColorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.zero, this.conColor, colorTexture);
             DialogGUIButton colorButton = new DialogGUIButton("Color", colorEditClick, null, 50, 24, false);
             DialogGUIHorizontalLayout freqColorGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(16), colorButton, constellationColorImage });
@@ -103,11 +110,6 @@ namespace CommNetConstellation.UI
                     {
                         throw new Exception("Frequency is in use already");
                     }
-                    else
-                    {
-                        this.constellFreq = newFreq;
-                        return this.constellFreq.ToString();
-                    }
                 }
                 catch (FormatException e)
                 {
@@ -132,17 +134,13 @@ namespace CommNetConstellation.UI
         /// </summary>
         private string setConstellName(string newName)
         {
-            if (newName.Trim().Length > 0)
-            {
-                this.constellName = newName;
-                return this.constellName;
-            }
-            else
+            if (newName.Trim().Length <= 0)
             {
                 ScreenMessage msg = new ScreenMessage("<color=red>Name cannot be empty</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
                 ScreenMessages.PostScreenMessage(msg);
-                return newName;
             }
+
+            return newName;
         }
 
         /// <summary>
@@ -152,37 +150,40 @@ namespace CommNetConstellation.UI
         {
             try
             {
+                short constellFreq = short.Parse(frequencyInput.uiItem.GetComponent<TMP_InputField>().text);
+                string constellName = nameInput.uiItem.GetComponent<TMP_InputField>().text;
+
                 //Check errors
-                if (CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == this.constellFreq) && this.existingConstellation == null)
+                if (CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == constellFreq) && this.existingConstellation == null)
                 {
                     throw new Exception("Frequency is in use already");
                 }
-                else if (this.constellName.Trim().Length < 1)
+                else if (constellName.Trim().Length < 1)
                 {
                     throw new Exception("Name cannot be empty");
                 }
-                else if (!Constellation.isFrequencyValid(this.constellFreq))
+                else if (!Constellation.isFrequencyValid(constellFreq))
                 {
                     throw new Exception("Frequency must be between 0 and " + short.MaxValue);
                 }
 
                 if (this.existingConstellation == null && creationCallback != null)
                 {
-                    Constellation newConstellation = new Constellation(this.constellFreq, this.constellName, this.conColor);
+                    Constellation newConstellation = new Constellation(constellFreq, constellName, this.conColor);
                     CNCCommNetScenario.Instance.constellations.Add(newConstellation);
                     creationCallback(newConstellation);
 
-                    string message = string.Format("New constellation '{0}' of frequency {1} is created", this.constellName, this.constellFreq);
+                    string message = string.Format("New constellation '{0}' of frequency {1} is created", constellName, constellFreq);
                     ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
                 }
                 else if (this.existingConstellation != null && updateCallback != null)
                 {
                     short prevFreq = this.existingConstellation.frequency;
-                    this.existingConstellation.name = this.constellName;
+                    this.existingConstellation.name = constellName;
                     this.existingConstellation.color = this.conColor;
 
                     if (this.existingConstellation.frequency != CNCSettings.Instance.PublicRadioFrequency) // this is not the public one
-                        this.existingConstellation.frequency = this.constellFreq;
+                        this.existingConstellation.frequency = constellFreq;
 
                     List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getRadioFrequency() == prevFreq);
                     for (int i = 0; i < affectedVessels.Count; i++)
@@ -190,7 +191,7 @@ namespace CommNetConstellation.UI
 
                     updateCallback(this.existingConstellation, prevFreq);
 
-                    string message = string.Format("Constellation '{0}' of frequency {1} is updated", this.constellName,this.constellFreq);
+                    string message = string.Format("Constellation '{0}' of frequency {1} is updated", constellName, constellFreq);
                     ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
                 }
                 else
