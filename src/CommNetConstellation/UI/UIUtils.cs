@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -9,7 +10,18 @@ namespace CommNetConstellation.UI
     /// </summary>
     public class UIUtils
     {
-        private static string TextureDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location).Parent.Name + "/Textures/";
+        private static string _TextureDirectory = ""; // one-time calculation for performance reason
+        private static string TextureDirectory
+        {
+            get
+            {
+                if (_TextureDirectory.Length <= 0)
+                {
+                    _TextureDirectory = AssemblyLoader.loadedAssemblies.FirstOrDefault(a => a.assembly.GetName().Name.Equals("CommNetConstellation")).url.Replace("Plugins", "Textures") + "/";
+                }
+                return _TextureDirectory;
+            }
+        }
 
         /// <summary>
         /// Read KSP's GameDatabase for the desired texture

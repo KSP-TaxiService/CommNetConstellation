@@ -34,7 +34,7 @@ namespace CommNetConstellation
     public class Settings
     {
         public bool SettingsLoaded = false;
-        private static string startingSettingCFGUrl = "CommNetConstellation/cnc_settings/CommNetConstellationSettings";
+        private static string startingSettingCFGUrl = AssemblyLoader.loadedAssemblies.FirstOrDefault(a => a.assembly.GetName().Name.Equals("CommNetConstellation")).url.Replace("/Plugins", "") + "/cnc_settings/CommNetConstellationSettings";
 
         //Global settings
         //-----
@@ -61,6 +61,7 @@ namespace CommNetConstellation
                 {
                     defaultSuccess = ConfigNode.LoadObjectFromConfig(settings, cfgs[i].config);
                     CNCLog.Verbose("Load starting settings into object with {0}: LOADED {1}", cfgs[i].config, defaultSuccess ? "OK" : "FAIL");
+                    CNCLog.Verbose("version: {0}.{1}", settings.MajorVersion, settings.MinorVersion);
                     break;
                 }
             }
