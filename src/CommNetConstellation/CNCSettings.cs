@@ -36,10 +36,11 @@ namespace CommNetConstellation
         public bool SettingsLoaded = false;
         private static string startingSettingCFGUrl = AssemblyLoader.loadedAssemblies.FirstOrDefault(a => a.assembly.GetName().Name.Equals("CommNetConstellation")).url.Replace("/Plugins", "") + "/cnc_settings/CommNetConstellationSettings";
 
+        public int MajorVersion;
+        public int MinorVersion;
+
         //Global settings
         //-----
-        [Persistent] public int MajorVersion;
-        [Persistent] public int MinorVersion;
         [Persistent] public short PublicRadioFrequency;
         [Persistent] public string DefaultPublicName;
         [Persistent] public Color DefaultPublicColor;
@@ -53,6 +54,10 @@ namespace CommNetConstellation
             Settings settings = new Settings();
             bool defaultSuccess = false;
 
+            var assemblyDLL = AssemblyLoader.loadedAssemblies.FirstOrDefault(a => a.assembly.GetName().Name.Equals("CommNetConstellation"));
+            settings.MajorVersion = assemblyDLL.versionMajor;
+            settings.MinorVersion = assemblyDLL.versionMinor;
+
             // Exploit KSP's GameDatabase to find our MM-patched cfg of default settings
             UrlDir.UrlConfig[] cfgs = GameDatabase.Instance.GetConfigs("CommNetConstellationSettings");
             for (var i = 0; i < cfgs.Length; i++)
@@ -61,7 +66,6 @@ namespace CommNetConstellation
                 {
                     defaultSuccess = ConfigNode.LoadObjectFromConfig(settings, cfgs[i].config);
                     CNCLog.Verbose("Load starting settings into object with {0}: LOADED {1}", cfgs[i].config, defaultSuccess ? "OK" : "FAIL");
-                    CNCLog.Verbose("version: {0}.{1}", settings.MajorVersion, settings.MinorVersion);
                     break;
                 }
             }

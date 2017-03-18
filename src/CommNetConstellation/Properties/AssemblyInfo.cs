@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("CommNetConstellation")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("KSP-TaxiService")]
 [assembly: AssemblyProduct("CommNetConstellation")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyCopyright("Copyright © 2016-2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,14 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+
+// Don't include the patch revision in the AssemblyVersion - as this will break any dependent
+// DLLs any time it changes.  Breaking on a minor revision is probably acceptable - it's
+// unlikely that there wouldn't be other breaking changes on a minor version change.
+[assembly: AssemblyVersion("0.4")]
+[assembly: AssemblyFileVersion("0.4.0")]
+
+// Use KSPAssembly to allow other DLLs to make this DLL a dependency in a
+// non-hacky way in KSP.  Format is (AssemblyProduct, major, minor), and it
+// does not appear to have a hard requirement to match the assembly version.
+[assembly: KSPAssembly("CommNetConstellation", 0, 4)]
