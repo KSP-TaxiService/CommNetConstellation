@@ -177,8 +177,9 @@ namespace CommNetConstellation.CommNetLayer
         {
             cacheCommNetVessels();
 
-            IEqualityComparer<CommNode> comparer = commNode.Comparer;
-            return commVessels.Find(x => comparer.Equals(commNode, x.Comm)).Vessel;
+            return commVessels.Find(x => x.Comm.precisePosition == commNode.precisePosition).Vessel; // more specific equal
+            //IEqualityComparer<CommNode> comparer = commNode.Comparer; // a combination of third-party mods somehow  affects CommNode's IEqualityComparer on two objects
+            //return commVessels.Find(x => comparer.Equals(commNode, x.Comm)).Vessel;
         }
 
         /// <summary>
