@@ -1,0 +1,10 @@
+{
+    "spec_version" : 1,
+    "identifier"   : "CommNetConstellation",
+    "$kref"        : "#/ckan/spacedock/1309",
+    "x_netkan_license_ok" : true,
+    
+    "depends": [
+        { "name": "ModuleManager" }
+    ]
+}
