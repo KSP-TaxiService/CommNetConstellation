@@ -17,7 +17,7 @@ namespace CommNetConstellation.UI
         public enum VesselListSort {LAUNCHDATE, RADIOFREQ, VESSELNAME, CBODY };
 
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
-        private static readonly Texture2D focusTexture = UIUtils.loadImage("target");
+        private static readonly Texture2D focusTexture = UIUtils.loadImage("focusEye");
 
         private DialogGUIVerticalLayout constellationRowLayout;
         private DialogGUIVerticalLayout vesselRowLayout;
