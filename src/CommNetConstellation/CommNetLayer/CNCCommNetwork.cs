@@ -1,4 +1,5 @@
 ﻿using CommNet;
+using System;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -14,8 +15,18 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
-            short aFreq = (a.isHome)? publicFreq : ((CNCCommNetVessel) CNCCommNetScenario.Instance.findCorrespondingVessel(a).Connection).getRadioFrequency();
-            short bFreq = (b.isHome)? publicFreq : ((CNCCommNetVessel) CNCCommNetScenario.Instance.findCorrespondingVessel(b).Connection).getRadioFrequency();
+            short aFreq, bFreq;
+
+            try
+            {
+                aFreq = (a.isHome) ? publicFreq : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(a).Connection).getRadioFrequency();
+                bFreq = (b.isHome) ? publicFreq : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(b).Connection).getRadioFrequency();
+            }
+            catch(NullReferenceException e) // either CommNode could be a kerbal on EVA
+            {
+                this.Disconnect(a, b, true);
+                return false;
+            }
 
             if (aFreq != bFreq && aFreq != publicFreq && bFreq != publicFreq) //check if two nodes talk, using same non-public frequency
             {
@@ -23,8 +34,18 @@ namespace CommNetConstellation.CommNetLayer
                 return false;
             }
 
-            bool aMembershipFlag = (a.isHome) ? false : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(a).Connection).getMembershipFlag();
-            bool bMembershipFlag = (b.isHome) ? false : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(b).Connection).getMembershipFlag();
+            bool aMembershipFlag, bMembershipFlag;
+
+            try
+            {
+                aMembershipFlag = (a.isHome) ? false : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(a).Connection).getMembershipFlag();
+                bMembershipFlag = (b.isHome) ? false : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(b).Connection).getMembershipFlag();
+            }
+            catch(NullReferenceException e) // either CommNode could be a kerbal on EVA
+            {
+                this.Disconnect(a, b, true);
+                return false;
+            }
 
             if ((aMembershipFlag && aFreq != bFreq && aFreq != publicFreq) ||
                 (bMembershipFlag && aFreq != bFreq && bFreq != publicFreq)) // check if either node has membership flag to talk to members only
