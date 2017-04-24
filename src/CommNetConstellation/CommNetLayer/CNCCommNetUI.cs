@@ -133,6 +133,16 @@ namespace CommNetConstellation.CommNetLayer
                     break;
             }// end of switch
 
+            //check if nothing to draw
+            if (numLinks == 0)
+            {
+                if (this.line != null)
+                    this.line.active = false;
+
+                this.points.Clear();
+                return;
+            }
+
             //paint eligible connections
             switch (CommNetUI.Mode)
             {
