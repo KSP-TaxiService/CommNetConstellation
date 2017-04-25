@@ -202,5 +202,29 @@ namespace CommNetConstellation.UI
             newDialog.SetDraggable(draggable);
             return newDialog;
         }
+
+        /// <summary>
+        /// Release UI locks (enable usage of UI buttons).
+        /// </summary>
+        /// Ported from RemoteTech codebase
+        protected void ReleaseInputLocks()
+        {
+            InputLockManager.RemoveControlLock("CNCLockStaging");
+            InputLockManager.RemoveControlLock("CNCLockSAS");
+            InputLockManager.RemoveControlLock("CNCLockRCS");
+            InputLockManager.RemoveControlLock("CNCLockActions");
+        }
+
+        /// <summary>
+        /// Acquire UI locks (disable usage of UI buttons).
+        /// </summary>
+        /// Ported from RemoteTech codebase
+        protected void GetInputLocks()
+        {
+            InputLockManager.SetControlLock(ControlTypes.STAGING, "CNCLockStaging");
+            InputLockManager.SetControlLock(ControlTypes.SAS, "CNCLockSAS");
+            InputLockManager.SetControlLock(ControlTypes.RCS, "CNCLockRCS");
+            InputLockManager.SetControlLock(ControlTypes.GROUPS_ALL, "CNCLockActions");
+        }
     }
 }

@@ -39,6 +39,13 @@ namespace CommNetConstellation.UI
                 this.description = string.Format("You are editing this command part '{0}'.", this.rightClickedPart.partInfo.title);
             else if (this.hostVessel != null)
                 this.description = string.Format("You are editing the whole vessel '{0}' (overriding <b>all</b> command parts).", this.hostVessel.vesselName);
+
+            this.GetInputLocks();
+        }
+
+        protected override void OnPreDismiss()
+        {
+            this.ReleaseInputLocks();
         }
 
         protected override List<DialogGUIBase> drawContentComponents()

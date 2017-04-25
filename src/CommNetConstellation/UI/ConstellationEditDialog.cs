@@ -48,6 +48,13 @@ namespace CommNetConstellation.UI
                 this.description = string.Format("You are editing Constellation '{0}'.", this.existingConstellation.name);
                 this.actionButtonText = "Update";
             }
+
+            this.GetInputLocks();
+        }
+
+        protected override void OnPreDismiss()
+        {
+            this.ReleaseInputLocks();
         }
 
         protected override List<DialogGUIBase> drawContentComponents()
