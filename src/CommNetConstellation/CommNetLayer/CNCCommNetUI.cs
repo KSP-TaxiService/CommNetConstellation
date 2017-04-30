@@ -1,5 +1,6 @@
 ﻿using CommNet;
 using CommNetConstellation.UI;
+using Smooth.Algebraics;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,6 +8,8 @@ using UnityEngine.UI;
 
 namespace CommNetConstellation.CommNetLayer
 {
+    //TODO: Add RT's Multi-Path mode
+
     /// <summary>
     /// CommNetUI is the view in the Model–view–controller sense. Everything a player is seeing goes through this class
     /// </summary>
@@ -17,6 +20,8 @@ namespace CommNetConstellation.CommNetLayer
             get;
             protected set;
         }
+
+        protected Dictionary<Tuple<CommNode, CommNode>, short> connectionColorCycles = new Dictionary<Tuple<CommNode, CommNode>, short>();
 
         /// <summary>
         /// This is the method where the interface is updated throughly
@@ -56,16 +61,24 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         private Color getConstellationColor(CommNode a, CommNode b)
         {
-            if (a.isHome || b.isHome)
-                return Constellation.getColor(CNCSettings.Instance.PublicRadioFrequency); // public
+           IEnumerable<short> commonFreqs = CNCCommNetScenario.Instance.getFrequencies(a).Intersect(CNCCommNetScenario.Instance.getFrequencies(b));
 
-            CNCCommNetVessel vesselA = (CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(a).Connection;
-            CNCCommNetVessel vesselB = (CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(b).Connection;
+            if (commonFreqs.Count() == 0)
+                return Constellation.getColor(CNCSettings.Instance.PublicRadioFrequency); // default
 
-            if(vesselA.getRadioFrequency() == vesselB.getRadioFrequency())
-                return Constellation.getColor(vesselA.getRadioFrequency());
-            else
-                return Constellation.getColor(CNCSettings.Instance.PublicRadioFrequency); // public
+            Tuple <CommNode, CommNode> pairKey = new Tuple<CommNode, CommNode>(a, b);
+            if (!connectionColorCycles.ContainsKey(pairKey)) // not found
+                connectionColorCycles.Add(pairKey, 0); // new entry
+
+            short cycleIndex = connectionColorCycles[pairKey];
+            if (cycleIndex >= commonFreqs.Count()) // out of range
+                cycleIndex = 0; // go around
+
+            connectionColorCycles[pairKey] = (short)(cycleIndex + 1); // next color index
+            return Constellation.getColor(commonFreqs.ElementAt(cycleIndex));
+
+            //TODO:need to remove unused entries
+            //TODO:use system time to cycle each color
         }
 
         /// <summary>

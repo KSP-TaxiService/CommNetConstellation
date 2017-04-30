@@ -18,18 +18,19 @@ namespace CommNetConstellation.UI
 
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
         private static readonly Texture2D focusTexture = UIUtils.loadImage("focusEye");
+        private static readonly Texture2D groundstationTexture = UIUtils.loadImage("groundStationMark");
         private UIStyle focusImageButtonStyle = null;
 
         private DialogGUIVerticalLayout constellationRowLayout;
         private DialogGUIVerticalLayout vesselRowLayout;
-        private DialogGUIScrollList vesselScrollPane;
+        private DialogGUIVerticalLayout groundStationRowLayout;
         private VesselListSort currentVesselSort;
 
         public ConstellationControlDialog(string title) : base(title, 
                                                             0.8f, //x
                                                             0.5f, //y
                                                             (int)(1920*0.3), //width
-                                                            (int)(1200*0.5), //height
+                                                            (int)(1200*0.6), //height
                                                             new DialogOptions[] { DialogOptions.ShowVersion, DialogOptions.HideCloseButton, DialogOptions.AllowBgInputs }) //arguments
         {
             
@@ -49,6 +50,7 @@ namespace CommNetConstellation.UI
 
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
             listComponments.AddRange(setupConstellationList());
+            listComponments.AddRange(setupGroundStationList());
             listComponments.AddRange(setupVesselList());
 
             return listComponments;
@@ -99,9 +101,11 @@ namespace CommNetConstellation.UI
 
         private DialogGUIHorizontalLayout createConstellationRow(Constellation thisConstellation)
         {
+            Color color = Constellation.getColor(thisConstellation.frequency);
+
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, thisConstellation.color, colorTexture);
             DialogGUILabel constNameLabel = new DialogGUILabel(thisConstellation.name, 150, 12);
-            DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: {0}", thisConstellation.frequency), 110, 12);
+            DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(color), thisConstellation.frequency), 110, 12);
             DialogGUILabel numSatsLabel = new DialogGUILabel(string.Format("{0} vessels", Constellation.countVessels(thisConstellation)), 80, 12);
             DialogGUIButton updateButton = new DialogGUIButton("Edit", delegate { editConstellationClick(thisConstellation); }, 50, 32, false);
 
@@ -284,8 +288,7 @@ namespace CommNetConstellation.UI
                 rows[i + 1] = eachRowGroupList[i];
 
             vesselRowLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, rows);
-            vesselScrollPane = new DialogGUIScrollList(Vector2.one, false, true, vesselRowLayout);
-            vesselComponments.Add(vesselScrollPane);
+            vesselComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, vesselRowLayout));
 
             DialogGUILabel sortLabel = new DialogGUILabel("Sort by");
             DialogGUIButton launchSortBtn = new DialogGUIButton("Launch time", delegate { currentVesselSort = VesselListSort.LAUNCHDATE; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
@@ -404,14 +407,6 @@ namespace CommNetConstellation.UI
                     newRows.Add(createVesselRow(thisVessel));
             }
 
-            /*
-            for (int i=0; i< allVessels.Count; i++)
-            {
-                if (MapViewFiltering.CheckAgainstFilter(allVessels[i].Vessel))
-                    newRows.Add(createVesselRow(allVessels[i]));
-            }
-            */
-
             return newRows;
         }
 
@@ -430,6 +425,102 @@ namespace CommNetConstellation.UI
             updateVesselGUIRow(updatedVessel);
             updateConstellationGUIRow(vesselFrequency, -1);
             updateConstellationGUIRow(previousFrequency, -1);
+        }
+
+        /////////////////////
+        // GROUND STATIONS
+        /////////////////////
+
+        /////////////////////
+        // GUI
+        private List<DialogGUIBase> setupGroundStationList()
+        {
+            List<DialogGUIBase> stationComponments = new List<DialogGUIBase>();
+            stationComponments.Add(new DialogGUILabel("\n<b>You can edit a ground station.</b>", false, false));
+
+            List<DialogGUIHorizontalLayout> eachRowGroupList = new List<DialogGUIHorizontalLayout>();
+            eachRowGroupList.AddRange(populateGroundStationRows());
+
+            //Prepare a list container for the GUILayout rows
+            DialogGUIBase[] rows = new DialogGUIBase[eachRowGroupList.Count + 1];
+            rows[0] = new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true);
+            for (int i = 0; i < eachRowGroupList.Count; i++)
+                rows[i + 1] = eachRowGroupList[i];
+
+            groundStationRowLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, rows);
+            stationComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, groundStationRowLayout));
+
+            return stationComponments;
+        }
+
+        private List<DialogGUIHorizontalLayout> populateGroundStationRows()
+        {
+            List<DialogGUIHorizontalLayout> newRows = new List<DialogGUIHorizontalLayout>();
+            List<CNCCommNetHome> stations = CNCCommNetScenario.Instance.groundStations;
+
+            for (int i = 0; i < stations.Count; i++)
+            {
+                newRows.Add(createGroundStationRow(stations[i]));
+            }
+
+            return newRows;
+        }
+
+        private DialogGUIHorizontalLayout createGroundStationRow(CNCCommNetHome thisStation)
+        {
+            string freqString = getFreqString(thisStation.Frequencies); 
+
+            DialogGUIImage colorImage = new DialogGUIImage(new Vector2(16, 16), Vector2.one, thisStation.Color, groundstationTexture);
+            DialogGUILabel stationNameLabel = new DialogGUILabel(thisStation.ID, 160, 12);
+            DialogGUILabel locationLabel = new DialogGUILabel(string.Format("LAT: {0:0.0}\nLON: {1:0.0}", thisStation.latitude, thisStation.longitude), 70, 24);
+            DialogGUILabel freqsLabel = new DialogGUILabel(freqString, 220, 12);
+            DialogGUIButton updateButton = new DialogGUIButton("Edit", delegate { groundstationEditClick(thisStation); }, 50, 32, false);
+
+            DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, stationNameLabel, locationLabel, freqsLabel, updateButton };
+            DialogGUIHorizontalLayout groundStationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, rowGUIBase);
+            groundStationGroup.SetOptionText(thisStation.ID); //for quick identification
+            return groundStationGroup;
+        }
+
+        private string getFreqString(List<short> frequencies)
+        {
+            string freqString = "Frequencies: ";
+            for (int i = 0; i < frequencies.Count; i++)
+            {
+                Color color = Constellation.getColor(frequencies[i]);
+                freqString += string.Format("<color={0}>{1}</color>", UIUtils.colorToHex(color), frequencies[i]);
+                if (i <= frequencies.Count - 2)
+                    freqString += ", ";
+            }
+
+            return freqString;
+        }
+
+        private void updateGroundStationGUIRow(string stationID)
+        {
+            List<DialogGUIBase> rows = groundStationRowLayout.children;
+
+            for (int i = 1; i < rows.Count; i++)
+            {
+                DialogGUIBase thisRow = rows[i];
+                if (thisRow.OptionText.Equals(stationID))
+                {
+                    DialogGUIImage colorImage = thisRow.children[0] as DialogGUIImage;
+                    DialogGUILabel freqsLabel = thisRow.children[3] as DialogGUILabel;
+                    CNCCommNetHome station = CNCCommNetScenario.Instance.groundStations.Find(x => x.ID.Equals(stationID));
+                    colorImage.uiItem.GetComponent<RawImage>().color = station.Color;
+                    freqsLabel.SetOptionText(getFreqString(station.Frequencies));
+
+                    break;
+                }
+            }
+        }
+
+        /////////////////////
+        // Actions
+        private void groundstationEditClick(CNCCommNetHome thisStation)
+        {
+            new GroundStationEditDialog("Ground station - <color=#00ff00>Edit</color>", thisStation, updateGroundStationGUIRow).launch();
         }
     }
 }

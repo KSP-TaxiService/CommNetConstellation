@@ -1,5 +1,6 @@
 ﻿using CommNet;
 using CommNetConstellation.UI;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace CommNetConstellation.CommNetLayer
@@ -13,10 +14,28 @@ namespace CommNetConstellation.CommNetLayer
         private static GUIStyle groundStationHeadline;
         private bool loadCompleted = false;
 
+        //to be saved to persistent.sfs
+        [Persistent] public string ID;
+        [Persistent] public Color Color;
+        [Persistent(collectionIndex = "Frequency")] public List<short> Frequencies;
+
+        public double altitude { get { return this.alt; } }
+        public double latitude { get { return this.lat; } }
+        public double longitude { get { return this.lon; } }
+        public CommNode commNode { get { return this.comm; } }
+
+        public CNCCommNetHome()
+        {
+            this.Color = Color.red;
+            this.Frequencies = new List<short>();
+            this.Frequencies.Add(CNCSettings.Instance.PublicRadioFrequency);
+        }
+
         public void copyOf(CommNetHome stockHome)
         {
             CNCLog.Verbose("CommNet Home '{0}' added", stockHome.nodeName);
 
+            this.ID = stockHome.nodeName;
             this.nodeName = stockHome.nodeName;
             this.nodeTransform = stockHome.nodeTransform;
             this.isKSC = stockHome.isKSC;
@@ -31,6 +50,15 @@ namespace CommNetConstellation.CommNetLayer
             };
 
             loadCompleted = true;
+        }
+
+        /// <summary>
+        /// Apply the changes from persistent.sfs
+        /// </summary>
+        public void applySavedChanges(CNCCommNetHome stationSnapshot)
+        {
+            this.Color = stationSnapshot.Color;
+            this.Frequencies = stationSnapshot.Frequencies;
         }
 
         /// <summary>
@@ -63,20 +91,40 @@ namespace CommNetConstellation.CommNetLayer
 
             //draw the dot
             Color previousColor = GUI.color;
-            GUI.color = Color.red;
+            GUI.color = this.Color;
             GUI.DrawTexture(groundStationRect, markTexture, ScaleMode.ScaleToFit, true);
             GUI.color = previousColor;
 
-            //draw the headline below the dot
+            //draw the headline above and below the dot
             if (UIUtils.ContainsMouse(groundStationRect))
             {
                 Rect headlineRect = groundStationRect;
+
+                //Name
                 Vector2 nameDim = CNCCommNetHome.groundStationHeadline.CalcSize(new GUIContent(this.nodeName));
                 headlineRect.x -= nameDim.x/2;
                 headlineRect.y -= nameDim.y + 5;
                 headlineRect.width = nameDim.x;
                 headlineRect.height = nameDim.y;
                 GUI.Label(headlineRect, this.nodeName, CNCCommNetHome.groundStationHeadline);
+
+                //frequency list
+                string freqStr = "No frequency assigned";
+
+                if (Frequencies.Count > 0)
+                {
+                    freqStr = "Broadcasting in";
+                    for (int i = 0; i < Frequencies.Count; i++)
+                        freqStr += "\n~ frequency " + Frequencies[i];
+                }
+
+                headlineRect = groundStationRect;
+                Vector2 freqDim = CNCCommNetHome.groundStationHeadline.CalcSize(new GUIContent(freqStr));
+                headlineRect.x -= freqDim.x / 2;
+                headlineRect.y += groundStationRect.height + 5;
+                headlineRect.width = freqDim.x;
+                headlineRect.height = freqDim.y;
+                GUI.Label(headlineRect, freqStr, CNCCommNetHome.groundStationHeadline);
             }
         }
 

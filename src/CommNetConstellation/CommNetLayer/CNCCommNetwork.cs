@@ -1,5 +1,7 @@
 ﻿using CommNet;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -10,45 +12,59 @@ namespace CommNetConstellation.CommNetLayer
     {
         private short publicFreq = CNCSettings.Instance.PublicRadioFrequency;
 
+        //IEqualityComparer<CommNode> comparer = commNode.Comparer; // a combination of third-party mods somehow  affects CommNode's IEqualityComparer on two objects
+        //return commVessels.Find(x => comparer.Equals(commNode, x.Comm)).Vessel;
+        /// <summary>
+        /// Check if two CommNodes are the exact same object
+        /// </summary>
+        public static bool AreSame(CommNode a, CommNode b)
+        {
+            return a.precisePosition == b.precisePosition;
+        }
+
         /// <summary>
         /// Edit the connectivity between two potential nodes
         /// </summary>
         protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
-            short aFreq, bFreq;
-
-            try
-            {
-                aFreq = (a.isHome) ? publicFreq : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(a).Connection).getRadioFrequency();
-                bFreq = (b.isHome) ? publicFreq : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(b).Connection).getRadioFrequency();
-            }
-            catch(NullReferenceException e) // either CommNode could be a kerbal on EVA
-            {
-                this.Disconnect(a, b, true);
-                return false;
-            }
-
-            if (aFreq != bFreq && aFreq != publicFreq && bFreq != publicFreq) //check if two nodes talk, using same non-public frequency
-            {
-                this.Disconnect(a, b, true);
-                return false;
-            }
-
+            List<short> aFreqs, bFreqs;
             bool aMembershipFlag, bMembershipFlag;
 
             try
             {
-                aMembershipFlag = (a.isHome) ? false : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(a).Connection).getMembershipFlag();
-                bMembershipFlag = (b.isHome) ? false : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(b).Connection).getMembershipFlag();
+                aFreqs = CNCCommNetScenario.Instance.getFrequencies(a);
+                bFreqs = CNCCommNetScenario.Instance.getFrequencies(b);
+
+                aMembershipFlag = (a.isHome) ? true : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(a).Connection).getMembershipFlag();
+                bMembershipFlag = (b.isHome) ? true : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(b).Connection).getMembershipFlag();
             }
-            catch(NullReferenceException e) // either CommNode could be a kerbal on EVA
+            catch (NullReferenceException e) // either CommNode could be a kerbal on EVA
             {
                 this.Disconnect(a, b, true);
                 return false;
             }
 
-            if ((aMembershipFlag && aFreq != bFreq && aFreq != publicFreq) ||
-                (bMembershipFlag && aFreq != bFreq && bFreq != publicFreq)) // check if either node has membership flag to talk to members only
+            //TODO: get rid of membership once vessel-frequency list is implemented
+
+            if (!aMembershipFlag && !bMembershipFlag && 
+                !aFreqs.Contains(publicFreq) && !bFreqs.Contains(publicFreq) &&
+                aFreqs.Intersect(bFreqs).Count()==0)
+            {
+                this.Disconnect(a, b, true);
+                return false;
+            }
+
+            if (!aMembershipFlag)
+            {
+                aFreqs.Add(publicFreq);
+            }
+            if (!bMembershipFlag)
+            {
+                bFreqs.Add(publicFreq);
+            }
+
+            int numCommonElements = aFreqs.Intersect(bFreqs).Count();
+            if (numCommonElements == 0) // no common element in two arrays
             {
                 this.Disconnect(a, b, true);
                 return false;

@@ -16,9 +16,13 @@ namespace CommNetConstellation.CommNetLayer
          * 3) GameScenes.SPACECENTER is recommended so that the constellation data can be verified and error-corrected in advance
          */
 
+        //TODO: investigate to add extra ground stations to the group of existing stations
+
         private CNCCommNetUI CustomCommNetUI = null;
         private CNCCommNetNetwork CustomCommNetNetwork = null;
         public List<Constellation> constellations; // leave the initialisation to OnLoad()
+        public List<CNCCommNetHome> groundStations; // leave the initialisation to OnLoad()
+        private List<CNCCommNetHome> persistentGroundStations; // leave the initialisation to OnLoad()
         private List<CNCCommNetVessel> commVessels;
         private bool dirtyCommNetVesselList;
 
@@ -48,13 +52,25 @@ namespace CommNetConstellation.CommNetLayer
             //CommNetNetwork.Instance.GetType().GetMethod("set_Instance").Invoke(CustomCommNetNetwork, null); // reflection to bypass Instance's protected set // don't seem to work
 
             //Replace the CommNet ground stations
+            groundStations = new List<CNCCommNetHome>();
             CommNetHome[] homes = FindObjectsOfType<CommNetHome>();
             for(int i=0; i<homes.Length; i++)
             {
                 CNCCommNetHome customHome = homes[i].gameObject.AddComponent(typeof(CNCCommNetHome)) as CNCCommNetHome;
                 customHome.copyOf(homes[i]);
                 UnityEngine.Object.Destroy(homes[i]);
+                groundStations.Add(customHome);
             }
+
+            //Apply the ground-station changes from persistent.sfs
+            for(int i=0; i<persistentGroundStations.Count;i++)
+            {
+                if(groundStations.Exists(x => x.ID.Equals(persistentGroundStations[i].ID)))
+                {
+                    groundStations.Find(x => x.ID.Equals(persistentGroundStations[i].ID)).applySavedChanges(persistentGroundStations[i]);
+                }
+            }
+            persistentGroundStations.Clear();//dont need anymore
 
             //Replace the CommNet celestial bodies
             CommNetBody[] bodies = FindObjectsOfType<CommNetBody>();
@@ -96,6 +112,7 @@ namespace CommNetConstellation.CommNetLayer
             base.OnLoad(gameNode);
             CNCLog.Verbose("Scenario content to be read:\n{0}", gameNode);
 
+            //Constellations
             if (gameNode.HasNode("Constellations"))
             {
                 ConfigNode rootNode = gameNode.GetNode("Constellations");
@@ -126,18 +143,42 @@ namespace CommNetConstellation.CommNetLayer
             }
 
             constellations.OrderBy(i => i.frequency);
+
+            //Ground stations
+            persistentGroundStations = new List<CNCCommNetHome>();
+            if (gameNode.HasNode("GroundStations"))
+            {
+                ConfigNode rootNode = gameNode.GetNode("GroundStations");
+                ConfigNode[] stationNodes = rootNode.GetNodes();
+
+                if (stationNodes.Length < 1) // missing ground-station list
+                {
+                    CNCLog.Error("The 'GroundStations' node is malformed! Reverted to the default list of ground stations.");
+                    //do nothing since KSP provides this default list
+                }
+                else
+                {
+                    for (int i = 0; i < stationNodes.Length; i++)
+                    {
+                        CNCCommNetHome dummyGroundStation = new CNCCommNetHome();
+                        ConfigNode.LoadObjectFromConfig(dummyGroundStation, stationNodes[i]);
+                        persistentGroundStations.Add(dummyGroundStation);
+                    }
+                    ConfigNode.LoadObjectFromConfig(this, rootNode);
+                }
+            }
+            else
+            {
+                CNCLog.Verbose("The 'GroundStations' node is not found. The default list of ground stations is loaded from KSP's data.");
+                //do nothing since KSP provides this default list
+            }
         }
 
         public override void OnSave(ConfigNode gameNode)
         {
-            if (constellations.Count < 1)
-            {
-                CNCLog.Error("The constellation list to save to persistent.sfs is empty!");
-                base.OnSave(gameNode);
-                return;
-            }
-
             ConfigNode rootNode;
+
+            //Constellations
             if (!gameNode.HasNode("Constellations"))
             {
                 rootNode = new ConfigNode("Constellations");
@@ -154,6 +195,25 @@ namespace CommNetConstellation.CommNetLayer
                 ConfigNode newConstellationNode = new ConfigNode("Constellation");
                 newConstellationNode = ConfigNode.CreateConfigFromObject(constellations[i], newConstellationNode);
                 rootNode.AddNode(newConstellationNode);
+            }
+
+            //Ground stations
+            if (!gameNode.HasNode("GroundStations"))
+            {
+                rootNode = new ConfigNode("GroundStations");
+                gameNode.AddNode(rootNode);
+            }
+            else
+            {
+                rootNode = gameNode.GetNode("GroundStations");
+                rootNode.ClearNodes();
+            }
+
+            for (int i = 0; i < groundStations.Count; i++)
+            {
+                ConfigNode newGroundStationNode = new ConfigNode("GroundStation");
+                newGroundStationNode = ConfigNode.CreateConfigFromObject(groundStations[i], newGroundStationNode);
+                rootNode.AddNode(newGroundStationNode);
             }
 
             CNCLog.Verbose("Scenario content to be saved:\n{0}", gameNode);
@@ -177,9 +237,17 @@ namespace CommNetConstellation.CommNetLayer
         {
             cacheCommNetVessels();
 
-            return commVessels.Find(x => x.Comm.precisePosition == commNode.precisePosition).Vessel; // more specific equal
+            return commVessels.Find(x => CNCCommNetwork.AreSame(x.Comm, commNode)).Vessel; // more specific equal
             //IEqualityComparer<CommNode> comparer = commNode.Comparer; // a combination of third-party mods somehow  affects CommNode's IEqualityComparer on two objects
             //return commVessels.Find(x => comparer.Equals(commNode, x.Comm)).Vessel;
+        }
+
+        /// <summary>
+        /// Find the ground station that has the given comm node
+        /// </summary>
+        public CNCCommNetHome findCorrespondingGroundStation(CommNode commNode)
+        {
+            return groundStations.Find(x => CNCCommNetwork.AreSame(x.commNode, commNode));
         }
 
         /// <summary>
@@ -221,6 +289,25 @@ namespace CommNetConstellation.CommNetLayer
                 CNCLog.Debug("Change in the vessel list detected. Cache refresh required.");
                 this.dirtyCommNetVesselList = true;
             }
+        }
+
+        /// <summary>
+        /// Convenient method to obtain a frequency list from a given CommNode
+        /// </summary>
+        public List<short> getFrequencies(CommNode a)
+        {
+            List<short> aFreqs = new List<short>();
+
+            if (a.isHome && findCorrespondingGroundStation(a) != null)
+            {
+                aFreqs.AddRange(findCorrespondingGroundStation(a).Frequencies);
+            }
+            else
+            {
+                aFreqs.Add(((CNCCommNetVessel)findCorrespondingVessel(a).Connection).getRadioFrequency());
+            }
+
+            return aFreqs;
         }
     }
 }

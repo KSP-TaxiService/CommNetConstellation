@@ -42,6 +42,18 @@ namespace CommNetConstellation
         }
 
         /// <summary>
+        /// Retrieve the constellation name assoicated with the frequency
+        /// </summary>
+        public static string getName(int givenFreq)
+        {
+            Constellation possibleMatch = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == givenFreq);
+            if (possibleMatch == null)
+                return getName(CNCSettings.Instance.PublicRadioFrequency); // fallback constellation
+            else
+                return possibleMatch.name;
+        }
+
+        /// <summary>
         /// Sanitize the user-origin frequency prior to the commit
         /// </summary>
         public static bool isFrequencyValid(int givenFreq)
