@@ -18,6 +18,7 @@ namespace CommNetConstellation.UI
 
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
         private static readonly Texture2D focusTexture = UIUtils.loadImage("focusEye");
+        private UIStyle focusImageButtonStyle = null;
 
         private DialogGUIVerticalLayout constellationRowLayout;
         private DialogGUIVerticalLayout vesselRowLayout;
@@ -36,6 +37,16 @@ namespace CommNetConstellation.UI
 
         protected override List<DialogGUIBase> drawContentComponents()
         {
+            try
+            {
+                focusImageButtonStyle = UIUtils.createImageButtonStyle(focusTexture);
+            }
+            catch (UnityException e) // temp workaround for Mac players because the focus texture is somehow made unreadable by unknown force on Mac only
+            {
+                CNCLog.Error("Texture \"{0}\" for a image button is unreadable. A text button is used instead.", focusTexture.ToString());
+                focusImageButtonStyle = null;
+            }
+
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
             listComponments.AddRange(setupConstellationList());
             listComponments.AddRange(setupVesselList());
@@ -291,9 +302,16 @@ namespace CommNetConstellation.UI
             short radioFreq = thisVessel.getRadioFrequency();
             Color color = Constellation.getColor(radioFreq);
 
-            UIStyle focusStyle = UIUtils.createImageButtonStyle(focusTexture);
-            DialogGUIButton focusButton = new DialogGUIButton("", delegate { vesselFocusClick(thisVessel.Vessel); }, null, 32, 32, false, focusStyle);
-            focusButton.image = focusStyle.normal.background;
+            DialogGUIButton focusButton;
+            if(focusImageButtonStyle != null)
+            {
+                focusButton = new DialogGUIButton("", delegate { vesselFocusClick(thisVessel.Vessel); }, null, 32, 32, false, focusImageButtonStyle);
+                focusButton.image = focusImageButtonStyle.normal.background;
+            }
+            else
+            {
+                focusButton = new DialogGUIButton("Focus", delegate { vesselFocusClick(thisVessel.Vessel); }, null, 32, 32, false);
+            }
 
             DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.vesselName, 150, 12);
             DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(color), radioFreq), 110, 12);
