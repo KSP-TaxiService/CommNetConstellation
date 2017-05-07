@@ -28,39 +28,16 @@ namespace CommNetConstellation.CommNetLayer
         protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
             List<short> aFreqs, bFreqs;
-            bool aMembershipFlag, bMembershipFlag;
 
             try
             {
                 aFreqs = CNCCommNetScenario.Instance.getFrequencies(a);
                 bFreqs = CNCCommNetScenario.Instance.getFrequencies(b);
-
-                aMembershipFlag = (a.isHome) ? true : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(a).Connection).getMembershipFlag();
-                bMembershipFlag = (b.isHome) ? true : ((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(b).Connection).getMembershipFlag();
             }
             catch (NullReferenceException e) // either CommNode could be a kerbal on EVA
             {
                 this.Disconnect(a, b, true);
                 return false;
-            }
-
-            //TODO: get rid of membership once vessel-frequency list is implemented
-
-            if (!aMembershipFlag && !bMembershipFlag && 
-                !aFreqs.Contains(publicFreq) && !bFreqs.Contains(publicFreq) &&
-                aFreqs.Intersect(bFreqs).Count()==0)
-            {
-                this.Disconnect(a, b, true);
-                return false;
-            }
-
-            if (!aMembershipFlag)
-            {
-                aFreqs.Add(publicFreq);
-            }
-            if (!bMembershipFlag)
-            {
-                bFreqs.Add(publicFreq);
             }
 
             int numCommonElements = aFreqs.Intersect(bFreqs).Count();

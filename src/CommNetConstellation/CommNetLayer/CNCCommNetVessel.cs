@@ -13,7 +13,6 @@ namespace CommNetConstellation.CommNetLayer
     public class CNConstellationModule : PartModule
     {
         [KSPField(isPersistant = true)] public short radioFrequency = CNCSettings.Instance.PublicRadioFrequency;
-        [KSPField(isPersistant = true)] public bool communicationMembershipFlag = false;
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "CommNet Constellation", active = true)]
         public void KSPEventConstellationSetup()
@@ -41,7 +40,6 @@ namespace CommNetConstellation.CommNetLayer
             try
             {
                 this.radioFrequency = getRadioFrequency(true);
-                this.communicationMembershipFlag = getMembershipFlag(true);
             }
             catch (Exception e)
             {
@@ -125,75 +123,6 @@ namespace CommNetConstellation.CommNetLayer
         }
 
         /// <summary>
-        /// Update the membership flag of every command part of this vessel, even if one or more have different flags
-        /// </summary>
-        public void updateMembershipFlag(bool updatedFlag)
-        {
-            bool success = false;
-            if (this.Vessel.loaded)
-            {
-                List<CNConstellationModule> modules = this.Vessel.FindPartModulesImplementing<CNConstellationModule>();
-                for (int i = 0; i < modules.Count; i++)
-                    modules[i].communicationMembershipFlag = updatedFlag;
-                success = true;
-            }
-            else
-            {
-                List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
-                for (int i = 0; i < parts.Count; i++)
-                {
-                    ProtoPartModuleSnapshot thisModule = parts[i].FindModule("CNConstellationModule");
-                    if (thisModule == null)
-                        continue;
-
-                    success = thisModule.moduleValues.SetValue("communicationMembershipFlag", updatedFlag);
-                }
-            }
-
-            if (success)
-            {
-                this.communicationMembershipFlag = updatedFlag;
-                CNCLog.Debug("Update CommNet vessel '{0}''s membership flag to {1}", this.Vessel.GetName(), updatedFlag);
-            }
-            else
-            {
-                CNCLog.Error("Can't update CommNet vessel '{0}''s membership flag to {1}!", this.Vessel.GetName(), updatedFlag);
-            }
-        }
-
-        /// <summary>
-        /// Update the membership flag of the specific command part of this active vessel only
-        /// </summary>
-        public void updateMembershipFlag(bool updatedFlag, Part commandPart)
-        {
-            if (commandPart == null)
-                return;
-
-            CNConstellationModule cncModule = commandPart.FindModuleImplementing<CNConstellationModule>();
-            CNCLog.Debug("Update the part '{1}''s membership flag in CommNet vessel '{0}' from {3} to {2}", this.Vessel.GetName(), commandPart.partInfo.title, updatedFlag, cncModule.communicationMembershipFlag);
-            cncModule.communicationMembershipFlag = updatedFlag;
-            getMembershipFlag(true);
-        }
-
-        /// <summary>
-        /// If multiple command parts of this vessel have different flags, pick the membership flag of the first part in order of part addition in editor
-        /// </summary>
-        public bool getMembershipFlag(bool forceRetrievalFromModule = false)
-        {
-            if (forceRetrievalFromModule)
-            {
-                if (this.Vessel.loaded)
-                    this.communicationMembershipFlag = firstCommandPartSelection(this.Vessel.parts).communicationMembershipFlag;
-                else
-                    this.communicationMembershipFlag = bool.Parse(firstCommandPartSelection(this.Vessel.protoVessel.protoPartSnapshots).moduleValues.GetValue("communicationMembershipFlag"));
-
-                CNCLog.Debug("Read the membership flag '{1}' from CommNet vessel '{0}'", this.Vessel.GetName(), this.communicationMembershipFlag);
-            }
-
-            return this.communicationMembershipFlag;
-        }
-
-        /// <summary>
         /// Selection algorithm on multiple parts with different frequenices
         /// </summary>
         public CNConstellationModule firstCommandPartSelection(List<Part> parts)
@@ -250,7 +179,7 @@ namespace CommNetConstellation.CommNetLayer
 
                             CNCLog.Debug("CNConstellationModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
                         }
-                        else //check if all attributes are there
+                        else //check if all attributes are or should not be there
                         {
                             if (!cncModule.moduleValues.HasValue("radioFrequency"))
                             {
@@ -258,10 +187,9 @@ namespace CommNetConstellation.CommNetLayer
                                 CNCLog.Debug("CNConstellationModule of CommNet Vessel '{0}' gets new attribute {1} - {2}", thisVessel.GetName(), "radioFrequency", CNCSettings.Instance.PublicRadioFrequency);
                             }
 
-                            if (!cncModule.moduleValues.HasValue("communicationMembershipFlag"))
+                            if (cncModule.moduleValues.HasValue("communicationMembershipFlag"))
                             {
-                                cncModule.moduleValues.AddValue("communicationMembershipFlag", false);
-                                CNCLog.Debug("CNConstellationModule of CommNet Vessel '{0}' gets new attribute {1} - {2}", thisVessel.GetName(), "communicationMembershipFlag", false);
+                                cncModule.moduleValues.RemoveValue("communicationMembershipFlag");
                             }
                         }
                     }

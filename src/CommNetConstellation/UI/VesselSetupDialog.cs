@@ -19,7 +19,6 @@ namespace CommNetConstellation.UI
 
         private Callback<Vessel, short> updateCallback;
         private DialogGUITextInput frequencyInput;
-        private DialogGUIToggle membershipToggle;
 
         private DialogGUIImage constellationColorImage;
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
@@ -57,13 +56,11 @@ namespace CommNetConstellation.UI
             {
                 CNConstellationModule cncModule = rightClickedPart.FindModuleImplementing<CNConstellationModule>();
                 inputFreq = cncModule.radioFrequency;
-                membershipFlag = cncModule.communicationMembershipFlag;
             }
             else if (this.hostVessel != null)
             {
                 CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
                 inputFreq = cv.getRadioFrequency();
-                membershipFlag = cv.getMembershipFlag();
             }
 
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
@@ -79,9 +76,6 @@ namespace CommNetConstellation.UI
             DialogGUILabel constNameLabel = new DialogGUILabel(getConstellationName, 200, 12);
             DialogGUIHorizontalLayout constellationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { constNameLabel, constellationColorImage });
             listComponments.Add(constellationGroup);
-
-            membershipToggle = new DialogGUIToggle(membershipFlag, "<b>Talk to constellation members only</b>", membershipFlagToggle);
-            listComponments.Add(membershipToggle);
 
             DialogGUIButton updateButton = new DialogGUIButton("Update", updateClick, false);
             DialogGUIButton publicButton = new DialogGUIButton("Revert to public", defaultClick, false);
@@ -208,49 +202,6 @@ namespace CommNetConstellation.UI
         {
             frequencyInput.uiItem.GetComponent<TMP_InputField>().text = CNCSettings.Instance.PublicRadioFrequency.ToString();
             updateClick();            
-        }
-
-        /// <summary>
-        /// Action to toggle the vessel's membership flag
-        /// </summary>
-        private void membershipFlagToggle(bool flag)
-        {
-            try
-            {
-                if (rightClickedPart != null) // either in editor or flight
-                {
-                    if (this.hostVessel != null) // flight
-                    {
-                        CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
-                        cv.updateMembershipFlag(flag, rightClickedPart);
-                    }
-                    else // editor
-                    {
-                        CNConstellationModule cncModule = rightClickedPart.FindModuleImplementing<CNConstellationModule>();
-                        cncModule.communicationMembershipFlag = flag;
-                    }
-
-                    string message = string.Format("Talk membership of {0} is updated to {1}", rightClickedPart.partInfo.title , flag);
-                    ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
-                }
-                else if (this.hostVessel != null) // tracking station
-                {
-                    CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
-                    cv.updateMembershipFlag(flag);
-
-                    string message = string.Format("Individual talk memberships of {0} are updated to {1}", this.hostVessel.GetName(), flag);
-                    ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
-                }
-                else
-                {
-                    throw new Exception("Something is broken ;_;");
-                }
-            }
-            catch(Exception e)
-            {
-                ScreenMessage msg = new ScreenMessage("<color=red>"+e.Message+"</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
-                ScreenMessages.PostScreenMessage(msg);
-            }
         }
     }
 }
