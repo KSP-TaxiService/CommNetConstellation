@@ -227,7 +227,7 @@ namespace CommNetConstellation.CommNetLayer
         {
             cacheCommNetVessels();
 
-            return commVessels.Where(x => x.getRadioFrequency() == targetFrequency || targetFrequency == -1).ToList();
+            return commVessels.Where(x => x.getFrequencies().Contains(targetFrequency) || targetFrequency == -1).ToList();
         }
 
         /// <summary>
@@ -304,7 +304,7 @@ namespace CommNetConstellation.CommNetLayer
             }
             else
             {
-                aFreqs.Add(((CNCCommNetVessel)findCorrespondingVessel(a).Connection).getRadioFrequency());
+                aFreqs = ((CNCCommNetVessel)findCorrespondingVessel(a).Connection).getFrequencies();
             }
 
             return aFreqs;

@@ -192,9 +192,11 @@ namespace CommNetConstellation.UI
                     if (this.existingConstellation.frequency != CNCSettings.Instance.PublicRadioFrequency) // this is not the public one
                         this.existingConstellation.frequency = constellFreq;
 
-                    List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getRadioFrequency() == prevFreq);
+                    List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(prevFreq));
                     for (int i = 0; i < affectedVessels.Count; i++)
-                        affectedVessels[i].updateRadioFrequency(this.existingConstellation.frequency);
+                    {
+                        affectedVessels[i].updateAntennaFrequency(prevFreq, this.existingConstellation.frequency);
+                    }
 
                     updateCallback(this.existingConstellation, prevFreq);
 

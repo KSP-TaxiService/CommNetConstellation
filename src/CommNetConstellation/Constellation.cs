@@ -1,5 +1,4 @@
 ﻿using CommNetConstellation.CommNetLayer;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -69,7 +68,7 @@ namespace CommNetConstellation
         /// </summary>
         public static int countVessels(Constellation thisConstellation)
         {
-            return CNCCommNetScenario.Instance.getCommNetVessels().Sum(i => (i.getRadioFrequency() == thisConstellation.frequency) ? 1 : 0);
+            return CNCCommNetScenario.Instance.getCommNetVessels().Sum(x => (x.getFrequencies().Contains(thisConstellation.frequency)) ? 1 : 0);
         }
     }
 }

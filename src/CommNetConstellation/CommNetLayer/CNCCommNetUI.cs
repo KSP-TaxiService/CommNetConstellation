@@ -21,8 +21,6 @@ namespace CommNetConstellation.CommNetLayer
             protected set;
         }
 
-        protected Dictionary<Tuple<CommNode, CommNode>, short> connectionColorCycles = new Dictionary<Tuple<CommNode, CommNode>, short>();
-
         /// <summary>
         /// This is the method where the interface is updated throughly
         /// </summary>
@@ -66,19 +64,7 @@ namespace CommNetConstellation.CommNetLayer
             if (commonFreqs.Count() == 0)
                 return Constellation.getColor(CNCSettings.Instance.PublicRadioFrequency); // default
 
-            Tuple <CommNode, CommNode> pairKey = new Tuple<CommNode, CommNode>(a, b);
-            if (!connectionColorCycles.ContainsKey(pairKey)) // not found
-                connectionColorCycles.Add(pairKey, 0); // new entry
-
-            short cycleIndex = connectionColorCycles[pairKey];
-            if (cycleIndex >= commonFreqs.Count()) // out of range
-                cycleIndex = 0; // go around
-
-            connectionColorCycles[pairKey] = (short)(cycleIndex + 1); // next color index
-            return Constellation.getColor(commonFreqs.ElementAt(cycleIndex));
-
-            //TODO:need to remove unused entries
-            //TODO:use system time to cycle each color
+            return Constellation.getColor(commonFreqs.ElementAt(0)); //TODO: replace this
         }
 
         /// <summary>

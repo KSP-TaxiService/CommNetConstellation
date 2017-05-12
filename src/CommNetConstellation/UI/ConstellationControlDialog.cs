@@ -228,10 +228,10 @@ namespace CommNetConstellation.UI
                     return;
 
                 short publicFrequency = CNCSettings.Instance.PublicRadioFrequency;
-                List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getRadioFrequency() == deletedConstellation.frequency);
+                List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(deletedConstellation.frequency));
                 for (int i = 0; i < affectedVessels.Count; i++)
                 {
-                    affectedVessels[i].updateRadioFrequency(publicFrequency);
+                    affectedVessels[i].updateAntennaFrequency(deletedConstellation.frequency, publicFrequency);
                     updateVesselGUIRow(affectedVessels[i].Vessel);
                 }
 
@@ -257,7 +257,7 @@ namespace CommNetConstellation.UI
         /// </summary>
         private void updateConstellation(Constellation updatedConstellation, short previousFrequency)
         {
-            List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getRadioFrequency() == updatedConstellation.frequency);
+            List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(updatedConstellation.frequency));
             for (int i = 0; i < affectedVessels.Count; i++)
                 updateVesselGUIRow(affectedVessels[i].Vessel);
 
@@ -292,7 +292,7 @@ namespace CommNetConstellation.UI
 
             DialogGUILabel sortLabel = new DialogGUILabel("Sort by");
             DialogGUIButton launchSortBtn = new DialogGUIButton("Launch time", delegate { currentVesselSort = VesselListSort.LAUNCHDATE; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
-            DialogGUIButton freqSortBtn = new DialogGUIButton("Radio frequency", delegate { currentVesselSort = VesselListSort.RADIOFREQ; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
+            DialogGUIButton freqSortBtn = new DialogGUIButton("Frequency list", delegate { currentVesselSort = VesselListSort.RADIOFREQ; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
             DialogGUIButton nameSortBtn = new DialogGUIButton("Vessel name", delegate { currentVesselSort = VesselListSort.VESSELNAME; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
             DialogGUIButton bodySortBtn = new DialogGUIButton("Celestial body", delegate { currentVesselSort = VesselListSort.CBODY; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
             vesselComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { sortLabel, launchSortBtn, freqSortBtn, nameSortBtn, bodySortBtn }));
@@ -302,9 +302,6 @@ namespace CommNetConstellation.UI
 
         private DialogGUIHorizontalLayout createVesselRow(CNCCommNetVessel thisVessel)
         {
-            short radioFreq = thisVessel.getRadioFrequency();
-            Color color = Constellation.getColor(radioFreq);
-
             DialogGUIButton focusButton;
             if(focusImageButtonStyle != null)
             {
@@ -317,7 +314,7 @@ namespace CommNetConstellation.UI
             }
 
             DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.vesselName, 150, 12);
-            DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(color), radioFreq), 110, 12);
+            DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequencies: {0}", getFreqString(thisVessel.getFrequencies())), 110, 12);
             DialogGUILabel locationLabel = new DialogGUILabel(string.Format("Orbiting: {0}", thisVessel.Vessel.mainBody.name), 140, 12);
             DialogGUIButton setupButton = new DialogGUIButton("Setup", delegate { vesselSetupClick(thisVessel.Vessel); }, 70, 32, false);
 
@@ -336,10 +333,8 @@ namespace CommNetConstellation.UI
                 DialogGUIBase thisRow = rows[i];
                 if (thisRow.OptionText.Equals(updatedVessel.id.ToString()))
                 {
-                    Constellation thisConstellation = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == thisVessel.getRadioFrequency());
-
                     DialogGUILabel freqLabel = thisRow.children[2] as DialogGUILabel;
-                    freqLabel.SetOptionText(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(thisConstellation.color), thisConstellation.frequency));
+                    freqLabel.SetOptionText(string.Format("Frequencies: {0}", getFreqString(thisVessel.getFrequencies())));
                     return;
                 }
             }
@@ -347,7 +342,7 @@ namespace CommNetConstellation.UI
 
         private void vesselSetupClick(Vessel thisVessel)
         {
-            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", thisVessel, null, updateVessel).launch();
+            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", thisVessel, null, null).launch();
         }
 
         private void vesselFocusClick(Vessel thisVessel)
@@ -386,7 +381,7 @@ namespace CommNetConstellation.UI
             switch (currentVesselSort)
             {
                 case VesselListSort.RADIOFREQ:
-                    sortedVessels = allVessels.OrderBy(x => x.getRadioFrequency());
+                    sortedVessels = allVessels.OrderBy(x => x.getFrequencies()); //TODO: sort frequency list naively?
                     break;
                 case VesselListSort.VESSELNAME:
                     sortedVessels = allVessels.OrderBy(x => x.Vessel.GetName());
@@ -412,6 +407,7 @@ namespace CommNetConstellation.UI
 
         /////////////////////
         // Actions
+        /*
         /// <summary>
         /// Action to update the frequency of the vessel
         /// </summary>
@@ -426,6 +422,7 @@ namespace CommNetConstellation.UI
             updateConstellationGUIRow(vesselFrequency, -1);
             updateConstellationGUIRow(previousFrequency, -1);
         }
+        */
 
         /////////////////////
         // GROUND STATIONS

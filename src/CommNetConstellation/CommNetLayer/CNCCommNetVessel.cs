@@ -1,5 +1,6 @@
 ﻿using CommNet;
 using CommNetConstellation.UI;
+using Smooth.Algebraics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,17 +8,47 @@ using System.Linq;
 namespace CommNetConstellation.CommNetLayer
 {
     /// <summary>
-    /// PartModule to be inserted into every ModuleCommand
+    /// PartModule to be inserted into every part having ModuleCommand module (probe cores and manned cockpits)
     /// </summary>
     //This class is coupled with the MM patch (cnc_module_MM.cfg) that inserts CNConstellationModule into every command part
     public class CNConstellationModule : PartModule
     {
-        [KSPField(isPersistant = true)] public short radioFrequency = CNCSettings.Instance.PublicRadioFrequency;
-
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "CommNet Constellation", active = true)]
-        public void KSPEventConstellationSetup()
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "CNC: Management", active = true)]
+        public void KSPEventVesselSetup()
         {
             new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", this.vessel, this.part, null).launch();
+        }
+    }
+
+    /// <summary>
+    /// PartModule to be inserted into every part having ModuleDataTransmitter module (antennas, probe cores and manned cockpits)
+    /// </summary>
+    //This class is coupled with the MM patch (cnc_module_MM.cfg) that inserts CNConstellationAntennaModule into every part
+    public class CNConstellationAntennaModule : PartModule
+    {
+        [KSPField(isPersistant = true)] public short Frequency = CNCSettings.Instance.PublicRadioFrequency;
+        [KSPField(isPersistant = true)] public string CustomName = "";
+        public ModuleDataTransmitter DTModule = null;
+
+        public CNConstellationAntennaModule()
+        {
+            if (HighLogic.CurrentGame == null || !HighLogic.LoadedSceneIsEditor || !HighLogic.LoadedSceneIsFlight)
+                return;
+
+            if(this.CustomName.Length == 0) // empty
+                this.CustomName = this.part.partInfo.title;
+
+            if(this.vessel.loaded)
+                DTModule = this.part.FindModuleImplementing<ModuleDataTransmitter>();
+        }
+
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "CNC: Antenna setup", active = true)]
+        public void KSPEventAntennaConfig()
+        {
+            if (DTModule != null && this.vessel.loaded)
+            {
+                CNCLog.Debug("Power: {0}, {1}, {2}", DTModule.antennaPower, DTModule.antennaCombinable, DTModule.antennaType.ToString());
+            }
         }
     }
 
@@ -26,134 +57,115 @@ namespace CommNetConstellation.CommNetLayer
     /// </summary>
     public class CNCCommNetVessel : CommNetVessel
     {
-        protected short radioFrequency;
-        protected bool communicationMembershipFlag;
+        [Persistent(collectionIndex = "Frequency")] private List<short> Frequencies = new List<short>();
+
+        //antenna data to use and display in vessel's management UI
+        private List<CNConstellationAntennaModule> loadedAntennaList = new List<CNConstellationAntennaModule>();
+        private List<ProtoPartModuleSnapshot> protoAntennaList = new List<ProtoPartModuleSnapshot>();
 
         /// <summary>
-        /// Retrieve the CNConstellationModule data from the vessel
+        /// Retrieve the CNC data from the vessel
         /// </summary>
         protected override void OnNetworkInitialized()
         {
             base.OnNetworkInitialized();
-            validateAndUpgrade(this.Vessel);
 
             try
             {
-                this.radioFrequency = getRadioFrequency(true);
+                validateAndUpgrade(this.Vessel);
+                getFrequencies(true);
             }
             catch (Exception e)
             {
-                CNCLog.Error("Vessel '{0}' doesn't have any CommNet capability, likely a mislabelled junk", this.Vessel.GetName());
+                CNCLog.Error("Vessel '{0}' doesn't have any CommNet capability, likely a mislabelled junk or a kerbin on EVA", this.Vessel.GetName());
             }
+
+            CNCLog.Debug("loadedAntennaList count: {0}", loadedAntennaList.Count);
+            CNCLog.Debug("protoAntennaList count: {0}", protoAntennaList.Count);
         }
 
         /// <summary>
-        /// Update the frequency of every command part of this vessel, even if one or more have different frequencies
+        /// Get the list of frequencies with optional flag to rebuild the list from the antennas
         /// </summary>
-        public void updateRadioFrequency(short newFrequency)
+        public List<short> getFrequencies(bool forceRebuild = false)
         {
-            if (!Constellation.isFrequencyValid(newFrequency))
+            if(forceRebuild)// || this.Frequencies.Count == 0)
             {
-                CNCLog.Error("The new frequency {0} is out of the range [0,{1}]!", newFrequency, short.MaxValue);
-                return;
-            }
+                List<short> allFrequencies = new List<short>();
+                this.Frequencies.Clear();
+                this.loadedAntennaList.Clear();
+                this.protoAntennaList.Clear();
 
-            bool success = false;
-            if (this.Vessel.loaded)
-            {
-                List<CNConstellationModule> modules = this.Vessel.FindPartModulesImplementing<CNConstellationModule>();
-                for (int i = 0; i < modules.Count; i++)
-                    modules[i].radioFrequency = newFrequency;
-                success = true;
-            }
-            else
-            {
-                List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
-                for (int i = 0; i < parts.Count; i++)
+                //cache antenna parts and build frequency list
+                if (!this.Vessel.loaded)
                 {
-                    ProtoPartModuleSnapshot thisModule = parts[i].FindModule("CNConstellationModule");
-                    if (thisModule == null)
-                        continue;
-
-                    success = thisModule.moduleValues.SetValue("radioFrequency", newFrequency);
+                    List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
+                    for (int i = 0; i < parts.Count; i++)
+                    {
+                        if (parts[i].FindModule("ModuleDataTransmitter") != null) // check antennas, probe cores and manned cockpits
+                        {
+                            ProtoPartModuleSnapshot cncModule;
+                            if ((cncModule = parts[i].FindModule("CNConstellationAntennaModule")) == null) //check if CNConstellationAntennaModule is there
+                            {
+                                protoAntennaList.Add(cncModule);
+                                allFrequencies.Add(short.Parse(cncModule.moduleValues.GetValue("Frequency")));
+                            }
+                        }
+                    }
                 }
-            }
-
-            if (success)
-            {
-                this.radioFrequency = newFrequency;
-                CNCLog.Debug("Update CommNet vessel '{0}''s frequency to {1}", this.Vessel.GetName(), newFrequency);
-            }
-            else
-            {
-                CNCLog.Error("Can't update CommNet vessel '{0}''s frequency to {1}!", this.Vessel.GetName(), newFrequency);
-            }
-        }
-
-        /// <summary>
-        /// Update the frequency of the specific command part of this active vessel only
-        /// </summary>
-        public void updateRadioFrequency(short newFrequency, Part commandPart)
-        {
-            if (commandPart == null)
-                return;
-
-            CNConstellationModule cncModule = commandPart.FindModuleImplementing<CNConstellationModule>();
-            CNCLog.Debug("Update the part '{1}''s freq in CommNet vessel '{0}' from {3} to {2}", this.Vessel.GetName(), commandPart.partInfo.title, newFrequency, cncModule.radioFrequency);
-            cncModule.radioFrequency = newFrequency;
-            getRadioFrequency(true);
-        }
-
-        /// <summary>
-        /// If multiple command parts of this vessel have different frequencies, pick the frequency of the first part in order of part addition in editor
-        /// </summary>
-        public short getRadioFrequency(bool forceRetrievalFromModule = false)
-        {
-            if (forceRetrievalFromModule)
-            {
-                if (this.Vessel.loaded)
-                    this.radioFrequency = firstCommandPartSelection(this.Vessel.parts).radioFrequency;
                 else
-                    this.radioFrequency = short.Parse(firstCommandPartSelection(this.Vessel.protoVessel.protoPartSnapshots).moduleValues.GetValue("radioFrequency"));
+                {
+                    loadedAntennaList = this.Vessel.FindPartModulesImplementing<CNConstellationAntennaModule>();
+                    loadedAntennaList.ForEach(delegate (CNConstellationAntennaModule am) {allFrequencies.Add(am.Frequency);});
+                }
 
-                CNCLog.Debug("Read the freq {1} from CommNet vessel '{0}'", this.Vessel.GetName(), this.radioFrequency);
+                // remove duplicates and sort in asc order
+                this.Frequencies = allFrequencies.Distinct().ToList(); 
+                this.Frequencies.Sort();
+
+                CNCLog.Debug("Frequency list of CommNet vessel '{0}' is built: {1}", this.Vessel.GetName(), UIUtils.Concatenate<short>(this.Frequencies, ", "));
             }
 
-            return this.radioFrequency;
+            return this.Frequencies; // by reference
         }
 
         /// <summary>
-        /// Selection algorithm on multiple parts with different frequenices
+        /// Update the vessel's antenna(s) with the given frequency
         /// </summary>
-        public CNConstellationModule firstCommandPartSelection(List<Part> parts)
+        public bool updateAntennaFrequency(short oldFrequency, short newFrequency, bool rebuildFreqList = false)
         {
-            for (int i = 0; i < parts.Count; i++) // grab the first command part (part list is sorted in order of part addition in editor)
+            try
             {
-                CNConstellationModule thisModule;
-                if ((thisModule = parts[i].FindModuleImplementing<CNConstellationModule>()) != null)
+                if (!Constellation.isFrequencyValid(newFrequency))
+                    throw new Exception(string.Format("The new frequency {0} is out of the range [0,{1}]!", newFrequency, short.MaxValue));
+
+                if (this.Vessel.loaded)
                 {
-                    return thisModule;
+                    for (int i = 0; i < loadedAntennaList.Count; i++)
+                    {
+                        if (loadedAntennaList[i].Frequency == oldFrequency)
+                            loadedAntennaList[i].Frequency = newFrequency;
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < protoAntennaList.Count; i++)
+                    {
+                        if (short.Parse(protoAntennaList[i].moduleValues.GetValue("Frequency")) == oldFrequency)
+                            protoAntennaList[i].moduleValues.SetValue("Frequency", newFrequency);
+                    }
                 }
             }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Selection algorithm on multiple protoparts with different frequenices
-        /// </summary>
-        public ProtoPartModuleSnapshot firstCommandPartSelection(List<ProtoPartSnapshot> parts)
-        {
-            for (int i = 0; i < parts.Count; i++)
+            catch(Exception e)
             {
-                ProtoPartModuleSnapshot partModule;
-                if ((partModule = parts[i].FindModule("CNConstellationModule")) != null)
-                {
-                    return partModule;
-                }
+                CNCLog.Error("Error encounted when updating CommNet vessel '{0}''s frequency {2} to {3}: {1}", this.Vessel.GetName() , e.Message, oldFrequency, newFrequency);
+                return false;
             }
 
-            return null;
+            getFrequencies(rebuildFreqList);
+
+            CNCLog.Debug("Update CommNet vessel '{0}''s frequency {1} to {2}", this.Vessel.GetName(), oldFrequency, newFrequency);
+            return true;
         }
 
         /// <summary>
@@ -166,6 +178,8 @@ namespace CommNetConstellation.CommNetLayer
 
             if (!thisVessel.loaded) // it seems KSP will automatically add/upgrade the active vessel (unconfirmed)
             {
+                CNCLog.Debug("Unloaded CommNet vessel '{0}' is validated and upgraded", thisVessel.GetName());
+
                 List<ProtoPartSnapshot> parts = thisVessel.protoVessel.protoPartSnapshots;
                 for (int i = 0; i < parts.Count; i++)
                 {
@@ -181,16 +195,23 @@ namespace CommNetConstellation.CommNetLayer
                         }
                         else //check if all attributes are or should not be there
                         {
-                            if (!cncModule.moduleValues.HasValue("radioFrequency"))
-                            {
-                                cncModule.moduleValues.AddValue("radioFrequency", CNCSettings.Instance.PublicRadioFrequency);
-                                CNCLog.Debug("CNConstellationModule of CommNet Vessel '{0}' gets new attribute {1} - {2}", thisVessel.GetName(), "radioFrequency", CNCSettings.Instance.PublicRadioFrequency);
-                            }
+                            if (cncModule.moduleValues.HasValue("radioFrequency")) //obsolete
+                                cncModule.moduleValues.RemoveValue("radioFrequency");
 
-                            if (cncModule.moduleValues.HasValue("communicationMembershipFlag"))
-                            {
+                            if (cncModule.moduleValues.HasValue("communicationMembershipFlag")) //obsolete
                                 cncModule.moduleValues.RemoveValue("communicationMembershipFlag");
-                            }
+                        }
+                    }
+
+                    if (parts[i].FindModule("ModuleDataTransmitter") != null) // check antennas, probe cores and manned cockpits
+                    {
+                        ProtoPartModuleSnapshot cncModule;
+                        if ((cncModule = parts[i].FindModule("CNConstellationAntennaModule")) == null) //check if CNConstellationAntennaModule is there
+                        {
+                            CNConstellationAntennaModule realcncModule = gameObject.AddComponent<CNConstellationAntennaModule>(); // don't use new keyword. PartModule is Monobehavior
+                            parts[i].modules.Add(new ProtoPartModuleSnapshot(realcncModule));
+
+                            CNCLog.Debug("CNConstellationAntennaModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
                         }
                     }
                 }

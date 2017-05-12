@@ -55,12 +55,12 @@ namespace CommNetConstellation.UI
             if (this.rightClickedPart != null) // first choice
             {
                 CNConstellationModule cncModule = rightClickedPart.FindModuleImplementing<CNConstellationModule>();
-                inputFreq = cncModule.radioFrequency;
+                //inputFreq = cncModule.radioFrequency;
             }
             else if (this.hostVessel != null)
             {
                 CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
-                inputFreq = cv.getRadioFrequency();
+                //inputFreq = cv.getRadioFrequency();
             }
 
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
@@ -161,12 +161,12 @@ namespace CommNetConstellation.UI
                     if (this.hostVessel != null) // flight
                     {
                         CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
-                        cv.updateRadioFrequency(inputFreq, rightClickedPart);
+                        //cv.updateRadioFrequency(inputFreq, rightClickedPart);
                     }
                     else // editor
                     {
                         CNConstellationModule cncModule = rightClickedPart.FindModuleImplementing<CNConstellationModule>();
-                        cncModule.radioFrequency = inputFreq;
+                        //cncModule.radioFrequency = inputFreq;
                     }
 
                     string message = string.Format("Frequency of {0} is updated to {1}", rightClickedPart.partInfo.title, inputFreq);
@@ -175,13 +175,13 @@ namespace CommNetConstellation.UI
                 else if (this.hostVessel != null) // tracking station
                 {
                     CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
-                    short prevFrequency = cv.getRadioFrequency();
-                    cv.updateRadioFrequency(inputFreq);
+                    //short prevFrequency = cv.getRadioFrequency();
+                    //cv.updateRadioFrequency(inputFreq);
 
                     string message = string.Format("Individual frequencies of {0} are updated to {1}", this.hostVessel.GetName(), inputFreq);
                     ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
 
-                    updateCallback(this.hostVessel, prevFrequency);
+                    //updateCallback(this.hostVessel, prevFrequency);
                 }
                 else
                 {

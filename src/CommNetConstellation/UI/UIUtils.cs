@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using UnityEngine;
 
 namespace CommNetConstellation.UI
@@ -151,6 +153,24 @@ namespace CommNetConstellation.UI
         {
             return window.Contains(new Vector2(Input.mousePosition.x,
                 Screen.height - Input.mousePosition.y));
+        }
+
+        /// <summary>
+        /// Easy method to convert list to string 
+        /// </summary>
+        public static string Concatenate<T>(IEnumerable<T> source, string delimiter)
+        {
+            var s = new StringBuilder();
+            bool first = true;
+            foreach (T t in source)
+            {
+                if (first)
+                    first = false;
+                else
+                    s.Append(delimiter);
+                s.Append(t);
+            }
+            return s.ToString();
         }
     }
 }
