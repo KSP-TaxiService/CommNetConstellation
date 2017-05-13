@@ -17,6 +17,7 @@ namespace CommNetConstellation.UI
         private CNCCommNetHome hostStation;
         private string description = "Something";
 
+        private DialogGUITextInput nameInput;
         private DialogGUITextInput frequencyInput;
         private Callback<string> updateCallback;
         private DialogGUIImage stationColorImage;
@@ -34,7 +35,7 @@ namespace CommNetConstellation.UI
         {
             this.hostStation = thisStation;
             this.updateCallback = updateCallback;
-            this.description = string.Format("You are editing the ground station '{0}'.", thisStation.nodeName);
+            this.description = string.Format("You are editing the ground station '{0}'.", thisStation.stationName);
 
             this.GetInputLocks();
         }
@@ -50,6 +51,12 @@ namespace CommNetConstellation.UI
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description + "\n\n", false, false) }));
+
+            DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 80, 12);
+            nameInput = new DialogGUITextInput(this.hostStation.stationName, false, CNCSettings.MaxLengthName, setNameInput, 145, 25);
+            DialogGUIButton defaultButton = new DialogGUIButton("Reset", defaultNameClick, 40, 32, false);
+            DialogGUIHorizontalLayout nameGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { nameLabel, nameInput, defaultButton });
+            listComponments.Add(nameGroup);
 
             stationColorImage = new DialogGUIImage(new Vector2(16, 16), Vector2.zero, this.hostStation.Color, groundstationTexture);
             DialogGUIButton colorButton = new DialogGUIButton("Color", colorEditClick, null, 50, 32, false);
@@ -128,6 +135,34 @@ namespace CommNetConstellation.UI
         }
 
         /// <summary>
+        /// For the dialog to call upon new station-name input
+        /// </summary>
+        private string setNameInput(string newNameInput)
+        {
+            if (!this.hostStation.stationName.Equals(newNameInput.Trim())) // different name
+            {
+                this.hostStation.stationName = newNameInput.Trim();
+                ScreenMessage msg = new ScreenMessage(string.Format("This ground station is renamed to '{0}'.", this.hostStation.stationName), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessages.PostScreenMessage(msg);
+            }
+
+            return newNameInput;
+        }
+
+        /// <summary>
+        /// Action to revert the station's name back to the stock name
+        /// </summary>
+        private void defaultNameClick()
+        {
+            nameInput.uiItem.GetComponent<TMP_InputField>().text = hostStation.nodeName;
+            hostStation.stationName = ""; // blank
+
+            string message = string.Format("This ground station's name is reverted to '{0}'.", hostStation.stationName);
+            ScreenMessage msg = new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+            ScreenMessages.PostScreenMessage(msg);
+        }
+
+        /// <summary>
         /// Action to add the input frequency to the station's list
         /// </summary>
         private void addClick()
@@ -155,7 +190,7 @@ namespace CommNetConstellation.UI
                 this.hostStation.Frequencies.Sort();
                 refreshList();
 
-                string message = string.Format("Frequency {1} is added to ground station '{0}'", this.hostStation.nodeName, newFreq);
+                string message = string.Format("Frequency {1} is added to ground station '{0}'", this.hostStation.stationName, newFreq);
                 ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
             }
             catch (Exception e)

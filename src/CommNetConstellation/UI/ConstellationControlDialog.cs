@@ -465,12 +465,10 @@ namespace CommNetConstellation.UI
 
         private DialogGUIHorizontalLayout createGroundStationRow(CNCCommNetHome thisStation)
         {
-            string freqString = getFreqString(thisStation.Frequencies); 
-
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(16, 16), Vector2.one, thisStation.Color, groundstationTexture);
-            DialogGUILabel stationNameLabel = new DialogGUILabel(thisStation.ID, 160, 12);
-            DialogGUILabel locationLabel = new DialogGUILabel(string.Format("LAT: {0:0.0}\nLON: {1:0.0}", thisStation.latitude, thisStation.longitude), 70, 24);
-            DialogGUILabel freqsLabel = new DialogGUILabel(freqString, 220, 12);
+            DialogGUILabel stationNameLabel = new DialogGUILabel(thisStation.stationName, 160, 12);
+            DialogGUILabel locationLabel = new DialogGUILabel(string.Format("LAT: {0:0.0}\nLON: {1:0.0}", thisStation.latitude, thisStation.longitude), 90, 24);
+            DialogGUILabel freqsLabel = new DialogGUILabel(getFreqString(thisStation.Frequencies), 200, 12);
             DialogGUIButton updateButton = new DialogGUIButton("Edit", delegate { groundstationEditClick(thisStation); }, 50, 32, false);
 
             DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, stationNameLabel, locationLabel, freqsLabel, updateButton };
@@ -503,9 +501,11 @@ namespace CommNetConstellation.UI
                 if (thisRow.OptionText.Equals(stationID))
                 {
                     DialogGUIImage colorImage = thisRow.children[0] as DialogGUIImage;
+                    DialogGUILabel nameLabel = thisRow.children[1] as DialogGUILabel;
                     DialogGUILabel freqsLabel = thisRow.children[3] as DialogGUILabel;
                     CNCCommNetHome station = CNCCommNetScenario.Instance.groundStations.Find(x => x.ID.Equals(stationID));
                     colorImage.uiItem.GetComponent<RawImage>().color = station.Color;
+                    nameLabel.SetOptionText(station.stationName);
                     freqsLabel.SetOptionText(getFreqString(station.Frequencies));
 
                     break;

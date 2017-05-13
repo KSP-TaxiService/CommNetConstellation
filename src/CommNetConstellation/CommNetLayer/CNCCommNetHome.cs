@@ -16,17 +16,22 @@ namespace CommNetConstellation.CommNetLayer
 
         //to be saved to persistent.sfs
         [Persistent] public string ID;
-        [Persistent] public Color Color;
+        [Persistent] public Color Color = Color.red;
+        [Persistent] protected string OptionalName = "";
         [Persistent(collectionIndex = "Frequency")] public List<short> Frequencies;
 
         public double altitude { get { return this.alt; } }
         public double latitude { get { return this.lat; } }
         public double longitude { get { return this.lon; } }
         public CommNode commNode { get { return this.comm; } }
+        public string stationName
+        {
+            get { return (this.OptionalName.Length == 0)? this.nodeName : this.OptionalName; }
+            set { this.OptionalName = value; }
+        }
 
         public CNCCommNetHome()
         {
-            this.Color = Color.red;
             this.Frequencies = new List<short>();
             this.Frequencies.Add(CNCSettings.Instance.PublicRadioFrequency);
         }
@@ -101,12 +106,12 @@ namespace CommNetConstellation.CommNetLayer
                 Rect headlineRect = groundStationRect;
 
                 //Name
-                Vector2 nameDim = CNCCommNetHome.groundStationHeadline.CalcSize(new GUIContent(this.nodeName));
-                headlineRect.x -= nameDim.x/2;
+                Vector2 nameDim = CNCCommNetHome.groundStationHeadline.CalcSize(new GUIContent(this.stationName));
+                headlineRect.x -= nameDim.x/2 - 5;
                 headlineRect.y -= nameDim.y + 5;
                 headlineRect.width = nameDim.x;
                 headlineRect.height = nameDim.y;
-                GUI.Label(headlineRect, this.nodeName, CNCCommNetHome.groundStationHeadline);
+                GUI.Label(headlineRect, this.stationName, CNCCommNetHome.groundStationHeadline);
 
                 //frequency list
                 string freqStr = "No frequency assigned";
@@ -120,7 +125,7 @@ namespace CommNetConstellation.CommNetLayer
 
                 headlineRect = groundStationRect;
                 Vector2 freqDim = CNCCommNetHome.groundStationHeadline.CalcSize(new GUIContent(freqStr));
-                headlineRect.x -= freqDim.x / 2;
+                headlineRect.x -= freqDim.x / 2 - 5;
                 headlineRect.y += groundStationRect.height + 5;
                 headlineRect.width = freqDim.x;
                 headlineRect.height = freqDim.y;
