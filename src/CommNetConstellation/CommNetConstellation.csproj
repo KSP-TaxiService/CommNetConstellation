@@ -63,6 +63,7 @@
     <Compile Include="Constellation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\AbstractDialog.cs" />
+    <Compile Include="UI\AntennaSetupDialog.cs" />
     <Compile Include="UI\ColorPickerDialog.cs" />
     <Compile Include="UI\ConstellationControlDialog.cs" />
     <Compile Include="UI\ConstellationEditDialog.cs" />

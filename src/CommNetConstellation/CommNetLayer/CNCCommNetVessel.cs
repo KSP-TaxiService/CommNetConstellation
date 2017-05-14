@@ -27,28 +27,38 @@ namespace CommNetConstellation.CommNetLayer
     public class CNConstellationAntennaModule : PartModule
     {
         [KSPField(isPersistant = true)] public short Frequency = CNCSettings.Instance.PublicRadioFrequency;
-        [KSPField(isPersistant = true)] public string CustomName = "";
-        public ModuleDataTransmitter DTModule = null;
+        [KSPField(isPersistant = true)] protected string OptionalName = "";
 
+        public String Name
+        {
+            get { return (this.OptionalName.Length == 0) ? this.part.partInfo.title : this.OptionalName; }
+            set { this.OptionalName = value; }
+        }
+
+        //public ModuleDataTransmitter DTModule = null;
+
+        /*
         public CNConstellationAntennaModule()
         {
-            if (HighLogic.CurrentGame == null || !HighLogic.LoadedSceneIsEditor || !HighLogic.LoadedSceneIsFlight)
+            if (HighLogic.CurrentGame == null)
                 return;
-
-            if(this.CustomName.Length == 0) // empty
-                this.CustomName = this.part.partInfo.title;
 
             if(this.vessel.loaded)
                 DTModule = this.part.FindModuleImplementing<ModuleDataTransmitter>();
         }
+        */
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "CNC: Antenna setup", active = true)]
         public void KSPEventAntennaConfig()
         {
+            /*
             if (DTModule != null && this.vessel.loaded)
             {
                 CNCLog.Debug("Power: {0}, {1}, {2}", DTModule.antennaPower, DTModule.antennaCombinable, DTModule.antennaType.ToString());
             }
+            */
+
+            new AntennaSetupDialog("Antenna - <color=#00ff00>Setup</color>", this.vessel, this.part).launch();
         }
     }
 
@@ -73,15 +83,14 @@ namespace CommNetConstellation.CommNetLayer
             try
             {
                 validateAndUpgrade(this.Vessel);
-                getFrequencies(true);
+
+                if(this.Frequencies.Count == 0) // empty list
+                    getFrequencies(true);
             }
             catch (Exception e)
             {
                 CNCLog.Error("Vessel '{0}' doesn't have any CommNet capability, likely a mislabelled junk or a kerbin on EVA", this.Vessel.GetName());
             }
-
-            CNCLog.Debug("loadedAntennaList count: {0}", loadedAntennaList.Count);
-            CNCLog.Debug("protoAntennaList count: {0}", protoAntennaList.Count);
         }
 
         /// <summary>
@@ -89,7 +98,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public List<short> getFrequencies(bool forceRebuild = false)
         {
-            if(forceRebuild)// || this.Frequencies.Count == 0)
+            if(forceRebuild)
             {
                 List<short> allFrequencies = new List<short>();
                 this.Frequencies.Clear();
@@ -105,7 +114,7 @@ namespace CommNetConstellation.CommNetLayer
                         if (parts[i].FindModule("ModuleDataTransmitter") != null) // check antennas, probe cores and manned cockpits
                         {
                             ProtoPartModuleSnapshot cncModule;
-                            if ((cncModule = parts[i].FindModule("CNConstellationAntennaModule")) == null) //check if CNConstellationAntennaModule is there
+                            if ((cncModule = parts[i].FindModule("CNConstellationAntennaModule")) != null) //check if CNConstellationAntennaModule is there
                             {
                                 protoAntennaList.Add(cncModule);
                                 allFrequencies.Add(short.Parse(cncModule.moduleValues.GetValue("Frequency")));
@@ -123,7 +132,7 @@ namespace CommNetConstellation.CommNetLayer
                 this.Frequencies = allFrequencies.Distinct().ToList(); 
                 this.Frequencies.Sort();
 
-                CNCLog.Debug("Frequency list of CommNet vessel '{0}' is built: {1}", this.Vessel.GetName(), UIUtils.Concatenate<short>(this.Frequencies, ", "));
+                CNCLog.Verbose("Frequency list of CommNet vessel '{0}' is built: {1}", this.Vessel.GetName(), UIUtils.Concatenate<short>(this.Frequencies, ", "));
             }
 
             return this.Frequencies; // by reference
@@ -191,7 +200,7 @@ namespace CommNetConstellation.CommNetLayer
                             CNConstellationModule realcncModule = gameObject.AddComponent<CNConstellationModule>(); // don't use new keyword. PartModule is Monobehavior
                             parts[i].modules.Add(new ProtoPartModuleSnapshot(realcncModule));
 
-                            CNCLog.Debug("CNConstellationModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
+                            CNCLog.Verbose("CNConstellationModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
                         }
                         else //check if all attributes are or should not be there
                         {
@@ -211,7 +220,7 @@ namespace CommNetConstellation.CommNetLayer
                             CNConstellationAntennaModule realcncModule = gameObject.AddComponent<CNConstellationAntennaModule>(); // don't use new keyword. PartModule is Monobehavior
                             parts[i].modules.Add(new ProtoPartModuleSnapshot(realcncModule));
 
-                            CNCLog.Debug("CNConstellationAntennaModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
+                            CNCLog.Verbose("CNConstellationAntennaModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
                         }
                     }
                 }

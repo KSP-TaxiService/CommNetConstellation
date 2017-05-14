@@ -314,7 +314,7 @@ namespace CommNetConstellation.UI
             }
 
             DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.vesselName, 150, 12);
-            DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequencies: {0}", getFreqString(thisVessel.getFrequencies())), 110, 12);
+            DialogGUILabel freqLabel = new DialogGUILabel(getFreqString(thisVessel.getFrequencies()), 110, 12);
             DialogGUILabel locationLabel = new DialogGUILabel(string.Format("Orbiting: {0}", thisVessel.Vessel.mainBody.name), 140, 12);
             DialogGUIButton setupButton = new DialogGUIButton("Setup", delegate { vesselSetupClick(thisVessel.Vessel); }, 70, 32, false);
 
@@ -334,7 +334,7 @@ namespace CommNetConstellation.UI
                 if (thisRow.OptionText.Equals(updatedVessel.id.ToString()))
                 {
                     DialogGUILabel freqLabel = thisRow.children[2] as DialogGUILabel;
-                    freqLabel.SetOptionText(string.Format("Frequencies: {0}", getFreqString(thisVessel.getFrequencies())));
+                    freqLabel.SetOptionText(getFreqString(thisVessel.getFrequencies()));
                     return;
                 }
             }
