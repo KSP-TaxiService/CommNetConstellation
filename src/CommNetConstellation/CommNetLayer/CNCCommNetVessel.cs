@@ -13,7 +13,7 @@ namespace CommNetConstellation.CommNetLayer
     //This class is coupled with the MM patch (cnc_module_MM.cfg) that inserts CNConstellationModule into every command part
     public class CNConstellationModule : PartModule
     {
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "CNC: Management", active = true)]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "CNC: Frequency List", active = true)]
         public void KSPEventVesselSetup()
         {
             new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", this.vessel, null).launch();
@@ -232,6 +232,9 @@ namespace CommNetConstellation.CommNetLayer
             }
         }
 
+        /// <summary>
+        /// Independent-implemenation number of antennas detected
+        /// </summary>
         public int getNumberAntennas()
         {
             if (this.Vessel.loaded)
@@ -240,6 +243,9 @@ namespace CommNetConstellation.CommNetLayer
                 return protoAntennaList.Count;
         }
 
+        /// <summary>
+        /// Independent-implementation inforamtion on specific antenna
+        /// </summary>
         public CNCAntennaPartInfo getAntennaInfo(int index)
         {
             CNCAntennaPartInfo newInfo = new CNCAntennaPartInfo();
@@ -247,20 +253,29 @@ namespace CommNetConstellation.CommNetLayer
             //loaded vessel
             if (this.Vessel.loaded)
             {
-                CNConstellationAntennaModule mod = loadedAntennaList[index];
+                CNConstellationAntennaModule AMod = loadedAntennaList[index];
 
-                newInfo.frequency = mod.Frequency;
-                newInfo.name = mod.Name;
-                newInfo.antennaPower = mod.DataTransmitter.antennaPower;
-                newInfo.antennaCombinable = mod.DataTransmitter.antennaCombinable;
-                newInfo.antennaCombinableExponent = mod.DataTransmitter.antennaCombinableExponent;
-                newInfo.antennaType = mod.DataTransmitter.antennaType;
+                newInfo.frequency = AMod.Frequency;
+                newInfo.name = AMod.Name;
+                newInfo.antennaPower = AMod.DataTransmitter.antennaPower;
+                newInfo.antennaCombinable = AMod.DataTransmitter.antennaCombinable;
+                newInfo.antennaCombinableExponent = AMod.DataTransmitter.antennaCombinableExponent;
+                newInfo.antennaType = AMod.DataTransmitter.antennaType;
 
                 return newInfo; // eazy
             }
-            
-            //packed vessel
 
+            //packed vessel
+            ProtoPartModuleSnapshot packedAMod = protoAntennaList[index];
+            ModuleDataTransmitter packedDTMod = (ModuleDataTransmitter) packedAMod.moduleRef; // really work?
+            string optionalName = packedAMod.moduleValues.GetValue("OptionalName");
+
+            newInfo.frequency = short.Parse(packedAMod.moduleValues.GetValue("Frequency"));
+            newInfo.name = (optionalName.Length <= 0) ? packedAMod.moduleRef.part.partInfo.title : optionalName;
+            newInfo.antennaPower = packedDTMod.antennaPower;
+            newInfo.antennaCombinable = packedDTMod.antennaCombinable;
+            newInfo.antennaCombinableExponent = packedDTMod.antennaCombinableExponent;
+            newInfo.antennaType = packedDTMod.antennaType;
 
             return newInfo;
         }

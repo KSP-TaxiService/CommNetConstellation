@@ -213,6 +213,7 @@ namespace CommNetConstellation.UI
             InputLockManager.RemoveControlLock("CNCLockSAS");
             InputLockManager.RemoveControlLock("CNCLockRCS");
             InputLockManager.RemoveControlLock("CNCLockActions");
+            InputLockManager.RemoveControlLock("CNCLockMap");
         }
 
         /// <summary>
@@ -225,6 +226,7 @@ namespace CommNetConstellation.UI
             InputLockManager.SetControlLock(ControlTypes.SAS, "CNCLockSAS");
             InputLockManager.SetControlLock(ControlTypes.RCS, "CNCLockRCS");
             InputLockManager.SetControlLock(ControlTypes.GROUPS_ALL, "CNCLockActions");
+            InputLockManager.SetControlLock(ControlTypes.MAP, "CNCLockMap");
         }
     }
 }
