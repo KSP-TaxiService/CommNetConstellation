@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -171,6 +172,21 @@ namespace CommNetConstellation.UI
                 s.Append(t);
             }
             return s.ToString();
+        }
+
+        /// <summary>
+        /// Round a given number to nearest metric factor
+        /// </summary>
+        public static string RoundToNearestMetricFactor(double number)
+        {
+            if (number > Math.Pow(10, 9))
+                return string.Format("{0:0.0} G", number / Math.Pow(10, 9));
+            else if (number > Math.Pow(10, 6))
+                return string.Format("{0:0.0} M", number / Math.Pow(10, 6));
+            else if (number > Math.Pow(10, 3))
+                return string.Format("{0:0.0} k", number / Math.Pow(10, 3));
+            else
+                return string.Format("{0:0.0}", number);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace CommNetConstellation.CommNetLayer
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "CNC: Management", active = true)]
         public void KSPEventVesselSetup()
         {
-            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", this.vessel, this.part, null).launch();
+            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", this.vessel, null).launch();
         }
     }
 
@@ -29,37 +29,42 @@ namespace CommNetConstellation.CommNetLayer
         [KSPField(isPersistant = true)] public short Frequency = CNCSettings.Instance.PublicRadioFrequency;
         [KSPField(isPersistant = true)] protected string OptionalName = "";
 
+        private ModuleDataTransmitter DTModule;
+        public ModuleDataTransmitter DataTransmitter
+        {
+            get
+            {
+                if(DTModule == null && this.vessel.loaded && HighLogic.CurrentGame != null)
+                    DTModule = this.part.FindModuleImplementing<ModuleDataTransmitter>();
+                
+                return DTModule;
+            }
+        }
+
         public String Name
         {
             get { return (this.OptionalName.Length == 0) ? this.part.partInfo.title : this.OptionalName; }
             set { this.OptionalName = value; }
         }
 
-        //public ModuleDataTransmitter DTModule = null;
-
-        /*
-        public CNConstellationAntennaModule()
-        {
-            if (HighLogic.CurrentGame == null)
-                return;
-
-            if(this.vessel.loaded)
-                DTModule = this.part.FindModuleImplementing<ModuleDataTransmitter>();
-        }
-        */
-
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "CNC: Antenna setup", active = true)]
         public void KSPEventAntennaConfig()
         {
-            /*
-            if (DTModule != null && this.vessel.loaded)
-            {
-                CNCLog.Debug("Power: {0}, {1}, {2}", DTModule.antennaPower, DTModule.antennaCombinable, DTModule.antennaType.ToString());
-            }
-            */
-
             new AntennaSetupDialog("Antenna - <color=#00ff00>Setup</color>", this.vessel, this.part).launch();
         }
+    }
+
+    /// <summary>
+    /// Independent-implementation data structure for an antenna part
+    /// </summary>
+    public class CNCAntennaPartInfo
+    {
+        public short frequency;
+        public string name;
+        public double antennaPower;
+        public double antennaCombinableExponent;
+        public bool antennaCombinable;
+        public AntennaType antennaType;
     }
 
     /// <summary>
@@ -225,6 +230,39 @@ namespace CommNetConstellation.CommNetLayer
                     }
                 }
             }
+        }
+
+        public int getNumberAntennas()
+        {
+            if (this.Vessel.loaded)
+                return loadedAntennaList.Count;
+            else
+                return protoAntennaList.Count;
+        }
+
+        public CNCAntennaPartInfo getAntennaInfo(int index)
+        {
+            CNCAntennaPartInfo newInfo = new CNCAntennaPartInfo();
+
+            //loaded vessel
+            if (this.Vessel.loaded)
+            {
+                CNConstellationAntennaModule mod = loadedAntennaList[index];
+
+                newInfo.frequency = mod.Frequency;
+                newInfo.name = mod.Name;
+                newInfo.antennaPower = mod.DataTransmitter.antennaPower;
+                newInfo.antennaCombinable = mod.DataTransmitter.antennaCombinable;
+                newInfo.antennaCombinableExponent = mod.DataTransmitter.antennaCombinableExponent;
+                newInfo.antennaType = mod.DataTransmitter.antennaType;
+
+                return newInfo; // eazy
+            }
+            
+            //packed vessel
+
+
+            return newInfo;
         }
     }
 }

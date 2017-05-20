@@ -74,7 +74,7 @@ namespace CommNetConstellation.UI
                 rows[i + 1] = createConstellationRow(this.hostStation.Frequencies[i]);
             }
 
-            frequencyRowLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, rows);
+            frequencyRowLayout = new DialogGUIVerticalLayout(10, 100, 0, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, rows);
             listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, frequencyRowLayout));
 
             return listComponments;

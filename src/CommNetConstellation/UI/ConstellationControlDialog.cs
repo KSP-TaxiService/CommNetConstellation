@@ -342,7 +342,7 @@ namespace CommNetConstellation.UI
 
         private void vesselSetupClick(Vessel thisVessel)
         {
-            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", thisVessel, null, null).launch();
+            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", thisVessel, null).launch();
         }
 
         private void vesselFocusClick(Vessel thisVessel)
