@@ -16,7 +16,7 @@ namespace CommNetConstellation.CommNetLayer
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "CNC: Frequency List", active = true)]
         public void KSPEventVesselSetup()
         {
-            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", this.vessel, null).launch();
+            new VesselSetupDialog("Vessel - <color=#00ff00>Frequency List</color>", this.vessel, null).launch();
         }
     }
 
@@ -73,6 +73,7 @@ namespace CommNetConstellation.CommNetLayer
     public class CNCCommNetVessel : CommNetVessel
     {
         [Persistent(collectionIndex = "Frequency")] private List<short> Frequencies = new List<short>();
+        [Persistent(collectionIndex = "TEST")] private Dictionary<short, double> FrequencyCommPower = new Dictionary<short, double>();
 
         //antenna data to use and display in vessel's management UI
         private List<CNConstellationAntennaModule> loadedAntennaList = new List<CNConstellationAntennaModule>();
@@ -84,6 +85,7 @@ namespace CommNetConstellation.CommNetLayer
         protected override void OnNetworkInitialized()
         {
             base.OnNetworkInitialized();
+            FrequencyCommPower.Add(0, 1234.0);
 
             try
             {

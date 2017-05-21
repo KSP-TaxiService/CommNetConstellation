@@ -57,6 +57,56 @@ namespace CommNetConstellation.UI
         protected virtual void OnResize() { } // no idea how resizing works
 
         /// <summary>
+        /// Create and draw the components of a given layout
+        /// </summary>
+        public static void registerLayoutComponents(DialogGUILayoutBase layout)
+        {
+            if (layout.children.Count < 1)
+                return;
+
+            Stack<Transform> stack = new Stack<Transform>();
+            stack.Push(layout.uiItem.gameObject.transform);
+            for (int i = 0; i < layout.children.Count; i++)
+            {
+                if (!(layout.children[i] is DialogGUIContentSizer)) // avoid if DialogGUIContentSizer is detected
+                    layout.children[i].Create(ref stack, HighLogic.UISkin); // recursively create child's children
+            }
+        }
+
+        /// <summary>
+        /// Delete the components of a given layout
+        /// </summary>
+        public static void deregisterLayoutComponents(DialogGUILayoutBase layout)
+        {
+            recursiveLayoutDeletion(layout); // need to delete layout's children since no recursive deletion found
+        }
+
+        /// <summary>
+        /// Recusively delete every layout's children
+        /// </summary>
+        private static void recursiveLayoutDeletion(DialogGUILayoutBase layout)
+        {
+            if (layout.children.Count < 1)
+                return;
+
+            int size = layout.children.Count;
+            for (int i = size - 1; i >= 0; i--)
+            {
+                DialogGUIBase thisChild = layout.children[i];
+                if (thisChild is DialogGUILayoutBase)
+                {
+                    recursiveLayoutDeletion(thisChild as DialogGUILayoutBase);
+                }
+
+                if (!(thisChild is DialogGUIContentSizer)) // avoid if DialogGUIContentSizer is detected
+                {
+                    layout.children.RemoveAt(i);
+                    thisChild.uiItem.gameObject.DestroyGameObjectImmediate();
+                }
+            }
+        }
+
+        /// <summary>
         /// Spawn the dialog without any argument
         /// </summary>
         public void launch()
