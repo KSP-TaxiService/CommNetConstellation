@@ -72,8 +72,7 @@ namespace CommNetConstellation.CommNetLayer
     /// </summary>
     public class CNCCommNetVessel : CommNetVessel
     {
-        [Persistent(collectionIndex = "Frequency")] private List<short> Frequencies = new List<short>();
-        [Persistent(collectionIndex = "TEST")] private Dictionary<short, double> FrequencyCommPower = new Dictionary<short, double>();
+        [Persistent(collectionIndex = "Frequency")] private Dictionary<short, double> FrequencyDict = new Dictionary<short, double>();
 
         //antenna data to use and display in vessel's management UI
         private List<CNConstellationAntennaModule> loadedAntennaList = new List<CNConstellationAntennaModule>();
@@ -85,14 +84,13 @@ namespace CommNetConstellation.CommNetLayer
         protected override void OnNetworkInitialized()
         {
             base.OnNetworkInitialized();
-            FrequencyCommPower.Add(0, 1234.0);
 
             try
             {
                 validateAndUpgrade(this.Vessel);
 
-                if(this.Frequencies.Count == 0) // empty list
-                    getFrequencies(true);
+                if (this.FrequencyDict.Count == 0) // empty list
+                    buildDefaultFrequencyList();
             }
             catch (Exception e)
             {
@@ -100,49 +98,97 @@ namespace CommNetConstellation.CommNetLayer
             }
         }
 
-        /// <summary>
-        /// Get the list of frequencies with optional flag to rebuild the list from the antennas
-        /// </summary>
-        public List<short> getFrequencies(bool forceRebuild = false)
+        protected void buildDefaultFrequencyList()
         {
-            if(forceRebuild)
-            {
-                List<short> allFrequencies = new List<short>();
-                this.Frequencies.Clear();
-                this.loadedAntennaList.Clear();
-                this.protoAntennaList.Clear();
+            this.FrequencyDict.Clear();
+            this.loadedAntennaList.Clear();
+            this.protoAntennaList.Clear();
 
-                //cache antenna parts and build frequency list
+            int numParts = (!this.vessel.loaded) ? this.vessel.protoVessel.protoPartSnapshots.Count : this.vessel.Parts.Count;
+
+            for (int i = 0; i < numParts; i++)
+            {
+                Part thisPart;
+                ProtoPartSnapshot partSnapshot = null;
+
                 if (!this.Vessel.loaded)
                 {
-                    List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
-                    for (int i = 0; i < parts.Count; i++)
-                    {
-                        if (parts[i].FindModule("ModuleDataTransmitter") != null) // check antennas, probe cores and manned cockpits
-                        {
-                            ProtoPartModuleSnapshot cncModule;
-                            if ((cncModule = parts[i].FindModule("CNConstellationAntennaModule")) != null) //check if CNConstellationAntennaModule is there
-                            {
-                                protoAntennaList.Add(cncModule);
-                                allFrequencies.Add(short.Parse(cncModule.moduleValues.GetValue("Frequency")));
-                            }
-                        }
-                    }
+                    thisPart = this.vessel.Parts[i];
                 }
                 else
                 {
-                    loadedAntennaList = this.Vessel.FindPartModulesImplementing<CNConstellationAntennaModule>();
-                    loadedAntennaList.ForEach(delegate (CNConstellationAntennaModule am) {allFrequencies.Add(am.Frequency);});
+                    partSnapshot = this.vessel.protoVessel.protoPartSnapshots[i];
+                    thisPart = partSnapshot.partInfo.partPrefab;
                 }
 
-                // remove duplicates and sort in asc order
-                this.Frequencies = allFrequencies.Distinct().ToList(); 
-                this.Frequencies.Sort();
+                for(int pi = 0; pi < thisPart.Modules.Count; pi++)
+                {
+                    PartModule thisPartModule = thisPart.Modules[pi];
+                    if (thisPartModule is ICommAntenna)
+                    {
+                        ICommAntenna thisAntenna = thisPartModule as ICommAntenna;
+                        ProtoPartModuleSnapshot partModuleSnapshot = partSnapshot.FindModule(thisPartModule, pi);
+                        double commPower = (!this.vessel.loaded) ? thisAntenna.CommPowerUnloaded(partModuleSnapshot) : thisAntenna.CommPower;
 
-                CNCLog.Verbose("Frequency list of CommNet vessel '{0}' is built: {1}", this.Vessel.GetName(), UIUtils.Concatenate<short>(this.Frequencies, ", "));
+                        if (thisAntenna.CommCombinable)
+                        {
+                            double FreqCommPower += commPower * thisAntenna.CommCombinableExponent; // TODO: finish this
+                            
+                        }
+                    }
+
+                }
             }
 
-            return this.Frequencies; // by reference
+            /*
+            //cache antenna parts and build frequency list
+            if (!this.Vessel.loaded)
+            {
+                List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
+                for (int i = 0; i < parts.Count; i++)
+                {
+                    ProtoPartModuleSnapshot DTModule;
+                    if ((DTModule=parts[i].FindModule("ModuleDataTransmitter")) != null) // check antennas, probe cores and manned cockpits
+                    {
+                        double commPower = double.Parse(DTModule.moduleValues.GetValue("antennaPower"));
+                        string type = DTModule.moduleValues.GetValue("antennaType");
+                        ProtoPartModuleSnapshot cncModule;
+                        if ((cncModule = parts[i].FindModule("CNConstellationAntennaModule")) != null) //check if CNConstellationAntennaModule is there
+                        {
+                            protoAntennaList.Add(cncModule);
+                            short freq = short.Parse(cncModule.moduleValues.GetValue("Frequency"));
+
+                            if(!this.FrequencyDict.ContainsKey(freq))
+                                FrequencyDict.Add(freq, );
+                        }
+                    }
+                }
+            }
+            else
+            {
+                loadedAntennaList = this.Vessel.FindPartModulesImplementing<CNConstellationAntennaModule>();
+                loadedAntennaList.ForEach(delegate (CNConstellationAntennaModule am) { frequencies.Add(am.Frequency); });
+            }
+
+            // remove duplicates and sort in asc order
+            this.FrequencyDict = frequencies.Distinct().ToList();
+            this.FrequencyDict.Sort();
+            */
+
+            CNCLog.Verbose("Frequency list of CommNet vessel '{0}' is built: {1}", this.Vessel.GetName(), UIUtils.Concatenate<short>(this.FrequencyDict, ", "));
+        }
+
+        /// <summary>
+        /// Get the list of frequencies with optional flag to rebuild the list from the antennas
+        /// </summary>
+        public List<short> getFrequencies()
+        {
+            if(forceRebuild)
+            {
+                
+            }
+
+            return this.FrequencyDict; // by reference
         }
 
         /// <summary>
