@@ -1,6 +1,5 @@
 ﻿using CommNet;
 using CommNetConstellation.UI;
-using Smooth.Algebraics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -98,97 +97,121 @@ namespace CommNetConstellation.CommNetLayer
             }
         }
 
+        /// <summary>
+        /// Build the vessel's default frequency list from its antennas
+        /// </summary>
         protected void buildDefaultFrequencyList()
         {
             this.FrequencyDict.Clear();
             this.loadedAntennaList.Clear();
-            this.protoAntennaList.Clear();
+            //this.protoAntennaList.Clear();
+
+            const int COMBINABLEPOWERINDEX = 0;
+            const int MAXPOWERINDEX = 1;
+            Dictionary<short, double[]> CommPowsPerFrequencyDict = new Dictionary<short, double[]>();
 
             int numParts = (!this.vessel.loaded) ? this.vessel.protoVessel.protoPartSnapshots.Count : this.vessel.Parts.Count;
 
-            for (int i = 0; i < numParts; i++)
+            //inspect each part
+            for (int partIndex = 0; partIndex < numParts; partIndex++)
             {
                 Part thisPart;
                 ProtoPartSnapshot partSnapshot = null;
 
-                if (!this.Vessel.loaded)
+                if (this.Vessel.loaded)
                 {
-                    thisPart = this.vessel.Parts[i];
+                    thisPart = this.vessel.Parts[partIndex];
                 }
                 else
                 {
-                    partSnapshot = this.vessel.protoVessel.protoPartSnapshots[i];
+                    partSnapshot = this.vessel.protoVessel.protoPartSnapshots[partIndex];
                     thisPart = partSnapshot.partInfo.partPrefab;
                 }
 
-                for(int pi = 0; pi < thisPart.Modules.Count; pi++)
+                //inspect each module of the part
+                for(int moduleIndex = 0; moduleIndex < thisPart.Modules.Count; moduleIndex++)
                 {
-                    PartModule thisPartModule = thisPart.Modules[pi];
-                    if (thisPartModule is ICommAntenna)
+                    PartModule thisPartModule = thisPart.Modules[moduleIndex];
+
+                    if (thisPartModule is CNConstellationAntennaModule) // is it CNConstellationAntennaModule?
+                    {
+                        ProtoPartModuleSnapshot partModuleSnapshot = partSnapshot.FindModule(thisPartModule, moduleIndex);
+                        this.loadedAntennaList.Add((CNConstellationAntennaModule)thisPartModule);
+                        this.protoAntennaList.Add(partModuleSnapshot);
+                    }
+
+                    if (thisPartModule is ICommAntenna) // is it ModuleDataTransmitter?
                     {
                         ICommAntenna thisAntenna = thisPartModule as ICommAntenna;
-                        ProtoPartModuleSnapshot partModuleSnapshot = partSnapshot.FindModule(thisPartModule, pi);
+                        ProtoPartModuleSnapshot partModuleSnapshot = partSnapshot.FindModule(thisPartModule, moduleIndex);
+
+                        //get comm power
                         double commPower = (!this.vessel.loaded) ? thisAntenna.CommPowerUnloaded(partModuleSnapshot) : thisAntenna.CommPower;
 
+                        //get frequency
+                        short antennaFrequency = getFrequency(thisPart, partModuleSnapshot);
+                        if (!CommPowsPerFrequencyDict.ContainsKey(antennaFrequency)) // not found
+                        {
+                            CommPowsPerFrequencyDict.Add(antennaFrequency, new double[] { 0.0, 0.0 });
+                        }
+
+                        //get combinable flag
                         if (thisAntenna.CommCombinable)
-                        {
-                            double FreqCommPower += commPower * thisAntenna.CommCombinableExponent; // TODO: finish this
-                            
-                        }
+                            CommPowsPerFrequencyDict[antennaFrequency][COMBINABLEPOWERINDEX] += commPower * thisAntenna.CommCombinableExponent; //add to existing comm power
+                        else
+                            CommPowsPerFrequencyDict[antennaFrequency][MAXPOWERINDEX] = Math.Max(CommPowsPerFrequencyDict[antennaFrequency][MAXPOWERINDEX], commPower); // max power
                     }
-
                 }
-            }
 
-            /*
-            //cache antenna parts and build frequency list
-            if (!this.Vessel.loaded)
-            {
-                List<ProtoPartSnapshot> parts = this.Vessel.protoVessel.protoPartSnapshots;
-                for (int i = 0; i < parts.Count; i++)
+                //consolidate into vessel's list of frequencies and their com powers
+                foreach (short freq in CommPowsPerFrequencyDict.Keys)
                 {
-                    ProtoPartModuleSnapshot DTModule;
-                    if ((DTModule=parts[i].FindModule("ModuleDataTransmitter")) != null) // check antennas, probe cores and manned cockpits
-                    {
-                        double commPower = double.Parse(DTModule.moduleValues.GetValue("antennaPower"));
-                        string type = DTModule.moduleValues.GetValue("antennaType");
-                        ProtoPartModuleSnapshot cncModule;
-                        if ((cncModule = parts[i].FindModule("CNConstellationAntennaModule")) != null) //check if CNConstellationAntennaModule is there
-                        {
-                            protoAntennaList.Add(cncModule);
-                            short freq = short.Parse(cncModule.moduleValues.GetValue("Frequency"));
-
-                            if(!this.FrequencyDict.ContainsKey(freq))
-                                FrequencyDict.Add(freq, );
-                        }
-                    }
+                    this.FrequencyDict.Add(freq, CommPowsPerFrequencyDict[freq].Max());
                 }
             }
-            else
-            {
-                loadedAntennaList = this.Vessel.FindPartModulesImplementing<CNConstellationAntennaModule>();
-                loadedAntennaList.ForEach(delegate (CNConstellationAntennaModule am) { frequencies.Add(am.Frequency); });
-            }
 
-            // remove duplicates and sort in asc order
-            this.FrequencyDict = frequencies.Distinct().ToList();
-            this.FrequencyDict.Sort();
-            */
-
-            CNCLog.Verbose("Frequency list of CommNet vessel '{0}' is built: {1}", this.Vessel.GetName(), UIUtils.Concatenate<short>(this.FrequencyDict, ", "));
+            CNCLog.Verbose("Default frequency list of CommNet vessel '{0}' is built: {1}", this.Vessel.GetName(), UIUtils.Concatenate<short>(this.FrequencyDict.Keys, ", "));
         }
 
         /// <summary>
-        /// Get the list of frequencies with optional flag to rebuild the list from the antennas
+        /// Easy getter on the frequency of an antenna
+        /// </summary>
+        private short getFrequency(Part part, ProtoPartModuleSnapshot partModuleSnapshot)
+        {
+            if (!this.Vessel.loaded)
+            {
+                return short.Parse(partModuleSnapshot.moduleValues.GetValue("Frequency"));
+            }
+            else
+            {
+                CNConstellationAntennaModule cncMod;
+                if((cncMod = part.FindModuleImplementing<CNConstellationAntennaModule>()) == null)
+                {
+                    CNCLog.Error("Unable to find CNConstellationAntennaModule in this part '{0}'!", part.partInfo.title);
+                    throw new Exception("See output_log.txt");
+                }
+
+                return cncMod.Frequency;
+            }
+        }
+
+        /// <summary>
+        /// Get the list of frequencies only
         /// </summary>
         public List<short> getFrequencies()
         {
-            if(forceRebuild)
-            {
-                
-            }
+            return this.FrequencyDict.Keys.ToList();
+        }
 
-            return this.FrequencyDict; // by reference
+        /// <summary>
+        /// Get the max com power of a given frequency
+        /// </summary>
+        public double getMaxComPower(short frequency)
+        {
+            if (this.FrequencyDict.ContainsKey(frequency))
+                return this.FrequencyDict[frequency];
+            else
+                return 0.0;
         }
 
         /// <summary>
@@ -298,7 +321,6 @@ namespace CommNetConstellation.CommNetLayer
         {
             CNCAntennaPartInfo newInfo = new CNCAntennaPartInfo();
 
-            //loaded vessel
             if (this.Vessel.loaded)
             {
                 CNConstellationAntennaModule AMod = loadedAntennaList[index];
@@ -309,21 +331,20 @@ namespace CommNetConstellation.CommNetLayer
                 newInfo.antennaCombinable = AMod.DataTransmitter.antennaCombinable;
                 newInfo.antennaCombinableExponent = AMod.DataTransmitter.antennaCombinableExponent;
                 newInfo.antennaType = AMod.DataTransmitter.antennaType;
-
-                return newInfo; // eazy
             }
+            else //packed vessel
+            {
+                ProtoPartModuleSnapshot packedAMod = protoAntennaList[index];
+                ModuleDataTransmitter packedDTMod = (ModuleDataTransmitter)packedAMod.moduleRef; // really work?
+                string optionalName = packedAMod.moduleValues.GetValue("OptionalName");
 
-            //packed vessel
-            ProtoPartModuleSnapshot packedAMod = protoAntennaList[index];
-            ModuleDataTransmitter packedDTMod = (ModuleDataTransmitter) packedAMod.moduleRef; // really work?
-            string optionalName = packedAMod.moduleValues.GetValue("OptionalName");
-
-            newInfo.frequency = short.Parse(packedAMod.moduleValues.GetValue("Frequency"));
-            newInfo.name = (optionalName.Length <= 0) ? packedAMod.moduleRef.part.partInfo.title : optionalName;
-            newInfo.antennaPower = packedDTMod.antennaPower;
-            newInfo.antennaCombinable = packedDTMod.antennaCombinable;
-            newInfo.antennaCombinableExponent = packedDTMod.antennaCombinableExponent;
-            newInfo.antennaType = packedDTMod.antennaType;
+                newInfo.frequency = short.Parse(packedAMod.moduleValues.GetValue("Frequency"));
+                newInfo.name = (optionalName.Length <= 0) ? packedAMod.moduleRef.part.partInfo.title : optionalName;
+                newInfo.antennaPower = packedDTMod.antennaPower;
+                newInfo.antennaCombinable = packedDTMod.antennaCombinable;
+                newInfo.antennaCombinableExponent = packedDTMod.antennaCombinableExponent;
+                newInfo.antennaType = packedDTMod.antennaType;
+            }
 
             return newInfo;
         }
