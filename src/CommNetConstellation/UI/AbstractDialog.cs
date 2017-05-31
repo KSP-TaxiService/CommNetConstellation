@@ -25,6 +25,7 @@ namespace CommNetConstellation.UI
     public abstract class AbstractDialog
     {
         protected bool isDisplayed = false;
+        protected string dialogHandler;
         protected string dialogTitle;
         protected int windowWidth;
         protected int windowHeight;
@@ -39,8 +40,9 @@ namespace CommNetConstellation.UI
 
         protected PopupDialog popupDialog = null;
 
-        public AbstractDialog(string dialogTitle, float normalizedCenterX, float normalizedCenterY, int windowWidth, int windowHeight, DialogOptions[] args)
+        public AbstractDialog(string dialogUniqueHandler, string dialogTitle, float normalizedCenterX, float normalizedCenterY, int windowWidth, int windowHeight, DialogOptions[] args)
         {
+            this.dialogHandler = dialogUniqueHandler;
             this.dialogTitle = dialogTitle;
             this.windowWidth = windowWidth;
             this.windowHeight = windowHeight;
@@ -184,7 +186,8 @@ namespace CommNetConstellation.UI
             }
 
             //Spawn the dialog
-            MultiOptionDialog moDialog = new MultiOptionDialog("",
+            MultiOptionDialog moDialog = new MultiOptionDialog(this.dialogHandler, // unique name for every dialog
+                                                               "",
                                                                dialogTitle,
                                                                HighLogic.UISkin,
                                                                new Rect(normalizedCenterX, normalizedCenterY, windowWidth, windowHeight),

@@ -30,12 +30,13 @@ namespace CommNetConstellation.UI
         public ConstellationEditDialog(string dialogTitle, 
                                         Constellation thisConstellation, 
                                         Callback<Constellation> creationCallback, 
-                                        Callback<Constellation, short> updateCallback) : base(dialogTitle,
+                                        Callback<Constellation, short> updateCallback) : base("constellationEdit",
+                                                                                    dialogTitle,
                                                                                     0.5f, //x
                                                                                     0.5f, //y
                                                                                     250, //width
-                                                                                    200, //height
-                                                                                    new DialogOptions[] {})
+                                                                                    170, //height
+                                                                                    new DialogOptions[] { DialogOptions.HideCloseButton})
         {
             this.creationCallback = creationCallback;
             this.updateCallback = updateCallback;
@@ -72,13 +73,14 @@ namespace CommNetConstellation.UI
             DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 52, 12);
             frequencyInput = new DialogGUITextInput(constellFreq.ToString(), false, CNCSettings.MaxDigits, setConstellFreq, 47, 25);
             constellationColorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.zero, this.conColor, colorTexture);
-            DialogGUIButton colorButton = new DialogGUIButton("Color", colorEditClick, null, 50, 24, false);
+            DialogGUIButton colorButton = new DialogGUIButton("Color", colorEditClick, null, 50, 32, false);
             DialogGUIHorizontalLayout freqColorGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(16), colorButton, constellationColorImage });
             listComponments.Add(freqColorGroup);
 
             DialogGUIButton updateButton = new DialogGUIButton(this.actionButtonText, actionClick, false);
-            DialogGUIHorizontalLayout lineGroup2 = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), updateButton, new DialogGUIFlexibleSpace() });
-            listComponments.Add(lineGroup2);
+            DialogGUIButton cancelButton = new DialogGUIButton("Cancel", delegate { this.dismiss(); }, false);
+            DialogGUIHorizontalLayout actionGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), updateButton, cancelButton, new DialogGUIFlexibleSpace() });
+            listComponments.Add(actionGroup);
 
             return listComponments;
         }
@@ -198,6 +200,8 @@ namespace CommNetConstellation.UI
                 {
                     throw new Exception("Something is broken :-(");
                 }
+
+                this.dismiss();
             }
             catch (Exception e)
             {
