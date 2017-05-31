@@ -30,7 +30,8 @@ namespace CommNetConstellation.UI
 
         private bool buttonPressing = false;
 
-        public ColorPickerDialog(Color userColor, Callback<Color> callbackForChosenColor) : base("Color Picker",
+        public ColorPickerDialog(Color userColor, Callback<Color> callbackForChosenColor) : base("colorpicker",
+                                                                                                "Color Picker",
                                                                                                 0.5f, //x
                                                                                                 0.5f, //y
                                                                                                 dialogWidth, //width

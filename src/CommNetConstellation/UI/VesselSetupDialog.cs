@@ -23,7 +23,8 @@ namespace CommNetConstellation.UI
         private DialogGUIImage constellationColorImage;
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
 
-        public VesselSetupDialog(string title, Vessel vessel, Part cmdPart, Callback<Vessel, short>  updateCallback) : base(title, 
+        public VesselSetupDialog(string title, Vessel vessel, Part cmdPart, Callback<Vessel, short>  updateCallback) : base("vesselEdit",
+                                                                                                                title, 
                                                                                                                 0.5f, //x
                                                                                                                 0.5f, //y
                                                                                                                 250, //width

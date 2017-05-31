@@ -26,7 +26,8 @@ namespace CommNetConstellation.UI
         private DialogGUIVerticalLayout groundStationRowLayout;
         private VesselListSort currentVesselSort;
 
-        public ConstellationControlDialog(string title) : base(title, 
+        public ConstellationControlDialog(string title) : base("CNCControl",
+                                                            title, 
                                                             0.8f, //x
                                                             0.5f, //y
                                                             (int)(1920*0.3), //width
@@ -157,7 +158,7 @@ namespace CommNetConstellation.UI
                     Constellation updatedConstellation = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == updatedfrequency);
                     colorImage.uiItem.GetComponent<RawImage>().color = updatedConstellation.color;
                     nameLabel.SetOptionText(updatedConstellation.name);
-                    freqLabel.SetOptionText("Frequency: " + updatedConstellation.frequency);
+                    freqLabel.SetOptionText(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(updatedConstellation.color), updatedConstellation.frequency));
                     vesselLabel.SetOptionText(Constellation.countVessels(updatedConstellation) + " vessels");
 
                     thisRow.SetOptionText(updatedConstellation.frequency.ToString());
@@ -169,10 +170,10 @@ namespace CommNetConstellation.UI
         private void resetPublicConstClick()
         {
             string message = string.Format("Revert to the default name '{0}' and color {1}?", CNCSettings.Instance.DefaultPublicName, UIUtils.colorToHex(CNCSettings.Instance.DefaultPublicColor));
-            MultiOptionDialog warningDialog = new MultiOptionDialog(message, "Constellation", HighLogic.UISkin, new DialogGUIBase[]
+            MultiOptionDialog warningDialog = new MultiOptionDialog("cncResetConstWindow", message, "Constellation", HighLogic.UISkin, new DialogGUIBase[]
             {
-                new DialogGUIButton("Reset", resetPublicConstellation),
-                new DialogGUIButton("Cancel", null)
+                new DialogGUIButton("Reset", resetPublicConstellation, true),
+                new DialogGUIButton("Cancel", delegate { }, true)
             });
 
             PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), warningDialog, false, HighLogic.UISkin, true, string.Empty);
@@ -183,10 +184,10 @@ namespace CommNetConstellation.UI
             string title = string.Format("Deleting '{0}'?", thisConstellation.name);
             string message = string.Format("All the vessels of Constellation '{0}' will be reintegrated into the public constellation.", thisConstellation.name);
 
-            MultiOptionDialog warningDialog = new MultiOptionDialog(message, title, HighLogic.UISkin, new DialogGUIBase[]
+            MultiOptionDialog warningDialog = new MultiOptionDialog("cncDeleteConstWindow", message, title, HighLogic.UISkin, new DialogGUIBase[]
             {
                 new DialogGUIButton("Delete", delegate { deleteConstellation(thisConstellation); }, true),
-                new DialogGUIButton("Cancel", null, true)
+                new DialogGUIButton("Cancel", delegate { }, true)
             });
 
             PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), warningDialog, false, HighLogic.UISkin, true);

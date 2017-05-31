@@ -26,7 +26,8 @@ namespace CommNetConstellation.UI
         private static readonly Texture2D groundstationTexture = UIUtils.loadImage("groundStationMark");
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
 
-        public GroundStationEditDialog(string title, CNCCommNetHome thisStation, Callback<string> updateCallback) : base(title,
+        public GroundStationEditDialog(string title, CNCCommNetHome thisStation, Callback<string> updateCallback) : base("gsEdit",
+                                                                                                                title,
                                                                                                                 0.5f, //x
                                                                                                                 0.5f, //y
                                                                                                                 290, //width
