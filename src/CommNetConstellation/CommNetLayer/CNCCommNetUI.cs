@@ -1,10 +1,8 @@
 ﻿using CommNet;
-using CommNetConstellation.UI;
-using Smooth.Algebraics;
+using KSP.UI.Screens.Mapview;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -22,35 +20,72 @@ namespace CommNetConstellation.CommNetLayer
         }
 
         /// <summary>
-        /// This is the method where the interface is updated throughly
+        /// Activate things when the player enter a scene that uses CommNet UI
+        /// </summary>
+        public override void Show()
+        {
+            registerMapNodeIconCallbacks();
+            base.Show();
+        }
+
+        /// <summary>
+        /// Clean up things when the player exits a scene that uses CommNet UI
+        /// </summary>
+        public override void Hide()
+        {
+            deregisterMapNodeIconCallbacks();
+            base.Hide();
+        }
+
+        /// <summary>
+        /// Run own display updates
         /// </summary>
         protected override void UpdateDisplay()
         {
             base.UpdateDisplay();
-            updateView();
-            for(int i=0; i< CNCCommNetScenario.Instance.constellations.Count; i++)
-            {
-                Constellation thisConstellation = CNCCommNetScenario.Instance.constellations[i];
-                coloriseConstellationMember(thisConstellation.frequency, thisConstellation.color);
-            }
+            updateView();   
         }
 
         /// <summary>
-        /// Paint each member of the given constellation
+        /// Register own callbacks
         /// </summary>
-        private void coloriseConstellationMember(short radioFrequency, Color newColor)
+        protected void registerMapNodeIconCallbacks()
         {
-            List<CNCCommNetVessel> commnetVessels = CNCCommNetScenario.Instance.getCommNetVessels(radioFrequency);
+            List<CNCCommNetVessel> commnetVessels = CNCCommNetScenario.Instance.getCommNetVessels();
 
             for (int i = 0; i < commnetVessels.Count; i++)
             {
                 MapObject mapObj = commnetVessels[i].Vessel.mapObject;
 
-                if (mapObj.type == MapObject.ObjectType.Vessel) //TODO: hide vessels behind body (is it really useful?)
-                {
-                    Image thisImageIcon = mapObj.uiNode.GetComponentInChildren<Image>();
-                    thisImageIcon.color = newColor;
-                }
+                if (mapObj.type == MapObject.ObjectType.Vessel)
+                    mapObj.uiNode.OnUpdateVisible += new Callback<MapNode, MapNode.IconData>(this.OnMapNodeUpdateVisible);
+            }
+        }
+
+        /// <summary>
+        /// Remove own callbacks
+        /// </summary>
+        protected void deregisterMapNodeIconCallbacks()
+        {
+            List<CNCCommNetVessel> commnetVessels = CNCCommNetScenario.Instance.getCommNetVessels();
+
+            for (int i = 0; i < commnetVessels.Count; i++)
+            {
+                MapObject mapObj = commnetVessels[i].Vessel.mapObject;
+                mapObj.uiNode.OnUpdateVisible -= new Callback<MapNode, MapNode.IconData>(this.OnMapNodeUpdateVisible);
+            }
+        }
+
+        /// <summary>
+        /// Update the MapNode object of each CommNet vessel
+        /// </summary>
+        private void OnMapNodeUpdateVisible(MapNode node, MapNode.IconData iconData)
+        {
+            CNCCommNetVessel thisVessel = (CNCCommNetVessel) node.mapObject.vessel.connection;
+
+            if(thisVessel != null && node.mapObject.type == MapObject.ObjectType.Vessel)
+            {
+                iconData.color = Constellation.getColor(thisVessel.getFrequencies()[0]);//TODO: change this
             }
         }
 
