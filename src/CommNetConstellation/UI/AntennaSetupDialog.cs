@@ -23,7 +23,8 @@ namespace CommNetConstellation.UI
         private DialogGUIImage constellationColorImage;
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
 
-        public AntennaSetupDialog(string title, Vessel vessel, Part antennaPart) : base(title, 
+        public AntennaSetupDialog(string title, Vessel vessel, Part antennaPart) : base("cncAntennaWindow",
+                                                                                    title, 
                                                                                     0.5f, //x
                                                                                     0.5f, //y
                                                                                     250, //width

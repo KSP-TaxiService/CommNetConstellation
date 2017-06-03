@@ -88,8 +88,8 @@ namespace CommNetConstellation.CommNetLayer
             {
                 validateAndUpgrade(this.Vessel);
 
-                if (this.FrequencyDict.Count == 0) // empty list
-                    buildDefaultFrequencyList();
+                //if (this.FrequencyDict.Count == 0) // empty list
+                //    buildDefaultFrequencyList();
             }
             catch (Exception e)
             {
@@ -200,6 +200,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public List<short> getFrequencies()
         {
+            return new List<short>() { 0 };
             return this.FrequencyDict.Keys.ToList();
         }
 
@@ -247,7 +248,7 @@ namespace CommNetConstellation.CommNetLayer
                 return false;
             }
 
-            getFrequencies(rebuildFreqList);
+            getFrequencies();
 
             CNCLog.Debug("Update CommNet vessel '{0}''s frequency {1} to {2}", this.Vessel.GetName(), oldFrequency, newFrequency);
             return true;
