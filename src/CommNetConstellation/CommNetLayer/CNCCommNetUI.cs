@@ -83,7 +83,7 @@ namespace CommNetConstellation.CommNetLayer
 
             if(thisVessel != null && node.mapObject.type == MapObject.ObjectType.Vessel)
             {
-                iconData.color = Constellation.getColor(thisVessel.getFrequencies()[0]);//TODO: change this
+                iconData.color = Constellation.getColor(thisVessel.getRadioFrequency());//TODO: change this
             }
         }
 
