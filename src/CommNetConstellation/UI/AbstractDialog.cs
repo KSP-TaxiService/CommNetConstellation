@@ -263,10 +263,11 @@ namespace CommNetConstellation.UI
         protected void ReleaseInputLocks()
         {
             InputLockManager.RemoveControlLock("CNCLockStaging");
-            InputLockManager.RemoveControlLock("CNCLockSAS");
-            InputLockManager.RemoveControlLock("CNCLockRCS");
+            //InputLockManager.RemoveControlLock("CNCLockSAS");
+            //InputLockManager.RemoveControlLock("CNCLockRCS");
             InputLockManager.RemoveControlLock("CNCLockActions");
-            InputLockManager.RemoveControlLock("CNCLockMap");
+            //InputLockManager.RemoveControlLock("CNCLockMap");
+            InputLockManager.RemoveControlLock("CNCLockKeyboard");
         }
 
         /// <summary>
@@ -276,10 +277,11 @@ namespace CommNetConstellation.UI
         protected void GetInputLocks()
         {
             InputLockManager.SetControlLock(ControlTypes.STAGING, "CNCLockStaging");
-            InputLockManager.SetControlLock(ControlTypes.SAS, "CNCLockSAS");
-            InputLockManager.SetControlLock(ControlTypes.RCS, "CNCLockRCS");
+            //InputLockManager.SetControlLock(ControlTypes.SAS, "CNCLockSAS");
+            //InputLockManager.SetControlLock(ControlTypes.RCS, "CNCLockRCS");
             InputLockManager.SetControlLock(ControlTypes.GROUPS_ALL, "CNCLockActions");
-            InputLockManager.SetControlLock(ControlTypes.MAP, "CNCLockMap");
+            //InputLockManager.SetControlLock(ControlTypes.MAP, "CNCLockMap");
+            InputLockManager.SetControlLock(ControlTypes.KEYBOARDINPUT, "CNCLockKeyboard");
         }
     }
 }

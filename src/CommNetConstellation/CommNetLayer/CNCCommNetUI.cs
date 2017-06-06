@@ -85,7 +85,14 @@ namespace CommNetConstellation.CommNetLayer
 
             if(thisVessel != null && node.mapObject.type == MapObject.ObjectType.Vessel)
             {
-                iconData.color = Constellation.getColor(thisVessel.getFrequencies()[0]);//TODO: change this
+                if (thisVessel.getStrongestFrequency() < 0) // blind vessel
+                {
+                    iconData.color = Color.grey;
+                }
+                else
+                {
+                    iconData.color = Constellation.getColor(thisVessel.getStrongestFrequency());
+                }
             }
         }
 
@@ -99,7 +106,14 @@ namespace CommNetConstellation.CommNetLayer
             if (commonFreqs.Count() == 0)
                 return Constellation.getColor(CNCSettings.Instance.PublicRadioFrequency); // default
 
-            return Constellation.getColor(commonFreqs.ElementAt(0)); //TODO: replace this
+            short strongestFreq = commonFreqs.ElementAt(0);
+            int longestRange = 0;
+            for(int i = 1; i < commonFreqs.Count(); i++)
+            {
+                //if() //TODO:  Finish this
+            }
+
+            return Constellation.getColor(strongestFreq); 
         }
 
         /// <summary>
