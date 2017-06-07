@@ -1,5 +1,6 @@
 ﻿using CommNet;
 using CommNetConstellation.UI;
+using Smooth.Algebraics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,9 +59,13 @@ namespace CommNetConstellation.CommNetLayer
     /// <summary>
     /// Data structure for a CommNetVessel
     /// </summary>
-    public class CNCCommNetVessel : CommNetVessel
+    public class CNCCommNetVessel : CommNetVessel, IPersistenceSave, IPersistenceLoad
     {
-        [Persistent(collectionIndex = "Frequency")] private Dictionary<short, double> FrequencyDict = new Dictionary<short, double>();
+        //http://forum.kerbalspaceprogram.com/index.php?/topic/141574-kspfield-questions/&do=findComment&comment=2625815
+        // cannot be serialized
+        protected Dictionary<short, double> FrequencyDict = new Dictionary<short, double>();
+        [Persistent] private List<short> FreqDictionaryKeys = new List<short>();
+        [Persistent] private List<double> FreqDictionaryValues = new List<double>();
 
         private short strongestFreq = -1;
         private List<CNCAntennaPartInfo> vesselAntennas = new List<CNCAntennaPartInfo>();
@@ -71,7 +76,7 @@ namespace CommNetConstellation.CommNetLayer
         protected override void OnNetworkInitialized()
         {
             base.OnNetworkInitialized();
-
+            
             try
             {
                 validateAndUpgrade(this.Vessel);
@@ -173,11 +178,11 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected Dictionary<short, double> buildFrequencyList(List<CNCAntennaPartInfo> antennas)
         {
-            Dictionary<short, double> freqDict = new Dictionary<short, double>(); 
+            Dictionary<short, double> freqDict = new Dictionary<short, double>();
+            Dictionary<short, double[]> powerDict = new Dictionary<short, double[]>();
 
             const int COMINDEX = 0;
             const int MAXINDEX = 1;
-            Dictionary<short, double[]> powerDict = new Dictionary<short, double[]>();
 
             //read each antenna
             for(int i=0; i<antennas.Count; i++)
@@ -253,6 +258,14 @@ namespace CommNetConstellation.CommNetLayer
         }
 
         /// <summary>
+        /// Independent-implementation information on all antennas of the vessel
+        /// </summary>
+        public List<CNCAntennaPartInfo> getAntennaInfo()
+        {
+            return this.vesselAntennas;
+        }
+
+        /// <summary>
         /// Rename the vessel's one antenna
         /// </summary>
         public bool updateAntennaName(string newName, bool rebuildAntennaList = false)
@@ -309,63 +322,69 @@ namespace CommNetConstellation.CommNetLayer
         {
             if (thisVessel == null)
                 return;
+            if (thisVessel.loaded) // it seems KSP will automatically add/upgrade the active vessel (unconfirmed)
+                return;
 
-            if (!thisVessel.loaded) // it seems KSP will automatically add/upgrade the active vessel (unconfirmed)
+            CNCLog.Debug("Unloaded CommNet vessel '{0}' is validated and upgraded", thisVessel.GetName());
+
+            List<ProtoPartSnapshot> parts = thisVessel.protoVessel.protoPartSnapshots;
+            for (int i = 0; i < parts.Count; i++)
             {
-                CNCLog.Debug("Unloaded CommNet vessel '{0}' is validated and upgraded", thisVessel.GetName());
-
-                List<ProtoPartSnapshot> parts = thisVessel.protoVessel.protoPartSnapshots;
-                for (int i = 0; i < parts.Count; i++)
+                if (parts[i].FindModule("ModuleCommand") != null) // check command parts only
                 {
-                    if (parts[i].FindModule("ModuleCommand") != null) // check command parts only
+                    ProtoPartModuleSnapshot cncModule;
+                    if ((cncModule = parts[i].FindModule("CNConstellationModule")) == null) //check if CNConstellationModule is there
                     {
-                        ProtoPartModuleSnapshot cncModule;
-                        if ((cncModule = parts[i].FindModule("CNConstellationModule")) == null) //check if CNConstellationModule is there
-                        {
-                            CNConstellationModule realcncModule = gameObject.AddComponent<CNConstellationModule>(); // don't use new keyword. PartModule is Monobehavior
-                            parts[i].modules.Add(new ProtoPartModuleSnapshot(realcncModule));
+                        CNConstellationModule realcncModule = gameObject.AddComponent<CNConstellationModule>(); // don't use new keyword. PartModule is Monobehavior
+                        parts[i].modules.Add(new ProtoPartModuleSnapshot(realcncModule));
 
-                            CNCLog.Verbose("CNConstellationModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
-                        }
-                        else //check if all attributes are or should not be there
-                        {
-                            if (cncModule.moduleValues.HasValue("radioFrequency")) //obsolete
-                                cncModule.moduleValues.RemoveValue("radioFrequency");
-
-                            if (cncModule.moduleValues.HasValue("communicationMembershipFlag")) //obsolete
-                                cncModule.moduleValues.RemoveValue("communicationMembershipFlag");
-                        }
+                        CNCLog.Verbose("CNConstellationModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
                     }
-
-                    if (parts[i].FindModule("ModuleDataTransmitter") != null) // check antennas, probe cores and manned cockpits
+                    else //check if all attributes are or should not be there
                     {
-                        ProtoPartModuleSnapshot cncModule;
-                        if ((cncModule = parts[i].FindModule("CNConstellationAntennaModule")) == null) //check if CNConstellationAntennaModule is there
-                        {
-                            CNConstellationAntennaModule realcncModule = gameObject.AddComponent<CNConstellationAntennaModule>(); // don't use new keyword. PartModule is Monobehavior
-                            parts[i].modules.Add(new ProtoPartModuleSnapshot(realcncModule));
+                        if (cncModule.moduleValues.HasValue("radioFrequency")) //obsolete
+                            cncModule.moduleValues.RemoveValue("radioFrequency");
 
-                            CNCLog.Verbose("CNConstellationAntennaModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
-                        }
+                        if (cncModule.moduleValues.HasValue("communicationMembershipFlag")) //obsolete
+                            cncModule.moduleValues.RemoveValue("communicationMembershipFlag");
                     }
                 }
-            }
+
+                if (parts[i].FindModule("ModuleDataTransmitter") != null) // check antennas, probe cores and manned cockpits
+                {
+                    ProtoPartModuleSnapshot cncModule;
+                    if ((cncModule = parts[i].FindModule("CNConstellationAntennaModule")) == null) //check if CNConstellationAntennaModule is there
+                    {
+                        CNConstellationAntennaModule realcncModule = gameObject.AddComponent<CNConstellationAntennaModule>(); // don't use new keyword. PartModule is Monobehavior
+                        parts[i].modules.Add(new ProtoPartModuleSnapshot(realcncModule));
+
+                        CNCLog.Verbose("CNConstellationAntennaModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
+                    }
+                }
+            } // end of part loop
         }
 
-        /// <summary>
-        /// Independent-implemenation number of antennas detected
-        /// </summary>
-        public int getNumberAntennas()
+        protected override void OnSave(ConfigNode gameNode)
         {
-            return this.vesselAntennas.Count;
+            base.OnSave(gameNode);
+            gameNode.AddNode(ConfigNode.CreateConfigFromObject(this));
         }
 
-        /// <summary>
-        /// Independent-implementation inforamtion on specific antenna
-        /// </summary>
-        public CNCAntennaPartInfo getAntennaInfo(int index)
+        protected override void OnLoad(ConfigNode gameNode)
         {
-            return this.vesselAntennas[index];
+            base.OnLoad(gameNode);
+            ConfigNode.LoadObjectFromConfig(this, gameNode.GetNode(GetType().FullName));
+        }
+
+        public void PersistenceSave()
+        {
+            FreqDictionaryKeys = FrequencyDict.Keys.ToList();
+            FreqDictionaryValues = FrequencyDict.Values.ToList();
+        }
+
+        public void PersistenceLoad()
+        {
+            FrequencyDict = Enumerable.Range(0, FreqDictionaryKeys.Count).ToDictionary(idx => FreqDictionaryKeys[idx], idx => FreqDictionaryValues[idx]);
         }
     }
 }

@@ -112,15 +112,16 @@ namespace CommNetConstellation.UI
             CNCCommNetVessel cncVessel = (CNCCommNetVessel)this.hostVessel.Connection;
 
             List<DialogGUIBase> layout = new List<DialogGUIBase>();
+            List<CNCAntennaPartInfo> antennas = cncVessel.getAntennaInfo();
 
             DialogGUIVerticalLayout antennaColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
             DialogGUIVerticalLayout comPowerColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
             DialogGUIVerticalLayout frequencyColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
             DialogGUIVerticalLayout combinableColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
 
-            for (int i = 0; i < cncVessel.getNumberAntennas(); i++)
+            for (int i = 0; i < antennas.Count(); i++)
             {
-                CNCAntennaPartInfo antennaInfo = cncVessel.getAntennaInfo(i);
+                CNCAntennaPartInfo antennaInfo = antennas[i];
                 int antennaIndex = i; // antennaModules.Count doesn't work due to the compiler optimization
 
                 DialogGUIToggle toggleBtn = new DialogGUIToggle(false, antennaInfo.name, delegate (bool b) { vesselAntennaSelected(b, antennaIndex); }, 170, 32);
