@@ -86,13 +86,9 @@ namespace CommNetConstellation.CommNetLayer
             if(thisVessel != null && node.mapObject.type == MapObject.ObjectType.Vessel)
             {
                 if (thisVessel.getStrongestFrequency() < 0) // blind vessel
-                {
                     iconData.color = Color.grey;
-                }
                 else
-                {
                     iconData.color = Constellation.getColor(thisVessel.getStrongestFrequency());
-                }
             }
         }
 
@@ -101,16 +97,23 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         private Color getConstellationColor(CommNode a, CommNode b)
         {
-           IEnumerable<short> commonFreqs = CNCCommNetScenario.Instance.getFrequencies(a).Intersect(CNCCommNetScenario.Instance.getFrequencies(b));
+            //Assume the connection between A and B passes the check test
+            IEnumerable<short> commonFreqs = CNCCommNetScenario.Instance.getFrequencies(a).Intersect(CNCCommNetScenario.Instance.getFrequencies(b));
 
-            if (commonFreqs.Count() == 0)
-                return Constellation.getColor(CNCSettings.Instance.PublicRadioFrequency); // default
+            IRangeModel rangeModel = CNCCommNetScenario.RangeModel;
+            short strongestFreq = -1;
+            double longestRange = 0.0;
 
-            short strongestFreq = commonFreqs.ElementAt(0);
-            int longestRange = 0;
-            for(int i = 1; i < commonFreqs.Count(); i++)
+            for (int i = 0; i < commonFreqs.Count(); i++)
             {
-                //if() //TODO:  Finish this
+                short thisFreq = commonFreqs.ElementAt(i);
+                double thisRange = rangeModel.GetMaximumRange(CNCCommNetScenario.Instance.getCommPower(a, thisFreq), CNCCommNetScenario.Instance.getCommPower(b, thisFreq));
+
+                if(thisRange > longestRange)
+                {
+                    longestRange = thisRange;
+                    strongestFreq = thisFreq;
+                }
             }
 
             return Constellation.getColor(strongestFreq); 

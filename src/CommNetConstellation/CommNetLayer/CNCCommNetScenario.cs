@@ -309,5 +309,24 @@ namespace CommNetConstellation.CommNetLayer
 
             return aFreqs;
         }
+
+        /// <summary>
+        /// Convenient method to obtain Comm Power of given frequency from a given CommNode
+        /// </summary>
+        public double getCommPower(CommNode a, short frequency)
+        {
+            double power = 0.0;
+
+            if (a.isHome && findCorrespondingGroundStation(a) != null)
+            {
+                power = a.antennaRelay.power;
+            }
+            else
+            {
+                power = ((CNCCommNetVessel)findCorrespondingVessel(a).Connection).getMaxComPower(frequency);
+            }
+
+            return power;
+        }
     }
 }

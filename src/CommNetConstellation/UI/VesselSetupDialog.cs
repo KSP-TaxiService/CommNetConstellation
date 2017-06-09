@@ -76,9 +76,9 @@ namespace CommNetConstellation.UI
             //tools
             listComponments.Add(new DialogGUILabel("\n<b>Management tools</b>", false, false));
             //Button tabs
-            DialogGUIButton deactButton = new DialogGUIButton("Antennas", delegate { displayContent(ToolNames.DEACT_ANTENNAS); }, false);
-            DialogGUIButton nothingButton = new DialogGUIButton("Coming soon", delegate { }, false);
-            DialogGUIHorizontalLayout tabbedButtonRow = new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { deactButton, nothingButton, new DialogGUIFlexibleSpace() });
+            DialogGUIButton deactButton = new DialogGUIButton("Antennas", delegate { displayContent(ToolNames.DEACT_ANTENNAS); }, 40, 32, false);
+            DialogGUILabel comingSoonLabel = new DialogGUILabel("More coming tools soon!");
+            DialogGUIHorizontalLayout tabbedButtonRow = new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { deactButton, new DialogGUISpace(3), comingSoonLabel, new DialogGUIFlexibleSpace() });
             listComponments.Add(tabbedButtonRow);
 
             //Tool content
@@ -90,13 +90,14 @@ namespace CommNetConstellation.UI
 
         private DialogGUIHorizontalLayout createFrequencyRow(short freq)
         {
+            CNCCommNetVessel cncVessel = (CNCCommNetVessel)this.hostVessel.Connection;
             Color color = Constellation.getColor(freq);
             string name = Constellation.getName(freq);
 
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, color, colorTexture);
             DialogGUILabel nameLabel = new DialogGUILabel(name, 150, 12);
             DialogGUILabel eachFreqLabel = new DialogGUILabel(string.Format("(<color={0}>{1}</color>)", UIUtils.colorToHex(color), freq), 20, 12);
-            DialogGUILabel freqPowerLabel = new DialogGUILabel(string.Format("Combined Comm Power: {0}", UIUtils.RoundToNearestMetricFactor(1234)), 150, 12);//TODO: do the comm power combination
+            DialogGUILabel freqPowerLabel = new DialogGUILabel(string.Format("Combined Comm Power: {0}", UIUtils.RoundToNearestMetricFactor(cncVessel.getMaxComPower(freq))), 150, 12);
             return new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { colorImage, nameLabel, eachFreqLabel, freqPowerLabel });
         }
 

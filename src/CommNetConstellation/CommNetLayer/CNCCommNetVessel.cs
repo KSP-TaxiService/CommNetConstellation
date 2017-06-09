@@ -53,7 +53,7 @@ namespace CommNetConstellation.CommNetLayer
         public double antennaCombinableExponent;
         public bool antennaCombinable;
         public AntennaType antennaType;
-        //public uint GUID; //to be determined later
+        public uint GUID;
     }
 
     /// <summary>
@@ -114,7 +114,8 @@ namespace CommNetConstellation.CommNetLayer
                     thisPart = partSnapshot.partInfo.partPrefab;
                 }
 
-                CNCAntennaPartInfo newAntennaPartInfo = null;
+                bool populatedAntennaInfo = false;
+                CNCAntennaPartInfo newAntennaPartInfo = new CNCAntennaPartInfo(); ;
                 ProtoPartModuleSnapshot partModuleSnapshot = null;
 
                 //inspect each module of the part
@@ -124,49 +125,41 @@ namespace CommNetConstellation.CommNetLayer
 
                     if (thisPartModule is CNConstellationAntennaModule) // is it CNConstellationAntennaModule?
                     {
-                        string name="";
-                        short freq = 0;
-
                         if (!this.Vessel.loaded)
                         {
                             partModuleSnapshot = partSnapshot.FindModule(thisPartModule, moduleIndex);
-                            freq = short.Parse(partModuleSnapshot.moduleValues.GetValue("Frequency"));
+
+                            newAntennaPartInfo.frequency = short.Parse(partModuleSnapshot.moduleValues.GetValue("Frequency"));
                             string oname = partModuleSnapshot.moduleValues.GetValue("OptionalName");
-                            name = (oname.Length == 0) ? partSnapshot.partInfo.title : oname;
+                            newAntennaPartInfo.name = (oname.Length == 0) ? partSnapshot.partInfo.title : oname;
                         }
                         else
                         {
                             CNConstellationAntennaModule antennaMod = (CNConstellationAntennaModule)thisPartModule;
-                            freq = antennaMod.Frequency;
-                            name = antennaMod.Name;
+                            newAntennaPartInfo.frequency = antennaMod.Frequency;
+                            newAntennaPartInfo.name = antennaMod.Name;
                         }
 
-                        if (newAntennaPartInfo == null)
-                            newAntennaPartInfo = new CNCAntennaPartInfo();
-
-                        newAntennaPartInfo.frequency = freq;
-                        newAntennaPartInfo.name = name;
+                        populatedAntennaInfo = true;
                     }
                     else if (thisPartModule is ICommAntenna) // is it ModuleDataTransmitter?
                     {
                         ICommAntenna thisAntenna = thisPartModule as ICommAntenna;
 
                         if (!this.Vessel.loaded)
-                        {
                             partModuleSnapshot = partSnapshot.FindModule(thisPartModule, moduleIndex);
-                        }
-
-                        if (newAntennaPartInfo == null)
-                            newAntennaPartInfo = new CNCAntennaPartInfo();
 
                         newAntennaPartInfo.antennaPower = (!this.vessel.loaded) ? thisAntenna.CommPowerUnloaded(partModuleSnapshot) : thisAntenna.CommPower;
                         newAntennaPartInfo.antennaCombinable = thisAntenna.CommCombinable;
                         newAntennaPartInfo.antennaCombinableExponent = thisAntenna.CommCombinableExponent;
                         newAntennaPartInfo.antennaType = thisAntenna.CommType;
+                        newAntennaPartInfo.GUID = thisPart.craftID; // good enough
+
+                        populatedAntennaInfo = true;
                     }
                 }
 
-                if(newAntennaPartInfo != null) // valid info?
+                if(populatedAntennaInfo) // valid info?
                     antennas.Add(newAntennaPartInfo);
             }
 
@@ -191,9 +184,10 @@ namespace CommNetConstellation.CommNetLayer
                     powerDict.Add(antennas[i].frequency, new double[] { 0.0, 0.0 });
 
                 if (antennas[i].antennaCombinable)
-                    powerDict[antennas[i].frequency][COMINDEX] += antennas[i].antennaCombinableExponent * antennas[i].antennaPower;
+                    powerDict[antennas[i].frequency][COMINDEX] += (powerDict[antennas[i].frequency][COMINDEX]==0.0) ? antennas[i].antennaPower : antennas[i].antennaCombinableExponent * antennas[i].antennaPower;
                 else
                     powerDict[antennas[i].frequency][MAXINDEX] = Math.Max(powerDict[antennas[i].frequency][MAXINDEX], antennas[i].antennaPower);
+                CNCLog.Debug(antennas[i].GUID+"");
             }
 
             //consolidate into vessel's list of frequencies and their com powers
@@ -227,10 +221,18 @@ namespace CommNetConstellation.CommNetLayer
         /// <summary>
         /// Get the frequency of the largest Com Power
         /// </summary>
-        public short getStrongestFrequency()
+        public short getStrongestFrequency(bool rebuildFreqList = false)
         {
-            if (this.strongestFreq < 0)
+            if (rebuildFreqList)
+            {
+                this.vesselAntennas = retrieveAllAntennas();
+                this.FrequencyDict = buildFrequencyList(vesselAntennas);
                 this.strongestFreq = computeStrongestFrequency();
+            }
+            else if (this.strongestFreq < 0)
+            {
+                this.strongestFreq = computeStrongestFrequency();
+            }
 
             return this.strongestFreq;
         }
@@ -258,61 +260,48 @@ namespace CommNetConstellation.CommNetLayer
         }
 
         /// <summary>
-        /// Independent-implementation information on all antennas of the vessel
+        /// Update the unloaded vessel's one frequency
         /// </summary>
-        public List<CNCAntennaPartInfo> getAntennaInfo()
-        {
-            return this.vesselAntennas;
-        }
-
-        /// <summary>
-        /// Rename the vessel's one antenna
-        /// </summary>
-        public bool updateAntennaName(string newName, bool rebuildAntennaList = false)
-        {
-            return false;//TODO: finish this
-        }
-
-        /// <summary>
-        /// Update the vessel's one antenna in frequency
-        /// </summary>
-        public bool updateAntennaFrequency(short oldFrequency, short newFrequency, bool rebuildFreqList = false)
+        public bool updateUnloadedFrequency(short oldFrequency, short newFrequency, bool rebuildFreqList = false)
         {
             try
             {
                 if (!Constellation.isFrequencyValid(newFrequency))
                     throw new Exception(string.Format("The new frequency {0} is out of the range [0,{1}]!", newFrequency, short.MaxValue));
 
-                /*
-                //TODO: change this
-                if (this.Vessel.loaded)
+                if(this.Vessel.loaded)
+                    throw new Exception("Updating an active vessel through updateUnloadedFrequency() is disallowed.");
+
+                for (int i = 0; i < this.vessel.protoVessel.protoPartSnapshots.Count; i++)
                 {
-                    for (int i = 0; i < loadedAntennaList.Count; i++)
+                    ProtoPartSnapshot part = this.vessel.protoVessel.protoPartSnapshots[i];
+                    ProtoPartModuleSnapshot cncAntMod;
+
+                    if ((cncAntMod = part.FindModule("CNConstellationAntennaModule")) != null)
                     {
-                        if (loadedAntennaList[i].Frequency == oldFrequency)
-                            loadedAntennaList[i].Frequency = newFrequency;
+                        if (short.Parse(cncAntMod.moduleValues.GetValue("Frequency")) == oldFrequency)
+                            cncAntMod.moduleValues.SetValue("Frequency", newFrequency);
                     }
                 }
-                else
-                {
-                    for (int i = 0; i < protoAntennaList.Count; i++)
-                    {
-                        if (short.Parse(protoAntennaList[i].moduleValues.GetValue("Frequency")) == oldFrequency)
-                            protoAntennaList[i].moduleValues.SetValue("Frequency", newFrequency);
-                    }
-                }
-                */
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                CNCLog.Error("Error encounted when updating CommNet vessel '{0}''s frequency {2} to {3}: {1}", this.Vessel.GetName() , e.Message, oldFrequency, newFrequency);
+                CNCLog.Error("Error encounted when updating CommNet vessel '{0}''s frequency {2} to {3}: {1}", this.Vessel.GetName(), e.Message, oldFrequency, newFrequency);
                 return false;
             }
 
-            getFrequencies();
+            getStrongestFrequency(true);
 
             CNCLog.Debug("Update CommNet vessel '{0}''s frequency {1} to {2}", this.Vessel.GetName(), oldFrequency, newFrequency);
             return true;
+        }
+
+        /// <summary>
+        /// Independent-implementation information on all antennas of the vessel
+        /// </summary>
+        public List<CNCAntennaPartInfo> getAntennaInfo()
+        {
+            return this.vesselAntennas;
         }
 
         /// <summary>

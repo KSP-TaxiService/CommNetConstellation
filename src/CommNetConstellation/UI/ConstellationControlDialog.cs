@@ -232,7 +232,7 @@ namespace CommNetConstellation.UI
                 List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(deletedConstellation.frequency));
                 for (int i = 0; i < affectedVessels.Count; i++)
                 {
-                    affectedVessels[i].updateAntennaFrequency(deletedConstellation.frequency, publicFrequency);
+                    affectedVessels[i].updateUnloadedFrequency(deletedConstellation.frequency, publicFrequency);
                     updateVesselGUIRow(affectedVessels[i].Vessel);
                 }
 
@@ -293,7 +293,7 @@ namespace CommNetConstellation.UI
 
             DialogGUILabel sortLabel = new DialogGUILabel("Sort by");
             DialogGUIButton launchSortBtn = new DialogGUIButton("Launch time", delegate { currentVesselSort = VesselListSort.LAUNCHDATE; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
-            DialogGUIButton freqSortBtn = new DialogGUIButton("Frequency list", delegate { currentVesselSort = VesselListSort.RADIOFREQ; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
+            DialogGUIButton freqSortBtn = new DialogGUIButton("Strongest frequency", delegate { currentVesselSort = VesselListSort.RADIOFREQ; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
             DialogGUIButton nameSortBtn = new DialogGUIButton("Vessel name", delegate { currentVesselSort = VesselListSort.VESSELNAME; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
             DialogGUIButton bodySortBtn = new DialogGUIButton("Celestial body", delegate { currentVesselSort = VesselListSort.CBODY; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
             vesselComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { sortLabel, launchSortBtn, freqSortBtn, nameSortBtn, bodySortBtn }));
@@ -382,7 +382,7 @@ namespace CommNetConstellation.UI
             switch (currentVesselSort)
             {
                 case VesselListSort.RADIOFREQ:
-                    sortedVessels = allVessels.OrderBy(x => x.getFrequencies()); //TODO: sort frequency list naively?
+                    sortedVessels = allVessels.OrderBy(x => x.getStrongestFrequency());
                     break;
                 case VesselListSort.VESSELNAME:
                     sortedVessels = allVessels.OrderBy(x => x.Vessel.GetName());

@@ -27,7 +27,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
-            List<short> aFreqs, bFreqs;
+            List<short> aFreqs, bFreqs;//TODO: Revise this
 
             try
             {
