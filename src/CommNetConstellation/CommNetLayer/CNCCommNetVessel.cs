@@ -183,7 +183,7 @@ namespace CommNetConstellation.CommNetLayer
                 if(!powerDict.ContainsKey(antennas[i].frequency))//not found
                     powerDict.Add(antennas[i].frequency, new double[] { 0.0, 0.0 });
 
-                if (antennas[i].antennaCombinable)
+                if (antennas[i].antennaCombinable) // TODO: revise to best antenna power * (total power / best power) * avg(all expo)
                     powerDict[antennas[i].frequency][COMINDEX] += (powerDict[antennas[i].frequency][COMINDEX]==0.0) ? antennas[i].antennaPower : antennas[i].antennaCombinableExponent * antennas[i].antennaPower;
                 else
                     powerDict[antennas[i].frequency][MAXINDEX] = Math.Max(powerDict[antennas[i].frequency][MAXINDEX], antennas[i].antennaPower);
@@ -316,53 +316,62 @@ namespace CommNetConstellation.CommNetLayer
 
             CNCLog.Debug("Unloaded CommNet vessel '{0}' is validated and upgraded", thisVessel.GetName());
 
-            List<ProtoPartSnapshot> parts = thisVessel.protoVessel.protoPartSnapshots;
-            for (int i = 0; i < parts.Count; i++)
+            if (thisVessel.protoVessel != null)
             {
-                if (parts[i].FindModule("ModuleCommand") != null) // check command parts only
+                List<ProtoPartSnapshot> parts = thisVessel.protoVessel.protoPartSnapshots;
+                for (int i = 0; i < parts.Count; i++)
                 {
-                    ProtoPartModuleSnapshot cncModule;
-                    if ((cncModule = parts[i].FindModule("CNConstellationModule")) == null) //check if CNConstellationModule is there
+                    if (parts[i].FindModule("ModuleCommand") != null) // check command parts only
                     {
-                        CNConstellationModule realcncModule = gameObject.AddComponent<CNConstellationModule>(); // don't use new keyword. PartModule is Monobehavior
-                        parts[i].modules.Add(new ProtoPartModuleSnapshot(realcncModule));
+                        ProtoPartModuleSnapshot cncModule;
+                        if ((cncModule = parts[i].FindModule("CNConstellationModule")) == null) //check if CNConstellationModule is there
+                        {
+                            CNConstellationModule realcncModule = gameObject.AddComponent<CNConstellationModule>(); // don't use new keyword. PartModule is Monobehavior
+                            parts[i].modules.Add(new ProtoPartModuleSnapshot(realcncModule));
 
-                        CNCLog.Verbose("CNConstellationModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
+                            CNCLog.Verbose("CNConstellationModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
+                        }
+                        else //check if all attributes are or should not be there
+                        {
+                            if (cncModule.moduleValues.HasValue("radioFrequency")) //obsolete
+                                cncModule.moduleValues.RemoveValue("radioFrequency");
+
+                            if (cncModule.moduleValues.HasValue("communicationMembershipFlag")) //obsolete
+                                cncModule.moduleValues.RemoveValue("communicationMembershipFlag");
+                        }
                     }
-                    else //check if all attributes are or should not be there
+
+                    if (parts[i].FindModule("ModuleDataTransmitter") != null) // check antennas, probe cores and manned cockpits
                     {
-                        if (cncModule.moduleValues.HasValue("radioFrequency")) //obsolete
-                            cncModule.moduleValues.RemoveValue("radioFrequency");
+                        ProtoPartModuleSnapshot cncModule;
+                        if ((cncModule = parts[i].FindModule("CNConstellationAntennaModule")) == null) //check if CNConstellationAntennaModule is there
+                        {
+                            CNConstellationAntennaModule realcncModule = gameObject.AddComponent<CNConstellationAntennaModule>(); // don't use new keyword. PartModule is Monobehavior
+                            parts[i].modules.Add(new ProtoPartModuleSnapshot(realcncModule));
 
-                        if (cncModule.moduleValues.HasValue("communicationMembershipFlag")) //obsolete
-                            cncModule.moduleValues.RemoveValue("communicationMembershipFlag");
+                            CNCLog.Verbose("CNConstellationAntennaModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
+                        }
                     }
-                }
-
-                if (parts[i].FindModule("ModuleDataTransmitter") != null) // check antennas, probe cores and manned cockpits
-                {
-                    ProtoPartModuleSnapshot cncModule;
-                    if ((cncModule = parts[i].FindModule("CNConstellationAntennaModule")) == null) //check if CNConstellationAntennaModule is there
-                    {
-                        CNConstellationAntennaModule realcncModule = gameObject.AddComponent<CNConstellationAntennaModule>(); // don't use new keyword. PartModule is Monobehavior
-                        parts[i].modules.Add(new ProtoPartModuleSnapshot(realcncModule));
-
-                        CNCLog.Verbose("CNConstellationAntennaModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
-                    }
-                }
-            } // end of part loop
+                } // end of part loop
+            }
         }
 
         protected override void OnSave(ConfigNode gameNode)
         {
             base.OnSave(gameNode);
+
+            if (gameNode.HasNode(GetType().FullName))
+                gameNode.RemoveNode(GetType().FullName);
+
             gameNode.AddNode(ConfigNode.CreateConfigFromObject(this));
         }
 
         protected override void OnLoad(ConfigNode gameNode)
         {
             base.OnLoad(gameNode);
-            ConfigNode.LoadObjectFromConfig(this, gameNode.GetNode(GetType().FullName));
+
+            if(gameNode.HasNode(GetType().FullName))
+                ConfigNode.LoadObjectFromConfig(this, gameNode.GetNode(GetType().FullName));
         }
 
         public void PersistenceSave()

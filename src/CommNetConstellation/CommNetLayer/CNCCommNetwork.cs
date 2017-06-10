@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -27,8 +28,9 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
-            List<short> aFreqs, bFreqs;//TODO: Revise this
+            List<short> aFreqs, bFreqs;
 
+            //each CommNode has at least frequency?
             try
             {
                 aFreqs = CNCCommNetScenario.Instance.getFrequencies(a);
@@ -40,8 +42,28 @@ namespace CommNetConstellation.CommNetLayer
                 return false;
             }
 
-            int numCommonElements = aFreqs.Intersect(bFreqs).Count();
-            if (numCommonElements == 0) // no common element in two arrays
+            //share same frequency?
+            IEnumerable<short> commonFreqs = aFreqs.Intersect(bFreqs);
+            if (commonFreqs.Count() == 0) // no common element in two arrays
+            {
+                this.Disconnect(a, b, true);
+                return false;
+            }
+
+            IRangeModel rangeModel = CNCCommNetScenario.RangeModel;
+            double longestRange = 0.0;
+
+            for (int i = 0; i < commonFreqs.Count(); i++)
+            {
+                short thisFreq = commonFreqs.ElementAt(i);
+                double thisRange = rangeModel.GetMaximumRange(CNCCommNetScenario.Instance.getCommPower(a, thisFreq), CNCCommNetScenario.Instance.getCommPower(b, thisFreq));
+
+                if (thisRange > longestRange)
+                    longestRange = thisRange;
+            }
+
+            //max range equal or exceed physical distance?
+            if (longestRange < Vector3.Distance(a.precisePosition, b.precisePosition))
             {
                 this.Disconnect(a, b, true);
                 return false;
