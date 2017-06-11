@@ -35,6 +35,8 @@ namespace CommNetConstellation.CommNetLayer
             set { this.OptionalName = value; }
         }
 
+        //TODO: auto-detect if antenna is deployed or retracted
+
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "CNC: Antenna Setup", active = true)]
         public void KSPEventAntennaConfig()
         {
@@ -61,11 +63,19 @@ namespace CommNetConstellation.CommNetLayer
     /// </summary>
     public class CNCCommNetVessel : CommNetVessel, IPersistenceSave, IPersistenceLoad
     {
+        public enum FrequencyListOperation
+        {
+            AutoBuild,
+            LockList,
+            UpdateOnly
+        };
+
         //http://forum.kerbalspaceprogram.com/index.php?/topic/141574-kspfield-questions/&do=findComment&comment=2625815
         // cannot be serialized
         protected Dictionary<short, double> FrequencyDict = new Dictionary<short, double>();
         [Persistent] private List<short> FreqDictionaryKeys = new List<short>();
         [Persistent] private List<double> FreqDictionaryValues = new List<double>();
+        [Persistent] public FrequencyListOperation FreqListOperation = FrequencyListOperation.AutoBuild; // initial value
 
         private short strongestFreq = -1;
         private List<CNCAntennaPartInfo> vesselAntennas = new List<CNCAntennaPartInfo>();
@@ -81,8 +91,12 @@ namespace CommNetConstellation.CommNetLayer
             {
                 validateAndUpgrade(this.Vessel);
                 this.vesselAntennas = retrieveAllAntennas();
-                this.FrequencyDict = buildFrequencyList(vesselAntennas);
-                getStrongestFrequency();
+
+                if (this.FreqListOperation == FrequencyListOperation.AutoBuild)
+                {
+                    this.FrequencyDict = buildFrequencyList(vesselAntennas);
+                    getStrongestFrequency();
+                }
             }
             catch (Exception e)
             {
@@ -257,6 +271,22 @@ namespace CommNetConstellation.CommNetLayer
                 CNCLog.Error("No frequency found on this vessel '{0}'", this.Vessel.vesselName);
 
             return freq;
+        }
+
+        /// <summary>
+        /// Notify CommNet vessel on antenna change (like changing frequency and deploy/retract antenna)
+        /// </summary>
+        public void OnAntennaChange(uint GUID, bool antennaDeployment, short newFrequency = -1)
+        {
+            switch(this.FreqListOperation)
+            {
+                case FrequencyListOperation.AutoBuild:
+                    this.vesselAntennas = retrieveAllAntennas();
+                    this.FrequencyDict = buildFrequencyList(vesselAntennas);
+                    getStrongestFrequency();
+                    break;
+            }
+            //TODO: finish this
         }
 
         /// <summary>
