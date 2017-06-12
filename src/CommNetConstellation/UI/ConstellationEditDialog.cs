@@ -97,44 +97,7 @@ namespace CommNetConstellation.UI
         /// </summary>
         private string setConstellFreq(string newFreqStr)
         {
-            try
-            {
-                try // input checks
-                {
-                    short newFreq = short.Parse(newFreqStr);
-
-                    if (this.existingConstellation != null)
-                    {
-                        if (this.existingConstellation.frequency == CNCSettings.Instance.PublicRadioFrequency) //public one
-                        {
-                            if (newFreq != CNCSettings.Instance.PublicRadioFrequency)
-                                throw new Exception("Public frequency "+ CNCSettings.Instance.PublicRadioFrequency + " is locked");
-                        }
-                    }
-                    if (newFreq < 0)
-                    {
-                        throw new Exception("Frequency cannot be negative");
-                    }
-                    else if (CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == newFreq))
-                    {
-                        throw new Exception("Frequency is in use already");
-                    }
-                }
-                catch (FormatException e)
-                {
-                    throw new FormatException("Frequency must be numeric only");
-                }
-                catch (OverflowException e)
-                {
-                    throw new OverflowException(string.Format("Frequency must be equal to or less than {0}", short.MaxValue));
-                }
-            }
-            catch(Exception e)
-            {
-                ScreenMessage msg = new ScreenMessage("<color=red>" + e.Message + "</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
-                ScreenMessages.PostScreenMessage(msg);
-            }
-
+            //do nothing
             return newFreqStr;
         }
 
@@ -143,12 +106,7 @@ namespace CommNetConstellation.UI
         /// </summary>
         private string setConstellName(string newName)
         {
-            if (newName.Trim().Length <= 0)
-            {
-                ScreenMessage msg = new ScreenMessage("<color=red>Name cannot be empty</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
-                ScreenMessages.PostScreenMessage(msg);
-            }
-
+            //do nothing
             return newName;
         }
 
@@ -159,58 +117,85 @@ namespace CommNetConstellation.UI
         {
             try
             {
-                short constellFreq = short.Parse(frequencyInput.uiItem.GetComponent<TMP_InputField>().text);
-                string constellName = nameInput.uiItem.GetComponent<TMP_InputField>().text;
-
-                //Check errors
-                if (CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == constellFreq) && this.existingConstellation == null)
+                try
                 {
-                    throw new Exception("Frequency is in use already");
-                }
-                else if (constellName.Trim().Length < 1)
-                {
-                    throw new Exception("Name cannot be empty");
-                }
-                else if (!Constellation.isFrequencyValid(constellFreq))
-                {
-                    throw new Exception("Frequency must be between 0 and " + short.MaxValue);
-                }
+                    bool changesCommitted = false;
+                    short constellFreq = short.Parse(frequencyInput.uiItem.GetComponent<TMP_InputField>().text);
+                    string constellName = nameInput.uiItem.GetComponent<TMP_InputField>().text;
 
-                if (this.existingConstellation == null && creationCallback != null)
-                {
-                    Constellation newConstellation = new Constellation(constellFreq, constellName, this.conColor);
-                    CNCCommNetScenario.Instance.constellations.Add(newConstellation);
-                    creationCallback(newConstellation);
-
-                    string message = string.Format("New constellation '{0}' of frequency {1} is created", constellName, constellFreq);
-                    ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
-                }
-                else if (this.existingConstellation != null && updateCallback != null)
-                {
-                    short prevFreq = this.existingConstellation.frequency;
-                    this.existingConstellation.name = constellName;
-                    this.existingConstellation.color = this.conColor;
-
-                    if (this.existingConstellation.frequency != CNCSettings.Instance.PublicRadioFrequency) // this is not the public one
-                        this.existingConstellation.frequency = constellFreq;
-
-                    List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(prevFreq));
-                    for (int i = 0; i < affectedVessels.Count; i++)
+                    //Check name
+                    if (constellName.Length <= 0)
                     {
-                        affectedVessels[i].updateUnloadedFrequency(prevFreq, this.existingConstellation.frequency);
+                        throw new Exception("Name cannot be empty");
                     }
 
-                    updateCallback(this.existingConstellation, prevFreq);
+                    //Check frequency
+                    if (constellFreq < 0)
+                    {
+                        throw new Exception("Frequency cannot be negative");
+                    }
+                    else if (CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == constellFreq) && this.existingConstellation == null)
+                    {
+                        throw new Exception("Frequency is in use already");
+                    }
+                    else if (!Constellation.isFrequencyValid(constellFreq))
+                    {
+                        throw new Exception("Frequency must be between 0 and " + short.MaxValue);
+                    }
+                    else if (this.existingConstellation != null)
+                    {
+                        if (this.existingConstellation.frequency == CNCSettings.Instance.PublicRadioFrequency) //public one
+                        {
+                            if (constellFreq != CNCSettings.Instance.PublicRadioFrequency)
+                                throw new Exception("Public frequency " + CNCSettings.Instance.PublicRadioFrequency + " is locked");
+                        }
+                    }
 
-                    string message = string.Format("Constellation '{0}' of frequency {1} is updated", constellName, constellFreq);
-                    ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
+                    //ALL OK
+                    if (this.existingConstellation == null && creationCallback != null)
+                    {
+                        Constellation newConstellation = new Constellation(constellFreq, constellName, this.conColor);
+                        CNCCommNetScenario.Instance.constellations.Add(newConstellation);
+                        creationCallback(newConstellation);
+
+                        string message = string.Format("New constellation '{0}' of frequency {1} is created", constellName, constellFreq);
+                        ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
+                    }
+                    else if (this.existingConstellation != null && updateCallback != null)
+                    {
+                        short prevFreq = this.existingConstellation.frequency;
+                        this.existingConstellation.name = constellName;
+                        this.existingConstellation.color = this.conColor;
+
+                        if (this.existingConstellation.frequency != CNCSettings.Instance.PublicRadioFrequency) // this is not the public one
+                            this.existingConstellation.frequency = constellFreq;
+
+                        List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(prevFreq));
+                        for (int i = 0; i < affectedVessels.Count; i++)
+                        {
+                            affectedVessels[i].updateUnloadedFrequency(prevFreq, this.existingConstellation.frequency);
+                        }
+
+                        updateCallback(this.existingConstellation, prevFreq);
+
+                        string message = string.Format("Constellation '{0}' of frequency {1} is updated", constellName, constellFreq);
+                        ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
+                    }
+                    else
+                    {
+                        throw new Exception("Something is broken :-(");
+                    }
+
+                    this.dismiss();
                 }
-                else
+                catch (FormatException e)
                 {
-                    throw new Exception("Something is broken :-(");
+                    throw new FormatException("Frequency must be numeric only");
                 }
-
-                this.dismiss();
+                catch (OverflowException e)
+                {
+                    throw new OverflowException(string.Format("Frequency must be equal to or less than {0}", short.MaxValue));
+                }
             }
             catch (Exception e)
             {

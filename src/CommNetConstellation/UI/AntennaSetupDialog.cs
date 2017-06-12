@@ -29,7 +29,7 @@ namespace CommNetConstellation.UI
                                                                                     0.5f, //y
                                                                                     250, //width
                                                                                     230, //height
-                                                                                    new DialogOptions[] {})
+                                                                                    new DialogOptions[] { DialogOptions.HideCloseButton})
         {
             this.hostVessel = vessel;
             this.antennaModule = antennaPart.FindModuleImplementing<CNConstellationAntennaModule>();
@@ -66,42 +66,12 @@ namespace CommNetConstellation.UI
             DialogGUIHorizontalLayout constellationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(5, 25, 5, 5), TextAnchor.MiddleCenter, new DialogGUIBase[] { constellationColorImage, constNameLabel });
             listComponments.Add(new DialogGUIScrollList(Vector2.one, false, false, constellationGroup));
 
+            DialogGUIButton updateButton = new DialogGUIButton("Update", updateAction, false);
+            DialogGUIButton cancelButton = new DialogGUIButton("Cancel", delegate { this.dismiss(); }, false);
+            DialogGUIHorizontalLayout actionGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), updateButton, cancelButton, new DialogGUIFlexibleSpace() });
+            listComponments.Add(actionGroup);
+
             return listComponments;
-        }
-
-        /// <summary>
-        /// For the dialog to call upon new user input
-        /// </summary>
-        private string setConstellFreq(string newFreqStr)
-        {
-            try
-            {
-                try // input validations
-                {
-                    short newFreq = short.Parse(newFreqStr);
-
-                    if (newFreq < 0)
-                        throw new Exception("Frequency cannot be negative");
-
-                    //All ok
-                    updateAction();
-                }
-                catch (FormatException e)
-                {
-                    throw new FormatException("Frequency must be numeric only");
-                }
-                catch (OverflowException e)
-                {
-                    throw new OverflowException(string.Format("Frequency must be equal to or less than {0}", short.MaxValue));
-                }
-            }
-            catch (Exception e)
-            {
-                ScreenMessage msg = new ScreenMessage("<color=red>" + e.Message + "</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
-                ScreenMessages.PostScreenMessage(msg);
-            }
-
-            return newFreqStr;
         }
 
         /// <summary>
@@ -133,28 +103,74 @@ namespace CommNetConstellation.UI
         }
 
         /// <summary>
-        /// Action to set the frequency of the antenna
+        /// Action to update the attributes of the antenna
         /// </summary>
         private void updateAction()
         {
             try
             {
-                short inputFreq = short.Parse(frequencyInput.uiItem.GetComponent<TMP_InputField>().text);
-
-                //Check errors
-                if (!CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == inputFreq))
+                try
                 {
-                    throw new Exception("Please choose an existing constellation");
+                    bool changesCommitted= false;
+                    short inputFreq = short.Parse(frequencyInput.uiItem.GetComponent<TMP_InputField>().text);
+                    string inputName = nameInput.uiItem.GetComponent<TMP_InputField>().text.Trim();
+
+                    //Check name
+                    if (inputName.Length <= 0)
+                    {
+                        throw new Exception("Name cannot be empty");
+                    }
+
+                    //Check frequency
+                    if (inputFreq < 0)
+                    {
+                        throw new Exception("Frequency cannot be negative");
+                    }
+                    else if (!CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == inputFreq))
+                    {
+                        throw new Exception("Please choose an existing constellation");
+                    }
+                    else if (!Constellation.isFrequencyValid(inputFreq))
+                    {
+                        throw new Exception("Frequency must be between 0 and " + short.MaxValue);
+                    }
+
+                    //ALL OK
+                    if (this.antennaModule.Frequency != inputFreq) // different frequency
+                    {
+                        this.antennaModule.Frequency = inputFreq;
+                        ScreenMessage msg = new ScreenMessage(string.Format("Frequency is updated to {0}", inputFreq), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                        ScreenMessages.PostScreenMessage(msg);
+                        changesCommitted = true;
+                    }
+
+                    if (!this.antennaModule.Name.Equals(inputName)) // different name
+                    {
+                        this.antennaModule.Name = inputName;
+                        ScreenMessage msg = new ScreenMessage(string.Format("Antenna is renamed to '{0}'", this.antennaModule.Name), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                        ScreenMessages.PostScreenMessage(msg);
+                        changesCommitted = true;
+                    }
+
+                    if (changesCommitted)
+                    {
+                        if (this.hostVessel != null)
+                        {
+                            CNCCommNetVessel cncVessel = (CNCCommNetVessel)this.hostVessel.Connection;
+                            cncVessel.OnAntennaChange();
+                        }
+
+                        this.dismiss();
+                    }
                 }
-                else if (!Constellation.isFrequencyValid(inputFreq))
+                catch (FormatException e)
                 {
-                    throw new Exception("Frequency must be between 0 and "+short.MaxValue);
+                    throw new FormatException("Frequency must be numeric only");
                 }
-
-                this.antennaModule.Frequency = inputFreq;
-
-                string message = string.Format("Antenna frequency is updated to {0}", inputFreq);
-                ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
+                catch (OverflowException e)
+                {
+                    throw new OverflowException(string.Format("Frequency must be equal to or less than {0}", short.MaxValue));
+                }
             }
             catch (Exception e)
             {
@@ -169,7 +185,6 @@ namespace CommNetConstellation.UI
         private void defaultFreqClick()
         {
             frequencyInput.uiItem.GetComponent<TMP_InputField>().text = CNCSettings.Instance.PublicRadioFrequency.ToString();
-            updateAction();            
         }
 
         /// <summary>
@@ -177,14 +192,17 @@ namespace CommNetConstellation.UI
         /// </summary>
         private string setNameInput(string newNameInput)
         {
-            if (!this.antennaModule.Name.Equals(newNameInput.Trim())) // different name
-            {
-                this.antennaModule.Name = newNameInput.Trim();
-                ScreenMessage msg = new ScreenMessage(string.Format("This antenna is renamed to '{0}'.", this.antennaModule.Name), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
-                ScreenMessages.PostScreenMessage(msg);
-            }
-
+            //do nothing
             return newNameInput;
+        }
+
+        /// <summary>
+        /// For the dialog to call upon new frequency input
+        /// </summary>
+        private string setConstellFreq(string newFreqStr)
+        {
+            //do nothing
+            return newFreqStr;
         }
 
         /// <summary>
@@ -193,11 +211,6 @@ namespace CommNetConstellation.UI
         private void defaultNameClick()
         {
             nameInput.uiItem.GetComponent<TMP_InputField>().text = this.antennaModule.part.partInfo.title;
-            this.antennaModule.Name = ""; // blank
-
-            string message = string.Format("This ground station's name is reverted to '{0}'.", this.antennaModule.Name);
-            ScreenMessage msg = new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
-            ScreenMessages.PostScreenMessage(msg);
         }
     }
 }

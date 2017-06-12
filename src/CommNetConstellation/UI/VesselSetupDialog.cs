@@ -77,7 +77,7 @@ namespace CommNetConstellation.UI
             //tools
             listComponments.Add(new DialogGUILabel("\n<b>Management tools</b>", false, false));
             //Button tabs
-            DialogGUIButton buildButton = new DialogGUIButton("Frequency List", delegate { displayContent(Tool.BUILD_LIST); }, 60, 32, false);
+            DialogGUIButton buildButton = new DialogGUIButton("Build List", delegate { displayContent(Tool.BUILD_LIST); }, 50, 32, false);
             DialogGUIButton selectAntButton = new DialogGUIButton("Antennas", delegate { displayContent(Tool.SELECT_ANTENNAS); }, 40, 32, false);
             DialogGUILabel comingSoonLabel = new DialogGUILabel("More coming tools soon!");
             DialogGUIHorizontalLayout tabbedButtonRow = new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { buildButton, selectAntButton, new DialogGUISpace(3), comingSoonLabel, new DialogGUIFlexibleSpace() });
@@ -159,6 +159,9 @@ namespace CommNetConstellation.UI
             descriptionColumn.AddChild(descriptionLabel3);
 
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { toggleColumn, nameColumn, descriptionColumn }));
+
+            DialogGUIButton quickButton = new DialogGUIButton("Build now", delegate { }, false);
+            layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { quickButton}));
 
             return layout.ToArray();
         }

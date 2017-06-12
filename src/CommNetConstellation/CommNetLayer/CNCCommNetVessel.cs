@@ -276,7 +276,7 @@ namespace CommNetConstellation.CommNetLayer
         /// <summary>
         /// Notify CommNet vessel on antenna change (like changing frequency and deploy/retract antenna)
         /// </summary>
-        public void OnAntennaChange(uint GUID, bool antennaDeployment, short newFrequency = -1)
+        public void OnAntennaChange(uint GUID = 0, bool antennaDeployment = true, short newFrequency = -1)
         {
             switch(this.FreqListOperation)
             {

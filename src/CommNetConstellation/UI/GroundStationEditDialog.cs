@@ -47,7 +47,7 @@ namespace CommNetConstellation.UI
             this.ReleaseInputLocks();
         }
 
-        protected override List<DialogGUIBase> drawContentComponents()
+        protected override List<DialogGUIBase> drawContentComponents() //TODO: reorganise interface and actions
         {
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
@@ -143,7 +143,7 @@ namespace CommNetConstellation.UI
             if (!this.hostStation.stationName.Equals(newNameInput.Trim())) // different name
             {
                 this.hostStation.stationName = newNameInput.Trim();
-                ScreenMessage msg = new ScreenMessage(string.Format("This ground station is renamed to '{0}'.", this.hostStation.stationName), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessage msg = new ScreenMessage(string.Format("This ground station is renamed to '{0}'", this.hostStation.stationName), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
                 ScreenMessages.PostScreenMessage(msg);
             }
 
