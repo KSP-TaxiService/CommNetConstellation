@@ -17,6 +17,9 @@ namespace CommNetConstellation.UI
         private CNCCommNetHome hostStation;
         private string description = "Something";
 
+        private List<short> freqListShown = new List<short>();
+        private Color constellColor = Color.white;
+
         private DialogGUITextInput nameInput;
         private DialogGUITextInput frequencyInput;
         private Callback<string> updateCallback;
@@ -32,11 +35,14 @@ namespace CommNetConstellation.UI
                                                                                                                 0.5f, //y
                                                                                                                 290, //width
                                                                                                                 300, //height
-                                                                                                                new DialogOptions[] { })
+                                                                                                                new DialogOptions[] { DialogOptions.HideCloseButton })
         {
             this.hostStation = thisStation;
             this.updateCallback = updateCallback;
             this.description = string.Format("You are editing the ground station '{0}'.", thisStation.stationName);
+            this.freqListShown.AddRange(thisStation.Frequencies);
+            this.freqListShown.Sort();
+            this.constellColor = thisStation.Color;
 
             this.GetInputLocks();
         }
@@ -70,13 +76,18 @@ namespace CommNetConstellation.UI
             //Prepare a list container for the GUILayout rows
             DialogGUIBase[] rows = new DialogGUIBase[this.hostStation.Frequencies.Count + 1];
             rows[0] = new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true);
-            for (int i = 0; i < this.hostStation.Frequencies.Count; i++)
+            for (int i = 0; i < this.freqListShown.Count; i++)
             {
-                rows[i + 1] = createConstellationRow(this.hostStation.Frequencies[i]);
+                rows[i + 1] = createConstellationRow(this.freqListShown[i]);
             }
 
             frequencyRowLayout = new DialogGUIVerticalLayout(10, 100, 0, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, rows);
             listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, frequencyRowLayout));
+
+            DialogGUIButton updateButton = new DialogGUIButton("Update", updateAction, false);
+            DialogGUIButton cancelButton = new DialogGUIButton("Cancel", delegate { this.dismiss(); }, false);
+            DialogGUIHorizontalLayout actionGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), updateButton, cancelButton, new DialogGUIFlexibleSpace() });
+            listComponments.Add(actionGroup);
 
             return listComponments;
         }
@@ -98,11 +109,37 @@ namespace CommNetConstellation.UI
         /// </summary>
         private string setFreqInput(string newFreqStr)
         {
+            //do nothing
+            return newFreqStr;
+        }
+
+        /// <summary>
+        /// For the dialog to call upon new station-name input
+        /// </summary>
+        private string setNameInput(string newNameInput)
+        {
+            //do nothing
+            return newNameInput;
+        }
+
+        /// <summary>
+        /// Action to revert the station's name back to the stock name
+        /// </summary>
+        private void defaultNameClick()
+        {
+            nameInput.uiItem.GetComponent<TMP_InputField>().text = this.hostStation.nodeName;
+        }
+
+        /// <summary>
+        /// Action to add the input frequency to the temporary list to be committed
+        /// </summary>
+        private void addClick()
+        {
             try
             {
                 try // input checks
                 {
-                    short newFreq = short.Parse(newFreqStr);
+                    short newFreq = short.Parse(frequencyInput.uiItem.GetComponent<TMP_InputField>().text);
 
                     if (newFreq < 0)
                     {
@@ -110,12 +147,21 @@ namespace CommNetConstellation.UI
                     }
                     else if (this.hostStation.Frequencies.Contains(newFreq))
                     {
-                        throw new Exception("The ground station has this frequency already");
+                        throw new Exception("Ground station has this frequency already");
                     }
                     else if (!CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == newFreq))
                     {
                         throw new Exception("Please choose an existing constellation");
                     }
+                    else if (!Constellation.isFrequencyValid(newFreq))
+                    {
+                        throw new Exception("Frequency must be between 0 and " + short.MaxValue);
+                    }
+
+                    //ALL OK
+                    this.freqListShown.Add(newFreq);
+                    this.freqListShown.Sort();
+                    refreshList(this.freqListShown);
                 }
                 catch (FormatException e)
                 {
@@ -131,74 +177,6 @@ namespace CommNetConstellation.UI
                 ScreenMessage msg = new ScreenMessage("<color=red>" + e.Message + "</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
                 ScreenMessages.PostScreenMessage(msg);
             }
-
-            return newFreqStr;
-        }
-
-        /// <summary>
-        /// For the dialog to call upon new station-name input
-        /// </summary>
-        private string setNameInput(string newNameInput)
-        {
-            if (!this.hostStation.stationName.Equals(newNameInput.Trim())) // different name
-            {
-                this.hostStation.stationName = newNameInput.Trim();
-                ScreenMessage msg = new ScreenMessage(string.Format("This ground station is renamed to '{0}'", this.hostStation.stationName), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
-                ScreenMessages.PostScreenMessage(msg);
-            }
-
-            return newNameInput;
-        }
-
-        /// <summary>
-        /// Action to revert the station's name back to the stock name
-        /// </summary>
-        private void defaultNameClick()
-        {
-            nameInput.uiItem.GetComponent<TMP_InputField>().text = hostStation.nodeName;
-            hostStation.stationName = ""; // blank
-
-            string message = string.Format("This ground station's name is reverted to '{0}'.", hostStation.stationName);
-            ScreenMessage msg = new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
-            ScreenMessages.PostScreenMessage(msg);
-        }
-
-        /// <summary>
-        /// Action to add the input frequency to the station's list
-        /// </summary>
-        private void addClick()
-        {
-            try
-            {
-                short newFreq = short.Parse(frequencyInput.uiItem.GetComponent<TMP_InputField>().text);
-
-                //Check errors
-                if (this.hostStation.Frequencies.Contains(newFreq))
-                {
-                    throw new Exception("The ground station has this frequency already");
-                }
-                else if (!Constellation.isFrequencyValid(newFreq))
-                {
-                    throw new Exception("Frequency must be between 0 and " + short.MaxValue);
-                }
-                else if (!CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == newFreq))
-                {
-                    throw new Exception("Please choose an existing constellation");
-                }
-
-                //ALL OK
-                this.hostStation.Frequencies.Add(newFreq);
-                this.hostStation.Frequencies.Sort();
-                refreshList();
-
-                string message = string.Format("Frequency {1} is added to ground station '{0}'", this.hostStation.stationName, newFreq);
-                ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
-            }
-            catch (Exception e)
-            {
-                ScreenMessage msg = new ScreenMessage("<color=red>" + e.Message + "</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
-                ScreenMessages.PostScreenMessage(msg);
-            }
         }
 
         /// <summary>
@@ -206,8 +184,8 @@ namespace CommNetConstellation.UI
         /// </summary>
         private void deleteFreqClick(short frequency)
         {
-            this.hostStation.Frequencies.Remove(frequency);
-            refreshList();
+            this.freqListShown.Remove(frequency);
+            refreshList(this.freqListShown);
         }
 
         /// <summary>
@@ -215,7 +193,7 @@ namespace CommNetConstellation.UI
         /// </summary>
         private void colorEditClick()
         {
-            new ColorPickerDialog(this.hostStation.Color, userChooseColor).launch();
+            new ColorPickerDialog(this.constellColor, userChooseColor).launch();
         }
 
         /// <summary>
@@ -223,14 +201,14 @@ namespace CommNetConstellation.UI
         /// </summary>
         public void userChooseColor(Color newChosenColor)
         {
-            this.hostStation.Color = newChosenColor;
-            stationColorImage.uiItem.GetComponent<RawImage>().color = this.hostStation.Color;
+            this.constellColor = newChosenColor;
+            stationColorImage.uiItem.GetComponent<RawImage>().color = this.constellColor;
         }
 
         /// <summary>
         /// Clear and recreate the list of constellations
         /// </summary>
-        private void refreshList()
+        private void refreshList(List<short> freqs)
         {
             List<DialogGUIBase> rows = frequencyRowLayout.children;
 
@@ -247,9 +225,9 @@ namespace CommNetConstellation.UI
             }
 
             //create
-            for (int i = 0; i < this.hostStation.Frequencies.Count; i++)
+            for (int i = 0; i < freqs.Count; i++)
             {
-                rows.Add(createConstellationRow(this.hostStation.Frequencies[i]));
+                rows.Add(createConstellationRow(freqs[i]));
             }
 
             //register
@@ -259,6 +237,48 @@ namespace CommNetConstellation.UI
             {
                 if (!(rows[i] is DialogGUIContentSizer)) // avoid if DialogGUIContentSizer is detected
                     rows[i].Create(ref stack, HighLogic.UISkin); // recursively create child's children
+            }
+        }
+
+        /// <summary>
+        /// Action to update the ground station
+        /// </summary>
+        private void updateAction()
+        {
+            bool changesCommitted = false;
+            string newName = nameInput.uiItem.GetComponent<TMP_InputField>().text.Trim();
+
+            if (!this.hostStation.stationName.Equals(newName)) // different name
+            {
+                if(newName.Equals(this.hostStation.nodeName))
+                    this.hostStation.stationName = "";
+                else
+                    this.hostStation.stationName = newName;
+
+                ScreenMessage msg = new ScreenMessage(string.Format("Ground station is renamed to '{0}'", this.hostStation.stationName), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessages.PostScreenMessage(msg);
+                changesCommitted = true;
+            }
+
+            if(this.hostStation.Color != this.constellColor)
+            {
+                this.hostStation.Color = this.constellColor;
+                ScreenMessage msg = new ScreenMessage(string.Format("Ground station is '{0}' now", UIUtils.colorToHex(this.hostStation.Color)), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessages.PostScreenMessage(msg);
+                changesCommitted = true;
+            }
+
+            if(this.freqListShown.Intersect(this.hostStation.Frequencies).Count() == this.freqListShown.Count) //TODO: correct this bug
+            {
+                this.hostStation.Frequencies = this.freqListShown;
+                ScreenMessage msg = new ScreenMessage("Ground station's frequency list is updated", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessages.PostScreenMessage(msg);
+                changesCommitted = true;
+            }
+
+            if(changesCommitted)
+            {
+                this.dismiss();
             }
         }
     }

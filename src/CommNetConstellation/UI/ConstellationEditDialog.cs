@@ -16,7 +16,7 @@ namespace CommNetConstellation.UI
         private string description = "You are creating a new constellation.";
         private string actionButtonText = "Create";
 
-        private Color conColor = Color.white;
+        private Color constellColor = Color.white;
         private Constellation existingConstellation = null;
 
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
@@ -44,7 +44,7 @@ namespace CommNetConstellation.UI
 
             if(this.existingConstellation != null)
             {
-                this.conColor = this.existingConstellation.color;
+                this.constellColor = this.existingConstellation.color;
 
                 this.description = string.Format("You are editing Constellation '{0}'.", this.existingConstellation.name);
                 this.actionButtonText = "Update";
@@ -79,7 +79,7 @@ namespace CommNetConstellation.UI
 
             DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 52, 12);
             frequencyInput = new DialogGUITextInput(constellFreq.ToString(), false, CNCSettings.MaxDigits, setConstellFreq, 47, 25);
-            constellationColorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.zero, this.conColor, colorTexture);
+            constellationColorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.zero, this.constellColor, colorTexture);
             DialogGUIButton colorButton = new DialogGUIButton("Color", colorEditClick, null, 50, 32, false);
             DialogGUIHorizontalLayout freqColorGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(16), colorButton, constellationColorImage });
             listComponments.Add(freqColorGroup);
@@ -119,7 +119,6 @@ namespace CommNetConstellation.UI
             {
                 try
                 {
-                    bool changesCommitted = false;
                     short constellFreq = short.Parse(frequencyInput.uiItem.GetComponent<TMP_InputField>().text);
                     string constellName = nameInput.uiItem.GetComponent<TMP_InputField>().text;
 
@@ -149,44 +148,66 @@ namespace CommNetConstellation.UI
                             if (constellFreq != CNCSettings.Instance.PublicRadioFrequency)
                                 throw new Exception("Public frequency " + CNCSettings.Instance.PublicRadioFrequency + " is locked");
                         }
+                        else if(constellFreq == CNCSettings.Instance.PublicRadioFrequency) // not public but new freq is public
+                        {
+                            throw new Exception("New frequency cannot be " + CNCSettings.Instance.PublicRadioFrequency);
+                        }
                     }
 
                     //ALL OK
                     if (this.existingConstellation == null && creationCallback != null)
                     {
-                        Constellation newConstellation = new Constellation(constellFreq, constellName, this.conColor);
+                        Constellation newConstellation = new Constellation(constellFreq, constellName, this.constellColor);
                         CNCCommNetScenario.Instance.constellations.Add(newConstellation);
                         creationCallback(newConstellation);
 
                         string message = string.Format("New constellation '{0}' of frequency {1} is created", constellName, constellFreq);
                         ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
+
+                        this.dismiss();
                     }
                     else if (this.existingConstellation != null && updateCallback != null)
                     {
+                        bool changesCommitted = false;
                         short prevFreq = this.existingConstellation.frequency;
-                        this.existingConstellation.name = constellName;
-                        this.existingConstellation.color = this.conColor;
 
-                        if (this.existingConstellation.frequency != CNCSettings.Instance.PublicRadioFrequency) // this is not the public one
+                        if (this.existingConstellation.frequency != constellFreq) // new frequency
+                        {    
                             this.existingConstellation.frequency = constellFreq;
 
-                        List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(prevFreq));
-                        for (int i = 0; i < affectedVessels.Count; i++)
-                        {
-                            affectedVessels[i].updateUnloadedFrequency(prevFreq, this.existingConstellation.frequency);
+                            List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(prevFreq));
+                            for (int i = 0; i < affectedVessels.Count; i++)
+                            {
+                                affectedVessels[i].updateUnloadedFrequency(prevFreq, this.existingConstellation.frequency);
+                            }
+
+                            ScreenMessage msg = new ScreenMessage(string.Format("Constellation has the new frequency {0}", constellFreq), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                            ScreenMessages.PostScreenMessage(msg);
+                            changesCommitted = true;
                         }
 
-                        updateCallback(this.existingConstellation, prevFreq);
+                        if(!this.existingConstellation.name.Equals(constellName)) // different name
+                        {
+                            this.existingConstellation.name = constellName;
+                            string message = string.Format("Constellation is renamed to '{0}'", constellName);
+                            ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
+                            changesCommitted = true;
+                        }
 
-                        string message = string.Format("Constellation '{0}' of frequency {1} is updated", constellName, constellFreq);
-                        ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
-                    }
-                    else
-                    {
-                        throw new Exception("Something is broken :-(");
-                    }
+                        if (!this.existingConstellation.color.Equals(this.constellColor)) // new color
+                        {
+                            this.existingConstellation.color = this.constellColor;
+                            string message = string.Format("Constellation color becomes '{0}'", UIUtils.colorToHex(this.constellColor));
+                            ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
+                            changesCommitted = true;
+                        }
 
-                    this.dismiss();
+                        if (changesCommitted)
+                        {
+                            updateCallback(this.existingConstellation, prevFreq);
+                            this.dismiss();
+                        }
+                    }                    
                 }
                 catch (FormatException e)
                 {
@@ -209,7 +230,7 @@ namespace CommNetConstellation.UI
         /// </summary>
         private void colorEditClick()
         {
-            new ColorPickerDialog(this.conColor, userChooseColor).launch();
+            new ColorPickerDialog(this.constellColor, userChooseColor).launch();
         }
 
         /// <summary>
@@ -217,8 +238,8 @@ namespace CommNetConstellation.UI
         /// </summary>
         public void userChooseColor(Color newChosenColor)
         {
-            this.conColor = newChosenColor;
-            constellationColorImage.uiItem.GetComponent<RawImage>().color = this.conColor;
+            this.constellColor = newChosenColor;
+            constellationColorImage.uiItem.GetComponent<RawImage>().color = this.constellColor;
         }
     }
 }
