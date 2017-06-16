@@ -232,7 +232,7 @@ namespace CommNetConstellation.UI
                 List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(deletedConstellation.frequency));
                 for (int i = 0; i < affectedVessels.Count; i++)
                 {
-                    affectedVessels[i].updateUnloadedFrequency(deletedConstellation.frequency, publicFrequency);
+                    affectedVessels[i].replaceFrequency(deletedConstellation.frequency, publicFrequency);
                     updateVesselGUIRow(affectedVessels[i].Vessel);
                 }
 
@@ -261,6 +261,10 @@ namespace CommNetConstellation.UI
             List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(updatedConstellation.frequency));
             for (int i = 0; i < affectedVessels.Count; i++)
                 updateVesselGUIRow(affectedVessels[i].Vessel);
+
+            List<CNCCommNetHome> affectedStations = CNCCommNetScenario.Instance.groundStations.FindAll(x => x.Frequencies.Contains(updatedConstellation.frequency));
+            for (int i = 0; i < affectedStations.Count; i++)
+                updateGroundStationGUIRow(affectedStations[i].ID);
 
             updateConstellationGUIRow(updatedConstellation.frequency, previousFrequency);
         }
@@ -405,25 +409,6 @@ namespace CommNetConstellation.UI
 
             return newRows;
         }
-
-        /////////////////////
-        // Actions
-        /*
-        /// <summary>
-        /// Action to update the frequency of the vessel
-        /// </summary>
-        private void updateVessel(Vessel updatedVessel, short previousFrequency)
-        {
-            if (updatedVessel == null)
-                return;
-
-            short vesselFrequency = (updatedVessel.connection as CNCCommNetVessel).getRadioFrequency();
-
-            updateVesselGUIRow(updatedVessel);
-            updateConstellationGUIRow(vesselFrequency, -1);
-            updateConstellationGUIRow(previousFrequency, -1);
-        }
-        */
 
         /////////////////////
         // GROUND STATIONS

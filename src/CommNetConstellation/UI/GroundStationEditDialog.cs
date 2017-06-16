@@ -53,7 +53,7 @@ namespace CommNetConstellation.UI
             this.ReleaseInputLocks();
         }
 
-        protected override List<DialogGUIBase> drawContentComponents() //TODO: reorganise interface and actions
+        protected override List<DialogGUIBase> drawContentComponents()
         {
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
@@ -268,7 +268,8 @@ namespace CommNetConstellation.UI
                 changesCommitted = true;
             }
 
-            if(this.freqListShown.Intersect(this.hostStation.Frequencies).Count() == this.freqListShown.Count) //TODO: correct this bug
+            int commonFreq = this.freqListShown.Intersect(this.hostStation.Frequencies).Count();
+            if (!(commonFreq == this.hostStation.Frequencies.Count && commonFreq == this.freqListShown.Count))
             {
                 this.hostStation.Frequencies = this.freqListShown;
                 ScreenMessage msg = new ScreenMessage("Ground station's frequency list is updated", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);

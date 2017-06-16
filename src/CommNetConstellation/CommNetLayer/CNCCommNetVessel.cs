@@ -90,13 +90,7 @@ namespace CommNetConstellation.CommNetLayer
             try
             {
                 validateAndUpgrade(this.Vessel);
-                this.vesselAntennas = retrieveAllAntennas();
-
-                if (this.FreqListOperation == FrequencyListOperation.AutoBuild)
-                {
-                    this.FrequencyDict = buildFrequencyList(vesselAntennas);
-                    getStrongestFrequency();
-                }
+                OnAntennaChange();
             }
             catch (Exception e)
             {
@@ -278,39 +272,54 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public void OnAntennaChange(uint GUID = 0, bool antennaDeployment = true, short newFrequency = -1)
         {
-            switch(this.FreqListOperation)
+            this.vesselAntennas = retrieveAllAntennas();
+
+            switch (this.FreqListOperation)
             {
                 case FrequencyListOperation.AutoBuild:
-                    this.vesselAntennas = retrieveAllAntennas();
                     this.FrequencyDict = buildFrequencyList(vesselAntennas);
-                    getStrongestFrequency();
+                    getStrongestFrequency(true);
+                    break;
+                case FrequencyListOperation.LockList:
+                    //do nothing
+                    break;
+                case FrequencyListOperation.UpdateOnly:
+                    //TODO: complete updateonly function
                     break;
             }
-            //TODO: finish this
         }
 
         /// <summary>
-        /// Update the unloaded vessel's one frequency
+        /// Replace one frequency in the vessel's antenna
         /// </summary>
-        public bool updateUnloadedFrequency(short oldFrequency, short newFrequency, bool rebuildFreqList = false)
+        public bool replaceFrequency(short oldFrequency, short newFrequency)
         {
             try
             {
                 if (!Constellation.isFrequencyValid(newFrequency))
                     throw new Exception(string.Format("The new frequency {0} is out of the range [0,{1}]!", newFrequency, short.MaxValue));
 
-                if(this.Vessel.loaded)
-                    throw new Exception("Updating an active vessel through updateUnloadedFrequency() is disallowed.");
-
-                for (int i = 0; i < this.vessel.protoVessel.protoPartSnapshots.Count; i++)
+                if (this.Vessel.loaded)
                 {
-                    ProtoPartSnapshot part = this.vessel.protoVessel.protoPartSnapshots[i];
-                    ProtoPartModuleSnapshot cncAntMod;
-
-                    if ((cncAntMod = part.FindModule("CNConstellationAntennaModule")) != null)
+                    List<CNConstellationAntennaModule> mods = this.Vessel.FindPartModulesImplementing<CNConstellationAntennaModule>();
+                    for(int i=0; i< mods.Count; i++)
                     {
-                        if (short.Parse(cncAntMod.moduleValues.GetValue("Frequency")) == oldFrequency)
-                            cncAntMod.moduleValues.SetValue("Frequency", newFrequency);
+                        if (mods[i].Frequency == oldFrequency)
+                            mods[i].Frequency = newFrequency;
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < this.vessel.protoVessel.protoPartSnapshots.Count; i++)
+                    {
+                        ProtoPartSnapshot part = this.vessel.protoVessel.protoPartSnapshots[i];
+                        ProtoPartModuleSnapshot cncAntMod;
+
+                        if ((cncAntMod = part.FindModule("CNConstellationAntennaModule")) != null)
+                        {
+                            if (short.Parse(cncAntMod.moduleValues.GetValue("Frequency")) == oldFrequency)
+                                cncAntMod.moduleValues.SetValue("Frequency", newFrequency);
+                        }
                     }
                 }
             }
@@ -320,7 +329,7 @@ namespace CommNetConstellation.CommNetLayer
                 return false;
             }
 
-            getStrongestFrequency(true);
+            OnAntennaChange();
 
             CNCLog.Debug("Update CommNet vessel '{0}''s frequency {1} to {2}", this.Vessel.GetName(), oldFrequency, newFrequency);
             return true;

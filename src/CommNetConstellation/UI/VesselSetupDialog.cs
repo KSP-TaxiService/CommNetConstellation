@@ -132,33 +132,32 @@ namespace CommNetConstellation.UI
             DialogGUILabel msgLbl = new DialogGUILabel("Decide how the vessel's frequency list is updated whenever one antenna is changed (eg deployed/retracted or frequency change)\n", false, false);
             layout.Add(new DialogGUIHorizontalLayout(true, true, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { msgLbl }));
 
-            DialogGUIToggleGroup toggleGrp = new DialogGUIToggleGroup();// TODO: finish
-            DialogGUIVerticalLayout toggleColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
+            DialogGUIToggleGroup toggleGrp = new DialogGUIToggleGroup();
             DialogGUIVerticalLayout nameColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
             DialogGUIVerticalLayout descriptionColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
 
             DialogGUIToggle toggleBtn1 = new DialogGUIToggle((cncVessel.FreqListOperation == FrequencyListOperation.AutoBuild) ? true: false, "", delegate (bool b) { ListOperationSelected(b, FrequencyListOperation.AutoBuild); }, 20, 32);
             DialogGUILabel nameLabel1 = new DialogGUILabel("Auto Build", style); nameLabel1.size = new Vector2(80, 32);
             DialogGUILabel descriptionLabel1 = new DialogGUILabel("Re-build the list from all antennas automatically", style); descriptionLabel1.size = new Vector2(350, 32);
-            toggleColumn.AddChild(toggleBtn1);
+            toggleGrp.AddChild(toggleBtn1);
             nameColumn.AddChild(nameLabel1);
             descriptionColumn.AddChild(descriptionLabel1);
 
             DialogGUIToggle toggleBtn2 = new DialogGUIToggle((cncVessel.FreqListOperation == FrequencyListOperation.LockList) ? true : false, "", delegate (bool b) { ListOperationSelected(b, FrequencyListOperation.LockList); }, 20, 32);
             DialogGUILabel nameLabel2 = new DialogGUILabel("Lock List", style); nameLabel2.size = new Vector2(80, 32);
             DialogGUILabel descriptionLabel2 = new DialogGUILabel("Lock the current list", style); descriptionLabel2.size = new Vector2(350, 32);
-            toggleColumn.AddChild(toggleBtn2);
+            toggleGrp.AddChild(toggleBtn2);
             nameColumn.AddChild(nameLabel2);
             descriptionColumn.AddChild(descriptionLabel2);
 
             DialogGUIToggle toggleBtn3 = new DialogGUIToggle((cncVessel.FreqListOperation == FrequencyListOperation.UpdateOnly) ? true : false, "", delegate (bool b) { ListOperationSelected(b, FrequencyListOperation.UpdateOnly); }, 20, 32);
             DialogGUILabel nameLabel3 = new DialogGUILabel("Update Only", style); nameLabel3.size = new Vector2(80, 32);
-            DialogGUILabel descriptionLabel3 = new DialogGUILabel("Update the affected frequency in the list only", style); descriptionLabel3.size = new Vector2(350, 32);
-            toggleColumn.AddChild(toggleBtn3);
+            DialogGUILabel descriptionLabel3 = new DialogGUILabel("Update the affected frequency in the list only (not yet)", style); descriptionLabel3.size = new Vector2(350, 32);
+            toggleGrp.AddChild(toggleBtn3);
             nameColumn.AddChild(nameLabel3);
             descriptionColumn.AddChild(descriptionLabel3);
 
-            layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { toggleColumn, nameColumn, descriptionColumn }));
+            layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft, toggleGrp), nameColumn, descriptionColumn }));
 
             DialogGUIButton quickButton = new DialogGUIButton("Build now", delegate { }, false);
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { quickButton}));
@@ -168,7 +167,11 @@ namespace CommNetConstellation.UI
 
         private void ListOperationSelected(bool b, FrequencyListOperation operation)
         {
-
+            if(b)
+            {
+                CNCCommNetVessel cncVessel = (CNCCommNetVessel)this.hostVessel.Connection;
+                cncVessel.FreqListOperation = operation;
+            }
         }
 
         private DialogGUIBase[] drawTool_antennas()
@@ -215,7 +218,7 @@ namespace CommNetConstellation.UI
 
         private void vesselAntennaSelected(bool b, int antennaIndex)
         {
-            //TODO: finish this
+            //TODO: complete the antenna change link to vessel freq link
         }
 
     }

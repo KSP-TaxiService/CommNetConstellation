@@ -133,10 +133,6 @@ namespace CommNetConstellation.UI
                     {
                         throw new Exception("Frequency cannot be negative");
                     }
-                    else if (CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == constellFreq) && this.existingConstellation == null)
-                    {
-                        throw new Exception("Frequency is in use already");
-                    }
                     else if (!Constellation.isFrequencyValid(constellFreq))
                     {
                         throw new Exception("Frequency must be between 0 and " + short.MaxValue);
@@ -148,10 +144,20 @@ namespace CommNetConstellation.UI
                             if (constellFreq != CNCSettings.Instance.PublicRadioFrequency)
                                 throw new Exception("Public frequency " + CNCSettings.Instance.PublicRadioFrequency + " is locked");
                         }
+                        /*
                         else if(constellFreq == CNCSettings.Instance.PublicRadioFrequency) // not public but new freq is public
                         {
                             throw new Exception("New frequency cannot be " + CNCSettings.Instance.PublicRadioFrequency);
                         }
+                        */
+                        else if (CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == constellFreq) && this.existingConstellation.frequency != constellFreq)
+                        {
+                            throw new Exception("Frequency is in use already");
+                        }
+                    }
+                    else if (this.existingConstellation == null && CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == constellFreq))
+                    {
+                        throw new Exception("Frequency is in use already");
                     }
 
                     //ALL OK
@@ -178,7 +184,13 @@ namespace CommNetConstellation.UI
                             List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(prevFreq));
                             for (int i = 0; i < affectedVessels.Count; i++)
                             {
-                                affectedVessels[i].updateUnloadedFrequency(prevFreq, this.existingConstellation.frequency);
+                                affectedVessels[i].replaceFrequency(prevFreq, this.existingConstellation.frequency);
+                            }
+
+                            List<CNCCommNetHome> affectedStations = CNCCommNetScenario.Instance.groundStations.FindAll(x => x.Frequencies.Contains(prevFreq));
+                            for(int i=0; i < affectedStations.Count; i++)
+                            {
+                                affectedStations[i].replaceFrequency(prevFreq, this.existingConstellation.frequency);
                             }
 
                             ScreenMessage msg = new ScreenMessage(string.Format("Constellation has the new frequency {0}", constellFreq), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);

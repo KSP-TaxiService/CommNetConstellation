@@ -66,6 +66,13 @@ namespace CommNetConstellation.CommNetLayer
             this.Frequencies = stationSnapshot.Frequencies;
         }
 
+        public void replaceFrequency(short oldFrequency, short newFrequency)
+        {
+            this.Frequencies.Remove(oldFrequency);
+            this.Frequencies.Add(newFrequency);
+            this.Frequencies.Sort();
+        }
+
         /// <summary>
         /// Draw graphic components on screen like RemoteTech's ground-station marks
         /// </summary>
