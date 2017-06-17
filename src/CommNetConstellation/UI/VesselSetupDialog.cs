@@ -51,7 +51,9 @@ namespace CommNetConstellation.UI
 
         protected override void OnPreDismiss()
         {
-            this.updateCallback(this.hostVessel);
+            if(this.updateCallback != null)
+                this.updateCallback(this.hostVessel);
+
             this.ReleaseInputLocks();
         }
 
