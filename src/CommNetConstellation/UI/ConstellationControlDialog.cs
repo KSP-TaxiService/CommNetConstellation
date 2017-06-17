@@ -319,8 +319,8 @@ namespace CommNetConstellation.UI
             }
 
             DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.vesselName, 150, 12);
-            DialogGUILabel freqLabel = new DialogGUILabel(getFreqString(thisVessel.getFrequencies()), 110, 12);
-            DialogGUILabel locationLabel = new DialogGUILabel(string.Format("Orbiting: {0}", thisVessel.Vessel.mainBody.name), 140, 12);
+            DialogGUILabel freqLabel = new DialogGUILabel(getFreqString(thisVessel.getFrequencies()), 150, 12);
+            DialogGUILabel locationLabel = new DialogGUILabel(string.Format("Orbiting: {0}", thisVessel.Vessel.mainBody.name), 100, 12);
             DialogGUIButton setupButton = new DialogGUIButton("Setup", delegate { vesselSetupClick(thisVessel.Vessel); }, 70, 32, false);
 
             DialogGUIHorizontalLayout vesselGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { focusButton, vesselLabel, freqLabel, locationLabel, setupButton });
@@ -347,7 +347,7 @@ namespace CommNetConstellation.UI
 
         private void vesselSetupClick(Vessel thisVessel)
         {
-            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", thisVessel, null).launch();
+            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", thisVessel, updateVesselGUIRow).launch();
         }
 
         private void vesselFocusClick(Vessel thisVessel)
@@ -466,6 +466,10 @@ namespace CommNetConstellation.UI
         private string getFreqString(List<short> frequencies)
         {
             string freqString = "Frequencies: ";
+
+            if (frequencies.Count == 0) // nothing
+                return "No frequency assigned";
+
             for (int i = 0; i < frequencies.Count; i++)
             {
                 Color color = Constellation.getColor(frequencies[i]);
