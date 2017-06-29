@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CommNet;
 using UnityEngine;
 using static CommNetConstellation.CommNetLayer.CNCCommNetVessel;
@@ -8,8 +7,15 @@ namespace CommNetConstellation.UI.VesselMgtTools
 {
     public class UpdateListTool : AbstractMgtTool
     {
+        private UIStyle style;
+
         public UpdateListTool(CommNetVessel thisVessel) : base(thisVessel, "updatelist", "Update List")
         {
+            this.style = new UIStyle();
+            this.style.alignment = TextAnchor.MiddleLeft;
+            this.style.fontStyle = FontStyle.Normal;
+            this.style.normal = new UIStyleState();
+            this.style.normal.textColor = Color.white;
         }
 
         public override List<DialogGUIBase> getContentComponents()
@@ -47,11 +53,6 @@ namespace CommNetConstellation.UI.VesselMgtTools
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft, toggleGrp), nameColumn, descriptionColumn }));
 
             return layout;
-        }
-
-        public override void run()
-        {
-            throw new NotImplementedException();
         }
 
         private void ListOperationSelected(bool b, FrequencyListOperation operation)

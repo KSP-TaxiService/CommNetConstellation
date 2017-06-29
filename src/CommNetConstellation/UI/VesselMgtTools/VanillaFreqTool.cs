@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CommNet;
 using UnityEngine;
 
@@ -7,7 +6,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
 {
     public class VanillaFreqTool : AbstractMgtTool
     {
-        public VanillaFreqTool(CommNetVessel thisVessel) : base(thisVessel, "vanilla", "Vanilla")
+        public VanillaFreqTool(CommNetVessel thisVessel, Callback updateFreqRowsCallback) : base(thisVessel, "vanilla", "Vanilla", new List<Callback>() { updateFreqRowsCallback })
         {
         }
 
@@ -19,11 +18,6 @@ namespace CommNetConstellation.UI.VesselMgtTools
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { msgLbl }));
 
             return layout;
-        }
-
-        public override void run()
-        {
-            throw new NotImplementedException();
         }
     }
 }

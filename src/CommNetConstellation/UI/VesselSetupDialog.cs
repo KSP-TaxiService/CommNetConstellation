@@ -2,10 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using System;
-using System.Linq;
-using TMPro;
-using static CommNetConstellation.CommNetLayer.CNCCommNetVessel;
 using CommNetConstellation.UI.VesselMgtTools;
 
 namespace CommNetConstellation.UI
@@ -19,11 +15,8 @@ namespace CommNetConstellation.UI
         private string description = "Something";
 
         private Callback<Vessel> updateCallback;
-
         private DialogGUIVerticalLayout frequencyRowLayout;
-        private DialogGUIVerticalLayout toolContentLayout;
-        private List<AbstractMgtTool> tools;
-
+        private ToolContentManagement toolMgt;
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
 
         public VesselSetupDialog(string title, Vessel vessel, Callback<Vessel>  updateCallback) : base("vesselEdit",
@@ -37,14 +30,14 @@ namespace CommNetConstellation.UI
             this.hostVessel = vessel;
             this.updateCallback = updateCallback;
             this.description = string.Format("The frequency list of this vessel '{0}' is used to communicate with other vessels.", this.hostVessel.vesselName);
-            this.tools = new List<AbstractMgtTool>();
 
+            this.toolMgt = new ToolContentManagement();
             UpdateListTool updateTool = new UpdateListTool(this.hostVessel.connection);
-            this.tools.Add(updateTool);
+            this.toolMgt.add(updateTool);
             AntennaTool antennaTool = new AntennaTool(this.hostVessel.connection, refreshFrequencyRows);
-            this.tools.Add(antennaTool);
-            VanillaFreqTool vanillaTool = new VanillaFreqTool(this.hostVessel.connection);
-            this.tools.Add(vanillaTool);
+            this.toolMgt.add(antennaTool);
+            VanillaFreqTool vanillaTool = new VanillaFreqTool(this.hostVessel.connection, refreshFrequencyRows);
+            this.toolMgt.add(vanillaTool);
 
             this.GetInputLocks();
         }
@@ -64,10 +57,10 @@ namespace CommNetConstellation.UI
             CNCCommNetVessel cncVessel = (CNCCommNetVessel)this.hostVessel.Connection;
             List<short> vesselFrequencyList = cncVessel.getFrequencies();
 
-            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description + "\n", false, false) }));
+            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description + "\n\n", false, false) }));
 
             //frequency list
-            listComponments.Add(new DialogGUILabel("\n<b>Active frequencies</b>", false, false));
+            listComponments.Add(new DialogGUILabel("<b>Active frequencies</b>", false, false));
             DialogGUIBase[] frequencyRows = new DialogGUIBase[vesselFrequencyList.Count + 1];
             frequencyRows[0] = new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true);
             for (int i = 0; i < vesselFrequencyList.Count; i++)
@@ -79,19 +72,7 @@ namespace CommNetConstellation.UI
             listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, frequencyRowLayout));
 
             //tools
-            listComponments.Add(new DialogGUILabel("\n<b>Management tools</b>", false, false));
-            DialogGUIBase[] buttons = new DialogGUIBase[this.tools.Count+1];
-            for (int i=0; i<this.tools.Count; i++)
-            {
-                AbstractMgtTool thisTool = this.tools[i];
-                buttons[i] = new DialogGUIButton(thisTool.toolName, delegate { displayContent(thisTool.getContentComponents()); }, 50, 32, false);
-            }
-            buttons[this.tools.Count] = new DialogGUILabel("More coming tools soon!");            
-            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, buttons));
-
-            //Tool content
-            toolContentLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[]{ new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true) });
-            listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, toolContentLayout));
+            listComponments.AddRange(this.toolMgt.getLayoutContents());
 
             return listComponments;
         }
@@ -121,13 +102,6 @@ namespace CommNetConstellation.UI
             }
 
             registerLayoutComponents(frequencyRowLayout);
-        }
-
-        private void displayContent(List<DialogGUIBase> contents)
-        {
-            deregisterLayoutComponents(toolContentLayout);
-            toolContentLayout.AddChildren(contents.ToArray());
-            registerLayoutComponents(toolContentLayout);
         }
     }
 }

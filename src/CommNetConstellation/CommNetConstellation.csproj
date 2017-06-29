@@ -73,8 +73,8 @@
     <Compile Include="UI\ConstellationEditDialog.cs" />
     <Compile Include="UI\GroundStationEditDialog.cs" />
     <Compile Include="UI\UIUtils.cs" />
-    <Compile Include="UI\VesselMgtTools\AbstractMgtTool.cs" />
     <Compile Include="UI\VesselMgtTools\AntennaTool.cs" />
+    <Compile Include="UI\VesselMgtTools\ToolContentManagement.cs" />
     <Compile Include="UI\VesselMgtTools\UpdateListTool.cs" />
     <Compile Include="UI\VesselMgtTools\VanillaFreqTool.cs" />
     <Compile Include="UI\VesselSetupDialog.cs" />
