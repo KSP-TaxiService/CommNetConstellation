@@ -27,9 +27,6 @@ namespace CommNetConstellation.UI.VesselMgtTools
             }
 
             this.cncVessel = (CNCCommNetVessel)thisVessel;
-            this.initialFrequencies = this.cncVessel.getFrequencies();
-            this.antennas = this.cncVessel.getAllAntennaInfo();
-
             this.codename = uniqueCodename + "_mgttool";
             this.toolName = toolName;
             this.actionCallbacks = actionCallbacks;
@@ -41,15 +38,24 @@ namespace CommNetConstellation.UI.VesselMgtTools
         }
 
         public abstract List<DialogGUIBase> getContentComponents();
-        public virtual void precompute() { }
-        public virtual void cleanup() { }
+        public virtual void cleanup()
+        {
+            this.antennas = null;
+            this.initialFrequencies = null;
+        }
+
+        public virtual void precompute()
+        {
+            this.antennas = this.cncVessel.getAllAntennaInfo(true);
+            this.initialFrequencies = this.cncVessel.getFrequencies();
+        }
     }
 
     public class ToolContentManagement
     {
         protected DialogGUIVerticalLayout toolContentLayout;
         protected List<AbstractMgtTool> tools;
-        private AbstractMgtTool currentTool; 
+        private AbstractMgtTool currentTool;
 
         public ToolContentManagement()
         {
@@ -82,8 +88,8 @@ namespace CommNetConstellation.UI.VesselMgtTools
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, buttons));
 
             //Tool content
-            toolContentLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[] { new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true) });
-            layout.Add(new DialogGUIScrollList(Vector2.one, false, true, toolContentLayout));
+            this.toolContentLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[] { new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true) });
+            layout.Add(new DialogGUIScrollList(Vector2.one, false, true, this.toolContentLayout));
 
             return layout;
         }
@@ -93,19 +99,19 @@ namespace CommNetConstellation.UI.VesselMgtTools
             if(this.currentTool != null)
                 this.currentTool.cleanup();
 
-            AbstractDialog.deregisterLayoutComponents(toolContentLayout);
+            AbstractDialog.deregisterLayoutComponents(this.toolContentLayout);
 
             if ((this.currentTool = this.tools.Find(x => x.codename.Equals(toolCodename))) == null)
             {
-                toolContentLayout.AddChildren(new DialogGUIBase[] { }); // empty
+                this.toolContentLayout.AddChildren(new DialogGUIBase[] { }); // empty
             }
             else
             {
-                toolContentLayout.AddChildren(this.currentTool.getContentComponents().ToArray());
                 this.currentTool.precompute();
+                this.toolContentLayout.AddChildren(this.currentTool.getContentComponents().ToArray());
             }
 
-            AbstractDialog.registerLayoutComponents(toolContentLayout);
+            AbstractDialog.registerLayoutComponents(this.toolContentLayout);
         }
     }
 }

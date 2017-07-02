@@ -23,7 +23,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         {
             List<DialogGUIBase> layout = new List<DialogGUIBase>();
 
-            DialogGUILabel msgLbl = new DialogGUILabel("Choose some antennas to build the frequency list\n");
+            DialogGUILabel msgLbl = new DialogGUILabel("Choose some antennas to build the frequency list", 100, 16);
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { msgLbl }));
 
             toggleAntennaColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
@@ -69,9 +69,12 @@ namespace CommNetConstellation.UI.VesselMgtTools
             List<CNCAntennaPartInfo> allAntennas = cncVessel.getAllAntennaInfo();
 
             for (int i = 0; i < allAntennas.Count; i++)
-                vesselAntennaSelected(state, allAntennas[i].GUID);
+            {
+                cncVessel.toggleAntenna(allAntennas[i].GUID, state);
+            }
 
-            this.selfRefresh(); //TODO: force retrieve antenna data
+            cncVessel.OnAntennaChange();
+            this.selfRefresh();
         }
     }
 }

@@ -22,7 +22,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         {
             List<DialogGUIBase> layout = new List<DialogGUIBase>();
 
-            DialogGUILabel msgLbl = new DialogGUILabel("Decide how the vessel's frequency list is updated whenever one antenna is changed (eg deployed/retracted or frequency change)\n");
+            DialogGUILabel msgLbl = new DialogGUILabel("Decide how the vessel's frequency list is updated whenever one antenna is changed (eg deployed/retracted or frequency change)", 100, 32);
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { msgLbl }));
 
             DialogGUIToggleGroup toggleGrp = new DialogGUIToggleGroup();
