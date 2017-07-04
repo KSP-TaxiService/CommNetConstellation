@@ -232,7 +232,7 @@ namespace CommNetConstellation.UI
                 List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(deletedConstellation.frequency));
                 for (int i = 0; i < affectedVessels.Count; i++)
                 {
-                    affectedVessels[i].replaceFrequency(deletedConstellation.frequency, publicFrequency);
+                    affectedVessels[i].replaceAllFrequencies(deletedConstellation.frequency, publicFrequency);
                     updateVesselGUIRow(affectedVessels[i].Vessel);
                 }
 

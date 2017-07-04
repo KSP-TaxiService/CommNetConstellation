@@ -114,7 +114,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
                         CNCAntennaPartInfo thisAntenna = this.antennas[i];
                         this.cncVessel.toggleAntenna(thisAntenna.GUID, true);
                         if (thisAntenna.frequency != userFreq) // update each antenna to user freq
-                            this.cncVessel.replaceFrequency(thisAntenna.GUID, userFreq);
+                            this.cncVessel.updateFrequency(thisAntenna.GUID, userFreq);
                     }
                     this.cncVessel.rebuildFreqList();
 
