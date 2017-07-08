@@ -43,12 +43,14 @@ namespace CommNetConstellation.UI.VesselMgtTools
             nameColumn.AddChild(nameLabel2);
             descriptionColumn.AddChild(descriptionLabel2);
 
+            /*
             DialogGUIToggle toggleBtn3 = new DialogGUIToggle((cncVessel.FreqListOperation == FrequencyListOperation.UpdateOnly) ? true : false, "", delegate (bool b) { ListOperationSelected(b, FrequencyListOperation.UpdateOnly); }, 20, 32);
-            DialogGUILabel nameLabel3 = new DialogGUILabel("Update Only", style); nameLabel3.size = new Vector2(80, 32);
+            DialogGUILabel nameLabel3 = new DialogGUILabel("Freq Only", style); nameLabel3.size = new Vector2(80, 32);
             DialogGUILabel descriptionLabel3 = new DialogGUILabel("Update the affected frequency in the list only (not yet)", style); descriptionLabel3.size = new Vector2(350, 32);
             toggleGrp.AddChild(toggleBtn3);
             nameColumn.AddChild(nameLabel3);
             descriptionColumn.AddChild(descriptionLabel3);
+            */
 
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft, toggleGrp), nameColumn, descriptionColumn }));
 

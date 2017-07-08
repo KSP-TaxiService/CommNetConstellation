@@ -56,7 +56,8 @@ namespace CommNetConstellation.CommNetLayer
         public double antennaCombinableExponent;
         public bool antennaCombinable;
         public AntennaType antennaType;
-        public uint GUID;
+        public Part partReference;
+        public ProtoPartSnapshot partSnapshotReference = null;
         public bool inUse; // selected by user to be used
         public bool canComm; //fixed and deployable antennas
     }
@@ -70,7 +71,7 @@ namespace CommNetConstellation.CommNetLayer
         {
             AutoBuild,
             LockList,
-            UpdateOnly
+            //UpdateOnly //cannot find any use
         };
 
         //http://forum.kerbalspaceprogram.com/index.php?/topic/141574-kspfield-questions/&do=findComment&comment=2625815
@@ -177,7 +178,8 @@ namespace CommNetConstellation.CommNetLayer
                         newAntennaPartInfo.antennaCombinable = thisAntenna.CommCombinable;
                         newAntennaPartInfo.antennaCombinableExponent = thisAntenna.CommCombinableExponent;
                         newAntennaPartInfo.antennaType = thisAntenna.CommType;
-                        newAntennaPartInfo.GUID = thisPart.craftID; // good enough
+                        newAntennaPartInfo.partReference = thisPart; //unique ID for part is not available
+                        newAntennaPartInfo.partSnapshotReference = partSnapshot;
                         newAntennaPartInfo.canComm = (!this.vessel.loaded) ? thisAntenna.CanCommUnloaded(partModuleSnapshot) : thisAntenna.CanComm();
 
                         populatedAntennaInfo = true;
@@ -264,19 +266,20 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         private short computeStrongestFrequency(Dictionary<short, double> dict)
         {
-            short freq = -1;
-            double power = 0;
-            foreach(short key in dict.Keys)
+            if (dict.Count < 1)
+                return -1;
+            else if (dict.Count == 1)
+                return dict.Keys.First();
+
+            List<KeyValuePair<short, double>> decreasingFreqs= dict.OrderByDescending(x => x.Value).ToList();
+            short freq = decreasingFreqs[0].Key;
+
+            if(freq == CNCSettings.Instance.PublicRadioFrequency)
             {
-                if (power < dict[key])
-                {
-                    power = dict[key];
-                    freq = key;
-                }
+                if (decreasingFreqs[0].Value == decreasingFreqs[1].Value)
+                    freq = decreasingFreqs[1].Key; // pick next freq of same comm power
             }
-
-            //TODO: two freqs of equal comm power? - choose over public; pick lowest freq
-
+            
             return freq;
         }
 
@@ -296,7 +299,7 @@ namespace CommNetConstellation.CommNetLayer
         /// <summary>
         /// Notify CommNet vessel on antenna change (like changing frequency and deploy/retract antenna)
         /// </summary>
-        public void OnAntennaChange()//TODO: bad design. replace it with something better
+        public void OnAntennaChange()
         {
             this.vesselAntennas = readAntennaData();
 
@@ -308,9 +311,6 @@ namespace CommNetConstellation.CommNetLayer
                 case FrequencyListOperation.LockList: // dont change current freq dict
                     this.strongestFreq = computeStrongestFrequency(this.FrequencyDict);
                     break;
-                case FrequencyListOperation.UpdateOnly:
-                    //TODO: complete updateonly function
-                    break;
             }
         }
 
@@ -319,7 +319,11 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public void rebuildFreqList(bool readAntennaData = false)
         {
-            if (!isFreqListEditable()) return;
+            if (!isFreqListEditable())
+            {
+                this.strongestFreq = computeStrongestFrequency(this.FrequencyDict);
+                return;
+            }
 
             if(readAntennaData)
                 this.vesselAntennas = this.readAntennaData();
@@ -364,7 +368,7 @@ namespace CommNetConstellation.CommNetLayer
         /// <summary>
         /// Replace one frequency in the particular antenna
         /// </summary>
-        public void updateFrequency(uint GUID, short newFrequency)
+        public void updateFrequency(CNCAntennaPartInfo partInfo, short newFrequency)
         {
             if (!Constellation.isFrequencyValid(newFrequency))
             {
@@ -372,18 +376,15 @@ namespace CommNetConstellation.CommNetLayer
                 return;
             }
 
-            CNCAntennaPartInfo partInfo = this.vesselAntennas.Find(x => x.GUID == GUID);
             partInfo.frequency = newFrequency;
 
             if (this.Vessel.loaded)
             {
-                CNConstellationAntennaModule mod = this.Vessel.FindPartModulesImplementing<CNConstellationAntennaModule>().Find(x => x.part.craftID == GUID);
-                mod.Frequency = newFrequency;
+                partInfo.partReference.FindModuleImplementing<CNConstellationAntennaModule>().Frequency = newFrequency;
             }
             else
             {
-                ProtoPartModuleSnapshot cncAntMod = this.vessel.protoVessel.protoPartSnapshots.Find(x => x.partInfo.partPrefab.craftID == GUID).FindModule("CNConstellationAntennaModule");
-                cncAntMod.moduleValues.SetValue("Frequency", newFrequency);
+                partInfo.partSnapshotReference.FindModule("CNConstellationAntennaModule").moduleValues.SetValue("Frequency", newFrequency);
             }
 
             CNCLog.Debug("Update the antenna of CommNet vessel '{0}' to {1}", this.Vessel.GetName(), newFrequency);
@@ -423,20 +424,17 @@ namespace CommNetConstellation.CommNetLayer
         /// <summary>
         /// Turn on or off the specific antenna
         /// </summary>
-        public void toggleAntenna(uint GUID, bool inUse)
+        public void toggleAntenna(CNCAntennaPartInfo partInfo, bool inUse)
         {
-            CNCAntennaPartInfo partInfo = this.vesselAntennas.Find(x => x.GUID == GUID);
             partInfo.inUse = inUse;
 
             if (this.Vessel.loaded)
             {
-                CNConstellationAntennaModule mod = this.Vessel.FindPartModulesImplementing<CNConstellationAntennaModule>().Find(x => x.part.craftID == GUID);
-                mod.InUse = inUse;
+                partInfo.partReference.FindModuleImplementing<CNConstellationAntennaModule>().InUse = inUse;
             }
             else
             {
-                ProtoPartModuleSnapshot cncAntMod = this.vessel.protoVessel.protoPartSnapshots.Find(x => x.partInfo.partPrefab.craftID == GUID).FindModule("CNConstellationAntennaModule");
-                cncAntMod.moduleValues.SetValue("InUse", inUse);
+                partInfo.partSnapshotReference.FindModule("CNConstellationAntennaModule").moduleValues.SetValue("InUse", inUse);
             }
 
             CNCLog.Debug("Set the antenna '{0}' of CommNet vessel '{1}' to {2}", partInfo.name, this.Vessel.GetName(), inUse);

@@ -99,22 +99,21 @@ namespace CommNetConstellation.UI.VesselMgtTools
                     }
 
                     //ALL OK
-                    if (!this.cncVessel.canUpdateFreqList())
+                    if (!this.cncVessel.isFreqListEditable())
                     {
-                        this.cncVessel.OnAntennaChange();
                         return;
                     }
 
-                    this.antennas = this.cncVessel.getAllAntennaInfo(true);
-                    this.cncVessel.clearFreqList();
+                    //this.antennas = this.cncVessel.getAllAntennaInfo(true); //unnecessary
+                    //this.cncVessel.clearFreqList();
 
                     //update all antennas to new freq
                     for (int i=0; i< this.antennas.Count; i++)
                     {
                         CNCAntennaPartInfo thisAntenna = this.antennas[i];
-                        this.cncVessel.toggleAntenna(thisAntenna.GUID, true);
+                        this.cncVessel.toggleAntenna(thisAntenna, true);
                         if (thisAntenna.frequency != userFreq) // update each antenna to user freq
-                            this.cncVessel.updateFrequency(thisAntenna.GUID, userFreq);
+                            this.cncVessel.updateFrequency(thisAntenna, userFreq);
                     }
                     this.cncVessel.rebuildFreqList();
 
@@ -125,7 +124,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
                         this.cncVessel.addToFreqList(CNCSettings.Instance.PublicRadioFrequency, commPower);
                     }
                     
-                    actionCallbacks[0]();
+                    actionCallbacks[0]();//TODO: need better way
                 }
                 catch (FormatException e)
                 {
