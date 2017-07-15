@@ -28,9 +28,16 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
+            //stop links between ground stations
+            if (a.isHome && b.isHome)
+            {
+                this.Disconnect(a, b, true);
+                return false;
+            }
+
             List<short> aFreqs, bFreqs;
 
-            //each CommNode has at least frequency?
+            //each CommNode has at least some frequencies?
             try
             {
                 aFreqs = CNCCommNetScenario.Instance.getFrequencies(a);
@@ -50,23 +57,17 @@ namespace CommNetConstellation.CommNetLayer
                 return false;
             }
 
-            IRangeModel rangeModel = CNCCommNetScenario.RangeModel;
-            double longestRange = 0.0;
-
+            //update best comm power for each node
             for (int i = 0; i < commonFreqs.Count(); i++)
             {
-                short thisFreq = commonFreqs.ElementAt(i);
-                double thisRange = rangeModel.GetMaximumRange(CNCCommNetScenario.Instance.getCommPower(a, thisFreq), CNCCommNetScenario.Instance.getCommPower(b, thisFreq));
+                double aPower = CNCCommNetScenario.Instance.getCommPower(a, commonFreqs.ElementAt(i));
+                double bPower = CNCCommNetScenario.Instance.getCommPower(b, commonFreqs.ElementAt(i));
 
-                if (thisRange > longestRange)
-                    longestRange = thisRange;
-            }
+                if (!a.isHome && a.antennaTransmit.power < aPower)
+                    a.antennaTransmit.power = aPower;
 
-            //max range equal or exceed physical distance?
-            if (longestRange < Vector3.Distance(a.precisePosition, b.precisePosition))
-            {
-                this.Disconnect(a, b, true);
-                return false;
+                if (!b.isHome && b.antennaTransmit.power < bPower)
+                    b.antennaTransmit.power = bPower;
             }
 
             return base.SetNodeConnection(a, b);

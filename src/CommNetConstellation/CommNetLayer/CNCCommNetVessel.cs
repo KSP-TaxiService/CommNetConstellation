@@ -18,6 +18,8 @@ namespace CommNetConstellation.CommNetLayer
         {             
             new VesselSetupDialog("Vessel - <color=#00ff00>Communication</color>", this.vessel, null).launch();
         }
+
+        //TODO: check if can spawn vesselsetupdialog with pure data?
     }
 
     /// <summary>
@@ -94,7 +96,7 @@ namespace CommNetConstellation.CommNetLayer
             try
             {
                 validateAndUpgrade(this.Vessel);
-                OnAntennaChange();
+                rebuildFreqList(true);
             }
             catch (Exception e)
             {
@@ -198,31 +200,46 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected Dictionary<short, double> buildFrequencyList(List<CNCAntennaPartInfo> antennas)
         {
-            Dictionary<short, double> freqDict = new Dictionary<short, double>();
-            Dictionary<short, double[]> powerDict = new Dictionary<short, double[]>();
-
-            const int COMINDEX = 0;
-            const int MAXINDEX = 1;
+            Dictionary<short, List<double>> combinepowerFreqDict = new Dictionary<short, List<double>>();
+            Dictionary<short, List<double>> expoFreqDict = new Dictionary<short, List<double>>();
+            Dictionary<short, double> noncombinepowerDict = new Dictionary<short, double>();
+            List<short> allFreqs = new List<short>();
 
             //read each antenna
-            for(int i=0; i<antennas.Count; i++)
+            for (int i=0; i<antennas.Count; i++)
             {
                 if (!antennas[i].inUse || !antennas[i].canComm) // deselected or retracted
                     continue;
 
-                if(!powerDict.ContainsKey(antennas[i].frequency))//not found
-                    powerDict.Add(antennas[i].frequency, new double[] { 0.0, 0.0 });
+                short thisFreq = antennas[i].frequency;
 
-                if (antennas[i].antennaCombinable) // TODO: revise to best antenna power * (total power / best power) * avg(all expo)
-                    powerDict[antennas[i].frequency][COMINDEX] += (powerDict[antennas[i].frequency][COMINDEX]==0.0) ? antennas[i].antennaPower : antennas[i].antennaCombinableExponent * antennas[i].antennaPower;
+                if (!allFreqs.Contains(thisFreq))//not found
+                {
+                    allFreqs.Add(thisFreq);
+                    combinepowerFreqDict.Add(thisFreq, new List<double> { });
+                    expoFreqDict.Add(thisFreq, new List<double> { });
+                    noncombinepowerDict.Add(thisFreq, 0.0);
+                }
+
+                if (antennas[i].antennaCombinable)
+                {
+                    expoFreqDict[thisFreq].Add(antennas[i].antennaPower*antennas[i].antennaCombinableExponent);
+                    combinepowerFreqDict[thisFreq].Add(antennas[i].antennaPower);
+                }
                 else
-                    powerDict[antennas[i].frequency][MAXINDEX] = Math.Max(powerDict[antennas[i].frequency][MAXINDEX], antennas[i].antennaPower);
+                {
+                    noncombinepowerDict[thisFreq] = Math.Max(noncombinepowerDict[thisFreq], antennas[i].antennaPower);
+                }
             }
 
             //consolidate into vessel's list of frequencies and their com powers
-            foreach (short freq in powerDict.Keys)
+            Dictionary<short, double> freqDict = new Dictionary<short, double>();
+            foreach (short freq in allFreqs) // each freq
             {
-                freqDict.Add(freq, powerDict[freq].Max());
+                //best antenna power * (total power / best power) ^ (sum(expo*power)/total power)
+                double weightedExpo = expoFreqDict[freq].Sum() / combinepowerFreqDict[freq].Sum();
+                double combinedPower = (combinepowerFreqDict[freq].Count == 0)? 0.0:combinepowerFreqDict[freq].Max() * Math.Pow((combinepowerFreqDict[freq].Sum() / combinepowerFreqDict[freq].Max()), weightedExpo);
+                freqDict.Add(freq, Math.Max(combinedPower, noncombinepowerDict[freq]));
             }
 
             return freqDict;
@@ -291,8 +308,9 @@ namespace CommNetConstellation.CommNetLayer
             if (this.FreqListOperation != CNCCommNetVessel.FrequencyListOperation.LockList)
                 return true;
 
-            ScreenMessage msg = new ScreenMessage("Note: Lock List mode is in effect.", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+            ScreenMessage msg = new ScreenMessage(string.Format("CommNet Constellation: Frequency list of Vessel '{0}' is locked.", this.vessel.vesselName), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
             ScreenMessages.PostScreenMessage(msg);
+
             return false;
         }
 
@@ -302,6 +320,7 @@ namespace CommNetConstellation.CommNetLayer
         public void OnAntennaChange()
         {
             this.vesselAntennas = readAntennaData();
+            isFreqListEditable();
 
             switch (this.FreqListOperation)
             {

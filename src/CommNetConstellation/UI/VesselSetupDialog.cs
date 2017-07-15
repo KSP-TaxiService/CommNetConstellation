@@ -14,6 +14,9 @@ namespace CommNetConstellation.UI
         private Vessel hostVessel; // could be null (in editor)
         private string description = "Something";
 
+        private const string nofreqMessage = "No active frequency to broadcast!";
+        private UIStyle nofreqMessageStyle;
+
         private Callback<Vessel> updateCallback;
         private DialogGUIVerticalLayout frequencyRowLayout;
         private ToolContentManagement toolMgt;
@@ -39,14 +42,17 @@ namespace CommNetConstellation.UI
             VanillaFreqTool vanillaTool = new VanillaFreqTool(this.hostVessel.connection, refreshFrequencyRows);
             this.toolMgt.add(vanillaTool);
 
+            this.nofreqMessageStyle = new UIStyle();
+            this.nofreqMessageStyle.alignment = TextAnchor.MiddleCenter;
+            this.nofreqMessageStyle.fontStyle = FontStyle.Bold;
+            this.nofreqMessageStyle.normal = HighLogic.UISkin.label.normal;
+
             this.GetInputLocks();
         }
 
         protected override void OnPreDismiss()
         {
-            if(this.updateCallback != null)
-                this.updateCallback(this.hostVessel);
-
+            this.updateCallback?.Invoke(this.hostVessel);
             this.ReleaseInputLocks();
         }
 
@@ -61,13 +67,22 @@ namespace CommNetConstellation.UI
 
             //frequency list
             listComponments.Add(new DialogGUILabel("<b>Active frequencies</b>", false, false));
-            DialogGUIBase[] frequencyRows = new DialogGUIBase[vesselFrequencyList.Count + 1];
-            frequencyRows[0] = new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true);
-            for (int i = 0; i < vesselFrequencyList.Count; i++)
+            DialogGUIBase[] frequencyRows;
+            if (vesselFrequencyList.Count == 0)
             {
-                frequencyRows[i + 1] = createFrequencyRow(vesselFrequencyList[i]);
+                frequencyRows = new DialogGUIBase[2];
+                frequencyRows[0] = new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true);
+                frequencyRows[1] = new DialogGUILabel(nofreqMessage, nofreqMessageStyle, true, false);
             }
-
+            else
+            {
+                frequencyRows = new DialogGUIBase[vesselFrequencyList.Count + 1];
+                frequencyRows[0] = new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true);
+                for (int i = 0; i < vesselFrequencyList.Count; i++)
+                {
+                    frequencyRows[i + 1] = createFrequencyRow(vesselFrequencyList[i]);
+                }
+            }
             frequencyRowLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, frequencyRows);
             listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, frequencyRowLayout));
 
@@ -86,7 +101,7 @@ namespace CommNetConstellation.UI
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, color, colorTexture);
             DialogGUILabel nameLabel = new DialogGUILabel(name, 160, 12);
             DialogGUILabel eachFreqLabel = new DialogGUILabel(string.Format("(<color={0}>{1}</color>)", UIUtils.colorToHex(color), freq), 70, 12);
-            DialogGUILabel freqPowerLabel = new DialogGUILabel(string.Format("Combined Comm Power: {0}", UIUtils.RoundToNearestMetricFactor(cncVessel.getMaxComPower(freq))), 180, 12);
+            DialogGUILabel freqPowerLabel = new DialogGUILabel(string.Format("Combined Comm Power: {0}", UIUtils.RoundToNearestMetricFactor(cncVessel.getMaxComPower(freq), 2)), 180, 12);
             return new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { colorImage, nameLabel, eachFreqLabel, freqPowerLabel });
         }
 
@@ -99,6 +114,11 @@ namespace CommNetConstellation.UI
             for (int i = 0; i < vesselFrequencyList.Count; i++)
             {
                 frequencyRowLayout.AddChild(createFrequencyRow(vesselFrequencyList[i]));
+            }
+
+            if (vesselFrequencyList.Count == 0)
+            {
+                frequencyRowLayout.AddChild(new DialogGUILabel(nofreqMessage, nofreqMessageStyle, true, false));
             }
 
             registerLayoutComponents(frequencyRowLayout);
