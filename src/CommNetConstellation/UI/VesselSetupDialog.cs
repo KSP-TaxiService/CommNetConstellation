@@ -32,7 +32,7 @@ namespace CommNetConstellation.UI
         {
             this.hostVessel = vessel;
             this.updateCallback = updateCallback;
-            this.description = string.Format("The frequency list of this vessel '{0}' is used to communicate with other vessels.", this.hostVessel.vesselName);
+            this.description = string.Format("Active frequencies allow this vessel '{0}' to talk with other vessels, which share one or more of these frequencies.", this.hostVessel.vesselName);
 
             this.toolMgt = new ToolContentManagement();
             UpdateListTool updateTool = new UpdateListTool(this.hostVessel.connection);

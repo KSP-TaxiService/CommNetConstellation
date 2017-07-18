@@ -57,19 +57,6 @@ namespace CommNetConstellation.CommNetLayer
                 return false;
             }
 
-            //update best comm power for each node
-            for (int i = 0; i < commonFreqs.Count(); i++)
-            {
-                double aPower = CNCCommNetScenario.Instance.getCommPower(a, commonFreqs.ElementAt(i));
-                double bPower = CNCCommNetScenario.Instance.getCommPower(b, commonFreqs.ElementAt(i));
-
-                if (!a.isHome && a.antennaTransmit.power < aPower)
-                    a.antennaTransmit.power = aPower;
-
-                if (!b.isHome && b.antennaTransmit.power < bPower)
-                    b.antennaTransmit.power = bPower;
-            }
-
             return base.SetNodeConnection(a, b);
         }
     }

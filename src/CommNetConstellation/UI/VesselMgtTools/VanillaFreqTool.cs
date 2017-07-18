@@ -15,7 +15,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         private DialogGUIImage constellationColorImage;
         private bool membershipOption;
 
-        public VanillaFreqTool(CommNetVessel thisVessel, Callback updateFreqRowsCallback) : base(thisVessel, "vanilla", "Vanilla", new List<Callback>() { updateFreqRowsCallback })
+        public VanillaFreqTool(CommNetVessel thisVessel, Callback updateFreqRowsCallback) : base(thisVessel, "vanilla", "1 Frequency", new List<Callback>() { updateFreqRowsCallback })
         {
         }
 
@@ -23,7 +23,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         {
             List<DialogGUIBase> layout = new List<DialogGUIBase>();
 
-            DialogGUILabel msgLbl = new DialogGUILabel("Set a single frequency of this vessel quickly", 100, 16);
+            DialogGUILabel msgLbl = new DialogGUILabel("Set up the master frequency quickly", 100, 16);
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { msgLbl }));
 
             DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 52, 12);
@@ -104,9 +104,6 @@ namespace CommNetConstellation.UI.VesselMgtTools
                         return;
                     }
 
-                    //this.antennas = this.cncVessel.getAllAntennaInfo(true); //unnecessary
-                    //this.cncVessel.clearFreqList();
-
                     //update all antennas to new freq
                     for (int i=0; i< this.antennas.Count; i++)
                     {
@@ -124,7 +121,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
                         this.cncVessel.addToFreqList(CNCSettings.Instance.PublicRadioFrequency, commPower);
                     }
                     
-                    actionCallbacks[0]();//TODO: need better way
+                    actionCallbacks[0]();
                 }
                 catch (FormatException e)
                 {

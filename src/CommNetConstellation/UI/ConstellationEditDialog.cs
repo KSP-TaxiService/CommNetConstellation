@@ -170,6 +170,8 @@ namespace CommNetConstellation.UI
                         string message = string.Format("New constellation '{0}' of frequency {1} is created", constellName, constellFreq);
                         ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
 
+                        CNCLog.Debug("New constellation: {0}, {1}", constellName, constellFreq);
+
                         this.dismiss();
                     }
                     else if (this.existingConstellation != null && updateCallback != null)
@@ -213,6 +215,8 @@ namespace CommNetConstellation.UI
                             ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
                             changesCommitted = true;
                         }
+
+                        CNCLog.Debug("Updated constellation: {0}, {1}", constellName, constellFreq);
 
                         if (changesCommitted)
                         {

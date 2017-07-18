@@ -62,6 +62,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
             if (b)
             {
                 cncVessel.FreqListOperation = operation;
+                CNCLog.Debug("CNCVessel '{0}' is set to {1}", this.cncVessel.Vessel.vesselName ,operation);
             }
         }
     }

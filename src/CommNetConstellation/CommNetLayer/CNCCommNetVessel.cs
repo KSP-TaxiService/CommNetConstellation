@@ -38,8 +38,6 @@ namespace CommNetConstellation.CommNetLayer
             set { this.OptionalName = value; }
         }
 
-        //TODO: auto-detect if antenna is deployed or retracted
-
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = true, guiName = "CNC: Antenna Setup", active = true)]
         public void KSPEventAntennaConfig()
         {
@@ -96,7 +94,14 @@ namespace CommNetConstellation.CommNetLayer
             try
             {
                 validateAndUpgrade(this.Vessel);
-                rebuildFreqList(true);
+
+                if (this.FreqListOperation == CNCCommNetVessel.FrequencyListOperation.AutoBuild)
+                {
+                    this.vesselAntennas = this.readAntennaData();
+                    this.FrequencyDict = buildFrequencyList(this.vesselAntennas);
+                }
+                
+                this.strongestFreq = computeStrongestFrequency(this.FrequencyDict);
             }
             catch (Exception e)
             {
@@ -188,8 +193,10 @@ namespace CommNetConstellation.CommNetLayer
                     }
                 }
 
-                if(populatedAntennaInfo) // valid info?
+                if (populatedAntennaInfo) // valid info?
+                {
                     antennas.Add(newAntennaPartInfo);
+                }
             }
 
             return antennas;
@@ -279,9 +286,21 @@ namespace CommNetConstellation.CommNetLayer
         }
 
         /// <summary>
+        /// Perform the updates on CommNet vessel's communication
+        /// </summary>
+        protected override void UpdateComm()
+        {
+            base.UpdateComm();
+
+            this.comm.antennaTransmit.power = getMaxComPower(this.strongestFreq);
+            this.comm.antennaTransmit.power *= (double)HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().rangeModifier;
+            this.comm.antennaRelay.power *= (double)HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().rangeModifier;
+        }
+
+        /// <summary>
         /// Find the frequency with the largest Com Power
         /// </summary>
-        private short computeStrongestFrequency(Dictionary<short, double> dict)
+        protected short computeStrongestFrequency(Dictionary<short, double> dict)
         {
             if (dict.Count < 1)
                 return -1;
@@ -308,9 +327,8 @@ namespace CommNetConstellation.CommNetLayer
             if (this.FreqListOperation != CNCCommNetVessel.FrequencyListOperation.LockList)
                 return true;
 
-            ScreenMessage msg = new ScreenMessage(string.Format("CommNet Constellation: Frequency list of Vessel '{0}' is locked.", this.vessel.vesselName), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+            ScreenMessage msg = new ScreenMessage(string.Format("Frequency list of Vessel '{0}' is locked.", this.vessel.vesselName), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
             ScreenMessages.PostScreenMessage(msg);
-
             return false;
         }
 

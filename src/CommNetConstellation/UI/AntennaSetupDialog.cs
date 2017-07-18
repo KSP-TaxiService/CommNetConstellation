@@ -33,7 +33,7 @@ namespace CommNetConstellation.UI
         {
             this.hostVessel = vessel;
             this.antennaModule = antennaPart.FindModuleImplementing<CNConstellationAntennaModule>();
-            this.description = string.Format("You are editing this antenna '{0}'.", antennaPart.partInfo.title);
+            this.description = string.Format("You are configuring this antenna '{0}'.", antennaPart.partInfo.title);
 
             this.GetInputLocks();
         }
@@ -151,6 +151,8 @@ namespace CommNetConstellation.UI
                         ScreenMessages.PostScreenMessage(msg);
                         changesCommitted = true;
                     }
+
+                    CNCLog.Debug("Updated antenna: {0}, {1}", inputName, inputFreq);
 
                     if (changesCommitted)
                     {

@@ -161,6 +161,7 @@ namespace CommNetConstellation.UI
                     //ALL OK
                     this.freqListShown.Add(newFreq);
                     this.freqListShown.Sort();
+                    CNCLog.Debug("Added g-station freq: {0}", newFreq);
                     refreshList(this.freqListShown);
                 }
                 catch (FormatException e)
@@ -185,6 +186,7 @@ namespace CommNetConstellation.UI
         private void deleteFreqClick(short frequency)
         {
             this.freqListShown.Remove(frequency);
+            CNCLog.Debug("Removed g-station freq: {0}", frequency);
             refreshList(this.freqListShown);
         }
 
@@ -277,7 +279,10 @@ namespace CommNetConstellation.UI
                 changesCommitted = true;
             }
 
-            if(changesCommitted)
+            string strFreqs = ""; for (int i = 0; i < this.freqListShown.Count; i++) strFreqs += this.freqListShown[i]+" ";
+            CNCLog.Debug("Updated g-station: {0}, {1}", newName, strFreqs);
+
+            if (changesCommitted)
             {
                 this.dismiss();
             }

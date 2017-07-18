@@ -40,7 +40,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
                 DialogGUILabel nameLabel = new DialogGUILabel(antennaInfo.name, style); nameLabel.size = new Vector2(160, 32);
                 DialogGUILabel comPowerLabel = new DialogGUILabel(string.Format("Com power: {0}", UIUtils.RoundToNearestMetricFactor(antennaInfo.antennaPower, 2)), style); comPowerLabel.size = new Vector2(120, 32);
                 DialogGUILabel frequencyLabel = new DialogGUILabel(string.Format("(<color={0}>{1}</color>)", UIUtils.colorToHex(Constellation.getColor(antennaInfo.frequency)), antennaInfo.frequency), style); frequencyLabel.size = new Vector2(60, 32);
-                DialogGUILabel combinableLabel = new DialogGUILabel("Combinable: " + (antennaInfo.antennaCombinable ? "Yes" : "No") + "\nBroadcast: " + (antennaInfo.canComm ? "Yes" : "No"), style); combinableLabel.size = new Vector2(90, 32);
+                DialogGUILabel combinableLabel = new DialogGUILabel("Combinable: " + (antennaInfo.antennaCombinable ? "<color=green>Yes</color>" : "<color=red>No</color>") + "\nBroadcast: " + (antennaInfo.canComm ? "<color=green>Yes</color>" : "<color=red>No</color>"), style); combinableLabel.size = new Vector2(90, 32);
 
                 toggleAntennaColumn.AddChild(toggleBtn);
                 nameColumn.AddChild(nameLabel);
