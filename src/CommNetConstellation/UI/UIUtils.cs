@@ -177,10 +177,10 @@ namespace CommNetConstellation.UI
         /// <summary>
         /// Round a given number to nearest metric factor
         /// </summary>
-        public static string RoundToNearestMetricFactor(double number, int decimalPlaces = 1)
+        public static string RoundToNearestMetricFactor(double number, int decimalPlaces = 0)
         {
-            string formatStr = "{0:0.0}";
-            if(decimalPlaces > 1)
+            string formatStr = "{0:0}";
+            if(decimalPlaces >= 1)
             {
                 formatStr = "{0:0.";
                 for (int i=0; i< decimalPlaces; i++)

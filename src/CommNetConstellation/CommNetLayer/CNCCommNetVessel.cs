@@ -18,8 +18,6 @@ namespace CommNetConstellation.CommNetLayer
         {             
             new VesselSetupDialog("Vessel - <color=#00ff00>Communication</color>", this.vessel, null).launch();
         }
-
-        //TODO: check if can spawn vesselsetupdialog with pure data?
     }
 
     /// <summary>
@@ -196,6 +194,7 @@ namespace CommNetConstellation.CommNetLayer
                 if (populatedAntennaInfo) // valid info?
                 {
                     antennas.Add(newAntennaPartInfo);
+                    CNCLog.Debug("CommNet Vessel '{0}' has antenna '{1}' of {2} and {3} power", this.Vessel.GetName(), newAntennaPartInfo.name, newAntennaPartInfo.frequency, newAntennaPartInfo.antennaPower);
                 }
             }
 
@@ -247,6 +246,7 @@ namespace CommNetConstellation.CommNetLayer
                 double weightedExpo = expoFreqDict[freq].Sum() / combinepowerFreqDict[freq].Sum();
                 double combinedPower = (combinepowerFreqDict[freq].Count == 0)? 0.0:combinepowerFreqDict[freq].Max() * Math.Pow((combinepowerFreqDict[freq].Sum() / combinepowerFreqDict[freq].Max()), weightedExpo);
                 freqDict.Add(freq, Math.Max(combinedPower, noncombinepowerDict[freq]));
+                CNCLog.Verbose("CommNet Vessel '{0}''s list -> freq {1} of {2} power", this.Vessel.GetName(), freq, Math.Max(combinedPower, noncombinepowerDict[freq]));
             }
 
             return freqDict;
@@ -303,9 +303,16 @@ namespace CommNetConstellation.CommNetLayer
         protected short computeStrongestFrequency(Dictionary<short, double> dict)
         {
             if (dict.Count < 1)
+            {
+                CNCLog.Verbose("CommNet Vessel '{0}' does not have any freq", this.Vessel.GetName());
                 return -1;
+            }
             else if (dict.Count == 1)
-                return dict.Keys.First();
+            {
+                short onefreq = dict.Keys.First();
+                CNCLog.Verbose("CommNet Vessel '{0}' has the single freq {1} of {2} power", this.Vessel.GetName(), onefreq, dict[onefreq]);
+                return onefreq;
+            }
 
             List<KeyValuePair<short, double>> decreasingFreqs= dict.OrderByDescending(x => x.Value).ToList();
             short freq = decreasingFreqs[0].Key;
@@ -315,7 +322,8 @@ namespace CommNetConstellation.CommNetLayer
                 if (decreasingFreqs[0].Value == decreasingFreqs[1].Value)
                     freq = decreasingFreqs[1].Key; // pick next freq of same comm power
             }
-            
+
+            CNCLog.Verbose("CommNet Vessel '{0}' has the strongest freq {1} of {2} power", this.Vessel.GetName(), freq, dict[freq]);
             return freq;
         }
 
@@ -325,10 +333,13 @@ namespace CommNetConstellation.CommNetLayer
         public bool isFreqListEditable()
         {
             if (this.FreqListOperation != CNCCommNetVessel.FrequencyListOperation.LockList)
+            {
                 return true;
+            }
 
             ScreenMessage msg = new ScreenMessage(string.Format("Frequency list of Vessel '{0}' is locked.", this.vessel.vesselName), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
             ScreenMessages.PostScreenMessage(msg);
+            CNCLog.Verbose("CommNet Vessel '{0}''s freq list is locked", this.Vessel.GetName());
             return false;
         }
 
@@ -380,6 +391,8 @@ namespace CommNetConstellation.CommNetLayer
                 this.FrequencyDict[frequency] = commPower;
             else
                 this.FrequencyDict.Add(frequency, commPower);
+
+            CNCLog.Debug("CommNet Vessel '{0}''s freq list gains {1} ({2} power)", this.Vessel.GetName(), frequency, commPower);
         }
 
         /// <summary>
@@ -390,6 +403,7 @@ namespace CommNetConstellation.CommNetLayer
             if (!isFreqListEditable()) return; 
 
             this.FrequencyDict.Remove(frequency);
+            CNCLog.Debug("CommNet Vessel '{0}''s freq list loses freq {1}", this.Vessel.GetName(), frequency);
         }
 
         /// <summary>
@@ -400,6 +414,7 @@ namespace CommNetConstellation.CommNetLayer
             if (!isFreqListEditable()) return;
 
             this.FrequencyDict.Clear();
+            CNCLog.Debug("CommNet Vessel '{0}''s freq list is cleared", this.Vessel.GetName());
         }
 
         /// <summary>
@@ -424,7 +439,7 @@ namespace CommNetConstellation.CommNetLayer
                 partInfo.partSnapshotReference.FindModule("CNConstellationAntennaModule").moduleValues.SetValue("Frequency", newFrequency);
             }
 
-            CNCLog.Debug("Update the antenna of CommNet vessel '{0}' to {1}", this.Vessel.GetName(), newFrequency);
+            CNCLog.Verbose("Update the antenna of CommNet vessel '{0}' to {1}", this.Vessel.GetName(), newFrequency);
         }
 
         /// <summary>
@@ -455,7 +470,7 @@ namespace CommNetConstellation.CommNetLayer
             }
 
             getAllAntennaInfo(true);
-            CNCLog.Debug("Update all occurrences of frequency {1} in CommNet vessel '{0}' to {2}", this.Vessel.GetName(), oldFrequency, newFrequency);
+            CNCLog.Verbose("Update all occurrences of frequency {1} in CommNet vessel '{0}' to {2}", this.Vessel.GetName(), oldFrequency, newFrequency);
         }
 
         /// <summary>
@@ -474,7 +489,7 @@ namespace CommNetConstellation.CommNetLayer
                 partInfo.partSnapshotReference.FindModule("CNConstellationAntennaModule").moduleValues.SetValue("InUse", inUse);
             }
 
-            CNCLog.Debug("Set the antenna '{0}' of CommNet vessel '{1}' to {2}", partInfo.name, this.Vessel.GetName(), inUse);
+            CNCLog.Verbose("Set the antenna '{0}' of CommNet vessel '{1}' to {2}", partInfo.name, this.Vessel.GetName(), inUse);
         }
 
         /// <summary>
