@@ -17,7 +17,7 @@ namespace CommNetConstellation.CommNetLayer
          */
 
         private CNCCommNetUI CustomCommNetUI = null;
-        private CNCCommNetNetwork CustomCommNetNetwork = null;
+        private CommNetNetwork CustomCommNetNetwork = null;
         public List<Constellation> constellations; // leave the initialisation to OnLoad()
         private List<CNCCommNetVessel> commVessels;
         private bool dirtyCommNetVesselList;
@@ -42,10 +42,14 @@ namespace CommNetConstellation.CommNetLayer
             UnityEngine.Object.Destroy(ui);
 
             //Replace the CommNet network
+            // Use CommNetCoop's methods:
+            CommNetCoopAPI.CommNetCoopChecker.SetCommNetCoopIfAvailable(this, typeof(CNCCommNetNetwork), out CustomCommNetNetwork);
+            /*
             CommNetNetwork net = FindObjectOfType<CommNetNetwork>();
             CustomCommNetNetwork = gameObject.AddComponent<CNCCommNetNetwork>();
             UnityEngine.Object.Destroy(net);
             //CommNetNetwork.Instance.GetType().GetMethod("set_Instance").Invoke(CustomCommNetNetwork, null); // reflection to bypass Instance's protected set // don't seem to work
+            */
 
             //Replace the CommNet ground stations
             CommNetHome[] homes = FindObjectsOfType<CommNetHome>();

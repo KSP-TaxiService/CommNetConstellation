@@ -1,5 +1,6 @@
 ﻿using CommNet;
 using System;
+using CommNetCoopAPI;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -13,6 +14,8 @@ namespace CommNetConstellation.CommNetLayer
         /// <summary>
         /// Edit the connectivity between two potential nodes
         /// </summary>
+        [CommNetCoopAttrAndOr(CommNetCoopAttrAndOr.options.AND)]
+        [CommNetCoopAttrPrePost(CommNetCoopAttrPrePost.options.POST)]
         protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
             short aFreq, bFreq;
@@ -54,7 +57,7 @@ namespace CommNetConstellation.CommNetLayer
                 return false;
             }
 
-            return base.SetNodeConnection(a, b);
+            return CommNetCoopChecker.CommNetCoopInstalled ? true : base.SetNodeConnection(a, b);
         }
     }
 }
