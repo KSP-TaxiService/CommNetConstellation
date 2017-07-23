@@ -1,9 +1,8 @@
 ﻿using CommNet;
 using CommNetConstellation.UI;
-using Smooth.Algebraics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Linq; //unable to replace non-trival Linq functions
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -240,11 +239,13 @@ namespace CommNetConstellation.CommNetLayer
 
             //consolidate into vessel's list of frequencies and their com powers
             Dictionary<short, double> freqDict = new Dictionary<short, double>();
-            foreach (short freq in allFreqs) // each freq
+            for(int i=0; i<allFreqs.Count;i++) // each freq
             {
+                short freq = allFreqs[i];
+
                 //best antenna power * (total power / best power) ^ (sum(expo*power)/total power)
-                double weightedExpo = expoFreqDict[freq].Sum() / combinepowerFreqDict[freq].Sum();
-                double combinedPower = (combinepowerFreqDict[freq].Count == 0)? 0.0:combinepowerFreqDict[freq].Max() * Math.Pow((combinepowerFreqDict[freq].Sum() / combinepowerFreqDict[freq].Max()), weightedExpo);
+                double weightedExpo = Constellation.NonLinqSum(expoFreqDict[freq]) / Constellation.NonLinqSum(combinepowerFreqDict[freq]);
+                double combinedPower = (combinepowerFreqDict[freq].Count == 0)? 0.0 : Constellation.NonLinqMax(combinepowerFreqDict[freq]) * Math.Pow((Constellation.NonLinqSum(combinepowerFreqDict[freq]) / Constellation.NonLinqMax(combinepowerFreqDict[freq])), weightedExpo);
                 freqDict.Add(freq, Math.Max(combinedPower, noncombinepowerDict[freq]));
                 CNCLog.Verbose("CommNet Vessel '{0}''s list -> freq {1} of {2} power", this.Vessel.GetName(), freq, Math.Max(combinedPower, noncombinepowerDict[freq]));
             }
@@ -257,7 +258,12 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public List<short> getFrequencies()
         {
-            return this.FrequencyDict.Keys.ToList();
+            List<short> freqs = new List<short>();
+            var itr = this.FrequencyDict.Keys.GetEnumerator();
+            while (itr.MoveNext())
+                freqs.Add(itr.Current);
+
+            return freqs;
         }
 
         /// <summary>
@@ -309,7 +315,8 @@ namespace CommNetConstellation.CommNetLayer
             }
             else if (dict.Count == 1)
             {
-                short onefreq = dict.Keys.First();
+                var itr = dict.Keys.GetEnumerator(); itr.MoveNext();
+                short onefreq = itr.Current;
                 CNCLog.Verbose("CommNet Vessel '{0}' has the single freq {1} of {2} power", this.Vessel.GetName(), onefreq, dict[onefreq]);
                 return onefreq;
             }

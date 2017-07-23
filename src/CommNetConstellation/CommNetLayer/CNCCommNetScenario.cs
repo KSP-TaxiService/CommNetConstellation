@@ -1,6 +1,5 @@
 ﻿using CommNet;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -142,7 +141,7 @@ namespace CommNetConstellation.CommNetLayer
                 constellations = CNCSettings.Instance.Constellations;
             }
 
-            constellations.OrderBy(i => i.frequency);
+            constellations.Sort();
 
             //Ground stations
             persistentGroundStations = new List<CNCCommNetHome>();
@@ -227,7 +226,14 @@ namespace CommNetConstellation.CommNetLayer
         {
             cacheCommNetVessels();
 
-            return commVessels.Where(x => x.getFrequencies().Contains(targetFrequency) || targetFrequency == -1).ToList();
+            List<CNCCommNetVessel> newList = new List<CNCCommNetVessel>();
+            for(int i=0; i<commVessels.Count; i++)
+            {
+                if (commVessels[i].getFrequencies().Contains(targetFrequency) || targetFrequency == -1)
+                    newList.Add(commVessels[i]);
+            }
+
+            return newList;
         }
 
         /// <summary>

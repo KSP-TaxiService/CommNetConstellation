@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text;
 using UnityEngine;
 
@@ -20,7 +17,17 @@ namespace CommNetConstellation.UI
             {
                 if (_TextureDirectory.Length <= 0)
                 {
-                    _TextureDirectory = AssemblyLoader.loadedAssemblies.FirstOrDefault(a => a.assembly.GetName().Name.Equals("CommNetConstellation")).url.Replace("Plugins", "Textures") + "/";
+                    AssemblyLoader.LoadedAssembly assemblyDLL = null;
+                    for (int i = 0; i <= AssemblyLoader.loadedAssemblies.Count; i++)
+                    {
+                        if (AssemblyLoader.loadedAssemblies[i].assembly.GetName().Name.Equals("CommNetConstellation"))
+                        {
+                            assemblyDLL = AssemblyLoader.loadedAssemblies[i];
+                            break;
+                        }
+                    }
+
+                    _TextureDirectory = assemblyDLL.url.Replace("Plugins", "Textures") + "/";
                 }
                 return _TextureDirectory;
             }
@@ -161,15 +168,16 @@ namespace CommNetConstellation.UI
         /// </summary>
         public static string Concatenate<T>(IEnumerable<T> source, string delimiter)
         {
+            var itr = source.GetEnumerator();
             var s = new StringBuilder();
             bool first = true;
-            foreach (T t in source)
+            while (itr.MoveNext())
             {
                 if (first)
                     first = false;
                 else
                     s.Append(delimiter);
-                s.Append(t);
+                s.Append(itr.Current);
             }
             return s.ToString();
         }

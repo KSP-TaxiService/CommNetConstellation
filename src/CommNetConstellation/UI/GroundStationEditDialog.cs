@@ -1,8 +1,6 @@
 ﻿using CommNetConstellation.CommNetLayer;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -149,7 +147,7 @@ namespace CommNetConstellation.UI
                     {
                         throw new Exception("Ground station has this frequency already");
                     }
-                    else if (!CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == newFreq))
+                    else if (!Constellation.NonLinqAny(CNCCommNetScenario.Instance.constellations, newFreq))
                     {
                         throw new Exception("Please choose an existing constellation");
                     }
@@ -270,7 +268,7 @@ namespace CommNetConstellation.UI
                 changesCommitted = true;
             }
 
-            int commonFreq = this.freqListShown.Intersect(this.hostStation.Frequencies).Count();
+            int commonFreq = Constellation.NonLinqIntersect(this.freqListShown, this.hostStation.Frequencies).Count;
             if (!(commonFreq == this.hostStation.Frequencies.Count && commonFreq == this.freqListShown.Count))
             {
                 this.hostStation.Frequencies = this.freqListShown;

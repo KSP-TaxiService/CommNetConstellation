@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace CommNetConstellation
@@ -34,7 +33,7 @@ namespace CommNetConstellation
     public class Settings
     {
         public bool SettingsLoaded = false;
-        private static string startingSettingCFGUrl = AssemblyLoader.loadedAssemblies.FirstOrDefault(a => a.assembly.GetName().Name.Equals("CommNetConstellation")).url.Replace("/Plugins", "") + "/cnc_settings/CommNetConstellationSettings";
+        private static string startingSettingCFGUrl = "";
 
         public int MajorVersion;
         public int MinorVersion;
@@ -54,7 +53,17 @@ namespace CommNetConstellation
             Settings settings = new Settings();
             bool defaultSuccess = false;
 
-            var assemblyDLL = AssemblyLoader.loadedAssemblies.FirstOrDefault(a => a.assembly.GetName().Name.Equals("CommNetConstellation"));
+            AssemblyLoader.LoadedAssembly assemblyDLL = null;
+            for(int i=0; i <= AssemblyLoader.loadedAssemblies.Count; i++)
+            {
+                if (AssemblyLoader.loadedAssemblies[i].assembly.GetName().Name.Equals("CommNetConstellation"))
+                {
+                    assemblyDLL = AssemblyLoader.loadedAssemblies[i];
+                    break;
+                }
+            }
+
+            startingSettingCFGUrl = assemblyDLL.url.Replace("/Plugins", "") + "/cnc_settings/CommNetConstellationSettings";
             settings.MajorVersion = assemblyDLL.versionMajor;
             settings.MinorVersion = assemblyDLL.versionMinor;
 

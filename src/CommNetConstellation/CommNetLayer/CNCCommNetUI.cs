@@ -1,7 +1,6 @@
 ﻿using CommNet;
 using KSP.UI.Screens.Mapview;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace CommNetConstellation.CommNetLayer
@@ -98,15 +97,14 @@ namespace CommNetConstellation.CommNetLayer
         private Color getConstellationColor(CommNode a, CommNode b)
         {
             //Assume the connection between A and B passes the check test
-            IEnumerable<short> commonFreqs = CNCCommNetScenario.Instance.getFrequencies(a).Intersect(CNCCommNetScenario.Instance.getFrequencies(b));
-
+            List<short> commonFreqs = Constellation.NonLinqIntersect(CNCCommNetScenario.Instance.getFrequencies(a), CNCCommNetScenario.Instance.getFrequencies(b));
             IRangeModel rangeModel = CNCCommNetScenario.RangeModel;
             short strongestFreq = -1;
             double longestRange = 0.0;
 
-            for (int i = 0; i < commonFreqs.Count(); i++)
+            for (int i = 0; i < commonFreqs.Count; i++)
             {
-                short thisFreq = commonFreqs.ElementAt(i);
+                short thisFreq = commonFreqs[i];
                 double thisRange = rangeModel.GetMaximumRange(CNCCommNetScenario.Instance.getCommPower(a, thisFreq), CNCCommNetScenario.Instance.getCommPower(b, thisFreq));
 
                 if(thisRange > longestRange)
@@ -223,10 +221,11 @@ namespace CommNetConstellation.CommNetLayer
                 }
                 case CommNetUI.DisplayMode.VesselLinks:
                 {
+                    var itr = node.Values.GetEnumerator();
                     int linkIndex = 0;
-                    for (int i=0; i<node.Values.Count; i++)
+                    while(itr.MoveNext())
                     {
-                        CommLink link = node.Values.ElementAt(i);
+                        CommLink link = itr.Current;
                         float lvl = Mathf.Pow((float)link.GetSignalStrength(link.a != node, link.b != node), this.colorLerpPower);
                         Color customHighColor = getConstellationColor(link.a, link.b);
                         if (this.swapHighLow)

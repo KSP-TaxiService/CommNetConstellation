@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using System;
 using UnityEngine.UI;
@@ -150,12 +149,12 @@ namespace CommNetConstellation.UI
                             throw new Exception("New frequency cannot be " + CNCSettings.Instance.PublicRadioFrequency);
                         }
                         */
-                        else if (CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == constellFreq) && this.existingConstellation.frequency != constellFreq)
+                        else if (Constellation.NonLinqAny(CNCCommNetScenario.Instance.constellations, constellFreq) && this.existingConstellation.frequency != constellFreq)
                         {
                             throw new Exception("Frequency is in use already");
                         }
                     }
-                    else if (this.existingConstellation == null && CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == constellFreq))
+                    else if (this.existingConstellation == null && Constellation.NonLinqAny(CNCCommNetScenario.Instance.constellations, constellFreq))
                     {
                         throw new Exception("Frequency is in use already");
                     }

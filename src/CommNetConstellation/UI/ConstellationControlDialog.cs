@@ -1,8 +1,5 @@
 ﻿using CommNetConstellation.CommNetLayer;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using static MapViewFiltering;
@@ -372,8 +369,8 @@ namespace CommNetConstellation.UI
             stack.Push(vesselRowLayout.uiItem.gameObject.transform); // need the reference point of the parent GUI component for position and size
             for (int i = 0; i < newRows.Count; i++)
             {
+                newRows[i].Create(ref stack, HighLogic.UISkin); // required to force the GUI creation
                 rows.Add(newRows[i]);
-                rows.Last().Create(ref stack, HighLogic.UISkin); // required to force the GUI creation
             }
         }
 
@@ -381,25 +378,24 @@ namespace CommNetConstellation.UI
         {
             List<DialogGUIHorizontalLayout> newRows = new List<DialogGUIHorizontalLayout>();
             List<CNCCommNetVessel> allVessels = CNCCommNetScenario.Instance.getCommNetVessels();
-            IOrderedEnumerable<CNCCommNetVessel> sortedVessels;
 
             switch (currentVesselSort)
             {
                 case VesselListSort.RADIOFREQ:
-                    sortedVessels = allVessels.OrderBy(x => x.getStrongestFrequency());
+                    allVessels.Sort((x, y) => x.getStrongestFrequency()-y.getStrongestFrequency());
                     break;
                 case VesselListSort.VESSELNAME:
-                    sortedVessels = allVessels.OrderBy(x => x.Vessel.GetName());
+                    allVessels.Sort((x, y) => x.Vessel.GetName().CompareTo(y.Vessel.GetName()));
                     break;
                 case VesselListSort.CBODY:
-                    sortedVessels = allVessels.OrderBy(x => x.Vessel.mainBody.name);
+                    allVessels.Sort((x, y) => x.Vessel.mainBody.name.CompareTo(y.Vessel.mainBody.name));
                     break;
                 default:
-                    sortedVessels = allVessels.OrderBy(x => x.Vessel.launchTime);
+                    allVessels.Sort((x, y) => x.Vessel.launchTime.CompareTo(y.Vessel.launchTime));
                     break;
             }
 
-            IEnumerator<CNCCommNetVessel> itr = sortedVessels.GetEnumerator();
+            var itr = allVessels.GetEnumerator();
             while(itr.MoveNext())
             {
                 CNCCommNetVessel thisVessel = itr.Current;

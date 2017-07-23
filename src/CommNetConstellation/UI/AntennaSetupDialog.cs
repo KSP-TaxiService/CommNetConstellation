@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System;
-using System.Linq;
 using TMPro;
 
 namespace CommNetConstellation.UI
@@ -126,7 +125,7 @@ namespace CommNetConstellation.UI
                     {
                         throw new Exception("Frequency cannot be negative");
                     }
-                    else if (!CNCCommNetScenario.Instance.constellations.Any(x => x.frequency == inputFreq))
+                    else if (!Constellation.NonLinqAny(CNCCommNetScenario.Instance.constellations, inputFreq))
                     {
                         throw new Exception("Please choose an existing constellation");
                     }

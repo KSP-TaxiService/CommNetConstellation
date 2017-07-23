@@ -1,8 +1,6 @@
 ﻿using CommNet;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -50,14 +48,14 @@ namespace CommNetConstellation.CommNetLayer
             }
 
             //share same frequency?
-            IEnumerable<short> commonFreqs = aFreqs.Intersect(bFreqs);
-            if (commonFreqs.Count() == 0) // no common element in two arrays
+            for (int i = 0; i < aFreqs.Count; i++)
             {
-                this.Disconnect(a, b, true);
-                return false;
+                if (bFreqs.Contains(aFreqs[i])) // yes, it does
+                    return base.SetNodeConnection(a, b);
             }
 
-            return base.SetNodeConnection(a, b);
+            this.Disconnect(a, b, true);
+            return false;
         }
     }
 }
