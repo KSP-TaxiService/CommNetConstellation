@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using static MapViewFiltering;
 
+//TODO: switch to tabs
+
 namespace CommNetConstellation.UI
 {
     /// <summary>
@@ -316,7 +318,7 @@ namespace CommNetConstellation.UI
             }
 
             DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.vesselName, 150, 12);
-            DialogGUILabel freqLabel = new DialogGUILabel(getFreqString(thisVessel.getFrequencies()), 150, 12);
+            DialogGUILabel freqLabel = new DialogGUILabel(getFreqString(thisVessel.getFrequencies(), thisVessel.getStrongestFrequency()), 150, 12);
             DialogGUILabel locationLabel = new DialogGUILabel(string.Format("Orbiting: {0}", thisVessel.Vessel.mainBody.name), 100, 12);
             DialogGUIButton setupButton = new DialogGUIButton("Setup", delegate { vesselSetupClick(thisVessel.Vessel); }, 70, 32, false);
 
@@ -336,7 +338,7 @@ namespace CommNetConstellation.UI
                 if (thisRow.OptionText.Equals(updatedVessel.id.ToString()))
                 {
                     DialogGUILabel freqLabel = thisRow.children[2] as DialogGUILabel;
-                    freqLabel.SetOptionText(getFreqString(thisVessel.getFrequencies()));
+                    freqLabel.SetOptionText(getFreqString(thisVessel.getFrequencies(), thisVessel.getStrongestFrequency()));
                     return;
                 }
             }
@@ -459,7 +461,7 @@ namespace CommNetConstellation.UI
             return groundStationGroup;
         }
 
-        private string getFreqString(List<short> frequencies)
+        private string getFreqString(List<short> frequencies, short strongestFreq = -1)
         {
             string freqString = "Frequencies: ";
 
@@ -469,7 +471,7 @@ namespace CommNetConstellation.UI
             for (int i = 0; i < frequencies.Count; i++)
             {
                 Color color = Constellation.getColor(frequencies[i]);
-                freqString += string.Format("<color={0}>{1}</color>", UIUtils.colorToHex(color), frequencies[i]);
+                freqString += string.Format("<color={0}>{1}</color>", UIUtils.colorToHex(color), (strongestFreq == frequencies[i])? "<b>"+ frequencies[i]+"</b>": frequencies[i] + "");
                 if (i <= frequencies.Count - 2)
                     freqString += ", ";
             }

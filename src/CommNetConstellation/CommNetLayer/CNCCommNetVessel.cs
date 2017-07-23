@@ -28,6 +28,7 @@ namespace CommNetConstellation.CommNetLayer
         [KSPField(isPersistant = true)] public short Frequency = CNCSettings.Instance.PublicRadioFrequency;
         [KSPField(isPersistant = true)] protected string OptionalName = "";
         [KSPField(isPersistant = true)] public bool InUse = true;
+        //TODO: add cone angle and target
 
         public String Name
         {
@@ -247,7 +248,7 @@ namespace CommNetConstellation.CommNetLayer
                 double weightedExpo = Constellation.NonLinqSum(expoFreqDict[freq]) / Constellation.NonLinqSum(combinepowerFreqDict[freq]);
                 double combinedPower = (combinepowerFreqDict[freq].Count == 0)? 0.0 : Constellation.NonLinqMax(combinepowerFreqDict[freq]) * Math.Pow((Constellation.NonLinqSum(combinepowerFreqDict[freq]) / Constellation.NonLinqMax(combinepowerFreqDict[freq])), weightedExpo);
                 freqDict.Add(freq, Math.Max(combinedPower, noncombinepowerDict[freq]));
-                CNCLog.Verbose("CommNet Vessel '{0}''s list -> freq {1} of {2} power", this.Vessel.GetName(), freq, Math.Max(combinedPower, noncombinepowerDict[freq]));
+                CNCLog.Verbose("CommNet Vessel '{0}''s freq list has freq {1} of {2} power", this.Vessel.GetName(), freq, Math.Max(combinedPower, noncombinepowerDict[freq]));
             }
 
             return freqDict;
