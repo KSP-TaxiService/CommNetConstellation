@@ -43,7 +43,7 @@ namespace CommNetConstellation.CommNetLayer
 
             //Replace the CommNet network
             // Use CommNetCoop's methods:
-            CommNetCoopAPI.CommNetCoopChecker.SetCommNetCoopIfAvailable(this, typeof(CNCCommNetNetwork), out CustomCommNetNetwork);
+            CommNetManagerAPI.CommNetManagerChecker.SetCommNetManagerIfAvailable(this, typeof(CNCCommNetNetwork), out CustomCommNetNetwork);
             /*
             CommNetNetwork net = FindObjectOfType<CommNetNetwork>();
             CustomCommNetNetwork = gameObject.AddComponent<CNCCommNetNetwork>();

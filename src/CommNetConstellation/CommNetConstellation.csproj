@@ -38,8 +38,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>D:\KSPTools\StockKSP1.3\KSP_x64_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
-    <Reference Include="CommNetCoopAPI">
-      <HintPath>..\..\..\Visual Studio 2015\Projects\CommNetCoop\CommNetCoopAPI\bin\Debug\CommNetCoopAPI.dll</HintPath>
+    <Reference Include="CommNetManagerAPI">
+      <HintPath>..\..\..\Visual Studio 2015\Projects\CommNetManager\CommNetManagerAPI\bin\Debug\CommNetManagerAPI.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
