@@ -15,7 +15,7 @@ namespace CommNetConstellation.CommNetLayer
         /// Edit the connectivity between two potential nodes
         /// </summary>
         [CNMAttrAndOr(CNMAttrAndOr.options.AND)]
-        [CNMAttrSequence(CNMAttrSequence.options.POST)]
+        [CNMAttrSequence(CNMAttrSequence.options.LATE)]
         protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
             short aFreq, bFreq;
