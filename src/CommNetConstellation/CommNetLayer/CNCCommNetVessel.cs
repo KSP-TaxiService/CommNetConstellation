@@ -28,7 +28,9 @@ namespace CommNetConstellation.CommNetLayer
         [KSPField(isPersistant = true)] public short Frequency = CNCSettings.Instance.PublicRadioFrequency;
         [KSPField(isPersistant = true)] protected string OptionalName = "";
         [KSPField(isPersistant = true)] public bool InUse = true;
-        //TODO: add cone angle and target
+
+        [KSPField(isPersistant = true)] public double CosAngle = -1.0; //by default, disabled until third-party mod enables it via MM
+        [KSPField] public Guid AntennaTarget = Guid.Empty; //TODO: implement targeting
 
         public String Name
         {
@@ -58,6 +60,8 @@ namespace CommNetConstellation.CommNetLayer
         public ProtoPartSnapshot partSnapshotReference = null;
         public bool inUse; // selected by user to be used
         public bool canComm; //fixed and deployable antennas
+        public Guid Target;
+        public double CosAngle;
     }
 
     /// <summary>
@@ -81,6 +85,7 @@ namespace CommNetConstellation.CommNetLayer
 
         protected short strongestFreq = -1;
         protected List<CNCAntennaPartInfo> vesselAntennas = new List<CNCAntennaPartInfo>();
+        protected bool stagingActivated = false;
 
         /// <summary>
         /// Retrieve the CNC data from the vessel
@@ -93,6 +98,12 @@ namespace CommNetConstellation.CommNetLayer
             {
                 validateAndUpgrade(this.Vessel);
 
+                if (this.Vessel.isActiveVessel)
+                {
+                    GameEvents.onStageActivate.Add(stageActivate);
+                    GameEvents.onVesselWasModified.Add(vesselModified);
+                }
+
                 if (this.FreqListOperation == CNCCommNetVessel.FrequencyListOperation.AutoBuild)
                 {
                     this.vesselAntennas = this.readAntennaData();
@@ -104,6 +115,35 @@ namespace CommNetConstellation.CommNetLayer
             catch (Exception e)
             {
                 CNCLog.Error("Vessel '{0}' doesn't have any CommNet capability, likely a mislabelled junk or a kerbin on EVA", this.Vessel.GetName());
+            }
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+
+            if (HighLogic.CurrentGame == null)
+                return;
+            if (HighLogic.LoadedScene != GameScenes.FLIGHT)
+                return;
+            
+            GameEvents.onStageActivate.Remove(stageActivate);
+            GameEvents.onVesselWasModified.Remove(vesselModified);
+        }
+
+        public void stageActivate(int stageIndex)
+        {
+            CNCLog.Verbose("CommNet Vessel '{0}' is staged (#{1})", this.Vessel.vesselName, stageIndex);
+            this.stagingActivated = true;
+        }
+
+        private void vesselModified(Vessel thisVessel)
+        {
+            if (this.stagingActivated)
+            {
+                CNCLog.Verbose("CommNet Vessel '{0}' is modified. Rebuilding the freq list if allowed...", this.Vessel.vesselName);
+                OnAntennaChange();
+                this.stagingActivated = false;
             }
         }
 
@@ -161,6 +201,7 @@ namespace CommNetConstellation.CommNetLayer
                             string oname = partModuleSnapshot.moduleValues.GetValue("OptionalName");
                             newAntennaPartInfo.name = (oname.Length == 0) ? partSnapshot.partInfo.title : oname;
                             newAntennaPartInfo.inUse = bool.Parse(partModuleSnapshot.moduleValues.GetValue("InUse"));
+                            newAntennaPartInfo.CosAngle = double.Parse(partModuleSnapshot.moduleValues.GetValue("CosAngle"));
                         }
                         else
                         {
@@ -362,7 +403,7 @@ namespace CommNetConstellation.CommNetLayer
             switch (this.FreqListOperation)
             {
                 case FrequencyListOperation.AutoBuild:
-                    rebuildFreqList();
+                    rebuildFreqList(true);
                     break;
                 case FrequencyListOperation.LockList: // dont change current freq dict
                     this.strongestFreq = computeStrongestFrequency(this.FrequencyDict);
@@ -546,6 +587,11 @@ namespace CommNetConstellation.CommNetLayer
                             parts[i].modules.Add(new ProtoPartModuleSnapshot(realcncModule));
 
                             CNCLog.Verbose("CNConstellationAntennaModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
+                        }
+                        else //check if all attributes are or should not be there
+                        {
+                            if (!cncModule.moduleValues.HasValue("CosAngle"))
+                                cncModule.moduleValues.AddValue("CosAngle", -1.0);
                         }
                     }
                 } // end of part loop
