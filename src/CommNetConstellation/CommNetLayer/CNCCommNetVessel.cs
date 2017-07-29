@@ -85,7 +85,6 @@ namespace CommNetConstellation.CommNetLayer
 
         protected short strongestFreq = -1;
         protected List<CNCAntennaPartInfo> vesselAntennas = new List<CNCAntennaPartInfo>();
-        protected bool stagingActivated = false;
 
         /// <summary>
         /// Retrieve the CNC data from the vessel
@@ -98,11 +97,7 @@ namespace CommNetConstellation.CommNetLayer
             {
                 validateAndUpgrade(this.Vessel);
 
-                if (this.Vessel.isActiveVessel)
-                {
-                    GameEvents.onStageActivate.Add(stageActivate);
-                    GameEvents.onVesselWasModified.Add(vesselModified);
-                }
+                GameEvents.onVesselWasModified.Add(vesselModified);
 
                 if (this.FreqListOperation == CNCCommNetVessel.FrequencyListOperation.AutoBuild)
                 {
@@ -124,26 +119,18 @@ namespace CommNetConstellation.CommNetLayer
 
             if (HighLogic.CurrentGame == null)
                 return;
-            if (HighLogic.LoadedScene != GameScenes.FLIGHT)
-                return;
+            //if (HighLogic.LoadedScene != GameScenes.FLIGHT)
+            //    return;
             
-            GameEvents.onStageActivate.Remove(stageActivate);
             GameEvents.onVesselWasModified.Remove(vesselModified);
-        }
-
-        public void stageActivate(int stageIndex)
-        {
-            CNCLog.Verbose("CommNet Vessel '{0}' is staged (#{1})", this.Vessel.vesselName, stageIndex);
-            this.stagingActivated = true;
         }
 
         private void vesselModified(Vessel thisVessel)
         {
-            if (this.stagingActivated)
+            if (this.Vessel.isActiveVessel)
             {
-                CNCLog.Verbose("CommNet Vessel '{0}' is modified. Rebuilding the freq list if allowed...", this.Vessel.vesselName);
+                CNCLog.Verbose("Active CommNet Vessel '{0}' is modified. Rebuilding the freq list if allowed...", this.Vessel.vesselName);
                 OnAntennaChange();
-                this.stagingActivated = false;
             }
         }
 
