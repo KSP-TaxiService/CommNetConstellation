@@ -85,6 +85,7 @@ namespace CommNetConstellation.CommNetLayer
 
         protected short strongestFreq = -1;
         protected List<CNCAntennaPartInfo> vesselAntennas = new List<CNCAntennaPartInfo>();
+        protected bool stageActivated = false;
 
         /// <summary>
         /// Retrieve the CNC data from the vessel
@@ -97,6 +98,7 @@ namespace CommNetConstellation.CommNetLayer
             {
                 validateAndUpgrade(this.Vessel);
 
+                GameEvents.onStageActivate.Add(stageActivate);
                 GameEvents.onVesselWasModified.Add(vesselModified);
 
                 if (this.FreqListOperation == CNCCommNetVessel.FrequencyListOperation.AutoBuild)
@@ -121,16 +123,37 @@ namespace CommNetConstellation.CommNetLayer
                 return;
             //if (HighLogic.LoadedScene != GameScenes.FLIGHT)
             //    return;
-            
+
+            GameEvents.onStageActivate.Remove(stageActivate);
             GameEvents.onVesselWasModified.Remove(vesselModified);
         }
 
+        /// <summary>
+        /// GameEvent of staging a vessel
+        /// </summary>
+        private void stageActivate(int stageIndex)
+        {
+            if(this.Vessel.isActiveVessel)
+            {
+                this.stageActivated = true;
+            }
+        }
+
+        /// <summary>
+        /// GameEvent of vessel being modified
+        /// </summary>
         private void vesselModified(Vessel thisVessel)
         {
-            if (this.Vessel.isActiveVessel)
+            if (this.Vessel.isActiveVessel && this.stageActivated) // decouple event
             {
-                CNCLog.Verbose("Active CommNet Vessel '{0}' is modified. Rebuilding the freq list if allowed...", this.Vessel.vesselName);
-                OnAntennaChange();
+                CNCLog.Verbose("Active CommNet Vessel '{0}' is staged. Rebuilding the freq list on suriving antennas...", this.Vessel.vesselName);
+
+                //force-rebuild freq list to stop players from abusing LockList
+                this.vesselAntennas = this.readAntennaData();
+                this.FrequencyDict = buildFrequencyList(this.vesselAntennas);
+                this.strongestFreq = computeStrongestFrequency(this.FrequencyDict);
+
+                this.stageActivated = false;
             }
         }
 
@@ -514,6 +537,14 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public void toggleAntenna(CNCAntennaPartInfo partInfo, bool inUse)
         {
+            if(!partInfo.canComm) // antenna is not deployed
+            {
+                ScreenMessage msg = new ScreenMessage(string.Format("Antenna '{0}' is not deployed", partInfo.name), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessages.PostScreenMessage(msg);
+                CNCLog.Verbose("Cannot set the non-deployed antenna '{0}' of CommNet vessel '{1}' to {2}", partInfo.name, this.Vessel.GetName(), inUse);
+                return;
+            }
+
             partInfo.inUse = inUse;
 
             if (this.Vessel.loaded)
