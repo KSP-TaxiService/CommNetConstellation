@@ -98,9 +98,6 @@ namespace CommNetConstellation.CommNetLayer
             {
                 validateAndUpgrade(this.Vessel);
 
-                GameEvents.onStageActivate.Add(stageActivate);
-                GameEvents.onVesselWasModified.Add(vesselModified);
-
                 if (this.FreqListOperation == CNCCommNetVessel.FrequencyListOperation.AutoBuild)
                 {
                     this.vesselAntennas = this.readAntennaData();
@@ -108,6 +105,10 @@ namespace CommNetConstellation.CommNetLayer
                 }
                 
                 this.strongestFreq = computeStrongestFrequency(this.FrequencyDict);
+
+                GameEvents.onStageActivate.Add(stageActivate);
+                GameEvents.onVesselWasModified.Add(vesselModified);
+                addListenerToAntennaDeployment(this.vesselAntennas);
             }
             catch (Exception e)
             {
@@ -126,6 +127,7 @@ namespace CommNetConstellation.CommNetLayer
 
             GameEvents.onStageActivate.Remove(stageActivate);
             GameEvents.onVesselWasModified.Remove(vesselModified);
+            removeListenerToAntennaDeployment(this.vesselAntennas);
         }
 
         /// <summary>
@@ -250,6 +252,56 @@ namespace CommNetConstellation.CommNetLayer
             }
 
             return antennas;
+        }
+
+        /// <summary>
+        /// Trap the antenna deployment
+        /// </summary>
+        protected void addListenerToAntennaDeployment(List<CNCAntennaPartInfo> antennas)
+        {
+            if (antennas == null)
+                return;
+
+            for (int i=0; i< antennas.Count; i++)
+            {
+                Part thisPart = antennas[i].partReference;
+                ModuleDeployableAntenna deployMod = thisPart.FindModuleImplementing<ModuleDeployableAntenna>();
+                if(deployMod != null)
+                {
+                    deployMod.OnStop.Add(OnAntennaDeployment);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Callback when antenna is extended or retracted
+        /// </summary>
+        private void OnAntennaDeployment(float data)
+        {
+            if (!this.Vessel.isActiveVessel)
+                return;
+
+            CNCLog.Verbose("Antenna in active CommNet Vessel '{0}' is extended/retracted. Rebuilding the freq list ...", this.Vessel.vesselName);
+            OnAntennaChange();
+        }
+
+        /// <summary>
+        /// Unhook the antenna deployment
+        /// </summary>
+        protected void removeListenerToAntennaDeployment(List<CNCAntennaPartInfo> antennas)
+        {
+            if (antennas == null)
+                return;
+
+            for (int i = 0; i < antennas.Count; i++)
+            {
+                Part thisPart = antennas[i].partReference;
+                ModuleDeployableAntenna deployMod = thisPart.FindModuleImplementing<ModuleDeployableAntenna>();
+                if (deployMod != null)
+                {
+                    deployMod.OnStop.Remove(OnAntennaDeployment);
+                }
+            }
         }
 
         /// <summary>
@@ -539,7 +591,7 @@ namespace CommNetConstellation.CommNetLayer
         {
             if(!partInfo.canComm) // antenna is not deployed
             {
-                ScreenMessage msg = new ScreenMessage(string.Format("Antenna '{0}' is not deployed", partInfo.name), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessage msg = new ScreenMessage(string.Format("Antenna '{0}' is not deployed.", partInfo.name), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
                 ScreenMessages.PostScreenMessage(msg);
                 CNCLog.Verbose("Cannot set the non-deployed antenna '{0}' of CommNet vessel '{1}' to {2}", partInfo.name, this.Vessel.GetName(), inUse);
                 return;
