@@ -186,6 +186,7 @@ namespace CommNetConstellation.UI
                             for (int i = 0; i < affectedVessels.Count; i++)
                             {
                                 affectedVessels[i].replaceAllFrequencies(prevFreq, this.existingConstellation.frequency);
+                                affectedVessels[i].OnAntennaChange();
                             }
 
                             List<CNCCommNetHome> affectedStations = CNCCommNetScenario.Instance.groundStations.FindAll(x => x.Frequencies.Contains(prevFreq));

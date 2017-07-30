@@ -258,6 +258,7 @@ namespace CommNetConstellation.UI
                 for (int i = 0; i < affectedVessels.Count; i++)
                 {
                     affectedVessels[i].replaceAllFrequencies(deletedConstellation.frequency, publicFrequency);
+                    affectedVessels[i].OnAntennaChange();
                 }
 
                 updateConstellationGUIRow(publicFrequency, -1);

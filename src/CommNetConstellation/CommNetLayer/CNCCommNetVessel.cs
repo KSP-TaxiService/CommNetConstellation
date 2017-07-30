@@ -575,7 +575,7 @@ namespace CommNetConstellation.CommNetLayer
                 for (int i = 0; i < this.vessel.protoVessel.protoPartSnapshots.Count; i++)
                 {
                     ProtoPartModuleSnapshot cncAntMod = this.vessel.protoVessel.protoPartSnapshots[i].FindModule("CNConstellationAntennaModule");
-                    if (short.Parse(cncAntMod.moduleValues.GetValue("Frequency")) == oldFrequency)
+                    if (cncAntMod != null && short.Parse(cncAntMod.moduleValues.GetValue("Frequency")) == oldFrequency)
                         cncAntMod.moduleValues.SetValue("Frequency", newFrequency);
                 }
             }
