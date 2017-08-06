@@ -18,6 +18,11 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public static bool AreSame(CommNode a, CommNode b)
         {
+            if (a == null || b == null)
+            {
+                return false;
+            }
+
             return a.precisePosition == b.precisePosition;
         }
 

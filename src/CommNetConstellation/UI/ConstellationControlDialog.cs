@@ -1,4 +1,5 @@
-﻿using CommNetConstellation.CommNetLayer;
+﻿using CommNet;
+using CommNetConstellation.CommNetLayer;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -457,9 +458,16 @@ namespace CommNetConstellation.UI
             List<DialogGUIHorizontalLayout> newRows = new List<DialogGUIHorizontalLayout>();
             List<CNCCommNetHome> stations = CNCCommNetScenario.Instance.groundStations;
 
-            for (int i = 0; i < stations.Count; i++)
+            if (HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().enableGroundStations)
             {
-                newRows.Add(createGroundStationRow(stations[i]));
+                for (int i = 0; i < stations.Count; i++)
+                {
+                    newRows.Add(createGroundStationRow(stations[i]));
+                }
+            }
+            else
+            {
+                newRows.Add(createGroundStationRow(stations.Find(x => x.isKSC)));
             }
 
             return newRows;
