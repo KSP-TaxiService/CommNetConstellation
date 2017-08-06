@@ -51,7 +51,9 @@ namespace CommNetConstellation.CommNetLayer
             for (int i = 0; i < aFreqs.Count; i++)
             {
                 if (bFreqs.Contains(aFreqs[i])) // yes, it does
+                {
                     return base.SetNodeConnection(a, b);
+                }
             }
 
             this.Disconnect(a, b, true);

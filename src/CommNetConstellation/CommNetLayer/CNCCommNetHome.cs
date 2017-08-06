@@ -66,11 +66,22 @@ namespace CommNetConstellation.CommNetLayer
             this.Frequencies = stationSnapshot.Frequencies;
         }
 
+        /// <summary>
+        /// Replace one specific frequency with new frequency
+        /// </summary>
         public void replaceFrequency(short oldFrequency, short newFrequency)
         {
             this.Frequencies.Remove(oldFrequency);
             this.Frequencies.Add(newFrequency);
             this.Frequencies.Sort();
+        }
+
+        /// <summary>
+        /// Drop the specific frequency from the list
+        /// </summary>
+        public bool deleteFrequency(short frequency)
+        {
+            return this.Frequencies.Remove(frequency);
         }
 
         /// <summary>

@@ -250,10 +250,8 @@ namespace CommNetConstellation.UI
             {
                 CNCCommNetScenario.Instance.constellations.RemoveAt(CNCCommNetScenario.Instance.constellations.FindIndex(x => x.frequency == deletedConstellation.frequency));
 
-                if (Constellation.countVessels(deletedConstellation) < 1) // no vessel to update
-                    return;
-
                 short publicFrequency = CNCSettings.Instance.PublicRadioFrequency;
+
                 List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(deletedConstellation.frequency));
                 for (int i = 0; i < affectedVessels.Count; i++)
                 {
@@ -261,7 +259,16 @@ namespace CommNetConstellation.UI
                     affectedVessels[i].OnAntennaChange();
                 }
 
-                updateConstellationGUIRow(publicFrequency, -1);
+                if(affectedVessels.Count > 0)
+                {
+                    updateConstellationGUIRow(publicFrequency, -1);
+                }
+
+                List<CNCCommNetHome> affectedStations = CNCCommNetScenario.Instance.groundStations.FindAll(x => x.Frequencies.Contains(deletedConstellation.frequency));
+                for (int i = 0; i < affectedStations.Count; i++)
+                {
+                    affectedStations[i].deleteFrequency(deletedConstellation.frequency);
+                }
             }
         }
 

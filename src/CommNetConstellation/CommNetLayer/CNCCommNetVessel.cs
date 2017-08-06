@@ -414,7 +414,7 @@ namespace CommNetConstellation.CommNetLayer
         {
             if (dict.Count < 1)
             {
-                CNCLog.Verbose("CommNet Vessel '{0}' does not have any freq", this.Vessel.GetName());
+                //CNCLog.Verbose("CommNet Vessel '{0}' does not have any freq", this.Vessel.GetName()); //print this in every frame; disabled
                 return -1;
             }
             else if (dict.Count == 1)
