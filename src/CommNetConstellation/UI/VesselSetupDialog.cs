@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using System;
 using System.Linq;
 using TMPro;
+using CommNetManagerAPI;
 
 namespace CommNetConstellation.UI
 {
@@ -55,7 +56,7 @@ namespace CommNetConstellation.UI
             }
             else if (this.hostVessel != null)
             {
-                CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
+                CNCCommNetVessel cv = ((ModularCommNetVesselModule)hostVessel.Connection).GetModuleOfType<CNCCommNetVessel>();
                 inputFreq = cv.getRadioFrequency();
                 membershipFlag = cv.getMembershipFlag();
             }
@@ -160,7 +161,7 @@ namespace CommNetConstellation.UI
                 {
                     if (this.hostVessel != null) // flight
                     {
-                        CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
+                        CNCCommNetVessel cv = ((ModularCommNetVesselModule)hostVessel.Connection).GetModuleOfType<CNCCommNetVessel>();
                         cv.updateRadioFrequency(inputFreq, rightClickedPart);
                     }
                     else // editor
@@ -174,7 +175,7 @@ namespace CommNetConstellation.UI
                 }
                 else if (this.hostVessel != null) // tracking station
                 {
-                    CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
+                    CNCCommNetVessel cv = ((ModularCommNetVesselModule)hostVessel.Connection).GetModuleOfType<CNCCommNetVessel>();
                     short prevFrequency = cv.getRadioFrequency();
                     cv.updateRadioFrequency(inputFreq);
 
@@ -215,7 +216,7 @@ namespace CommNetConstellation.UI
                 {
                     if (this.hostVessel != null) // flight
                     {
-                        CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
+                        CNCCommNetVessel cv = ((ModularCommNetVesselModule)hostVessel.Connection).GetModuleOfType<CNCCommNetVessel>();
                         cv.updateMembershipFlag(flag, rightClickedPart);
                     }
                     else // editor
@@ -229,7 +230,7 @@ namespace CommNetConstellation.UI
                 }
                 else if (this.hostVessel != null) // tracking station
                 {
-                    CNCCommNetVessel cv = hostVessel.Connection as CNCCommNetVessel;
+                    CNCCommNetVessel cv = ((ModularCommNetVesselModule)hostVessel.Connection).GetModuleOfType<CNCCommNetVessel>();
                     cv.updateMembershipFlag(flag);
 
                     string message = string.Format("Individual talk memberships of {0} are updated to {1}", this.hostVessel.GetName(), flag);

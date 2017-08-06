@@ -181,7 +181,7 @@ namespace CommNetConstellation.CommNetLayer
         {
             cacheCommNetVessels();
 
-            return commVessels.Find(x => x.Comm.precisePosition == commNode.precisePosition).Vessel; // more specific equal
+            return commVessels.Find(x => x.CommNetVessel.Comm.precisePosition == commNode.precisePosition).Vessel; // more specific equal
             //IEqualityComparer<CommNode> comparer = commNode.Comparer; // a combination of third-party mods somehow  affects CommNode's IEqualityComparer on two objects
             //return commVessels.Find(x => comparer.Equals(commNode, x.Comm)).Vessel;
         }
@@ -203,7 +203,7 @@ namespace CommNetConstellation.CommNetLayer
                 if (allVessels[i].connection != null) // && allVessels[i].FindPartModuleImplementing<ModuleCommand>())
                 {
                     CNCLog.Debug("Caching CommNetVessel '{0}'", allVessels[i].vesselName);
-                    this.commVessels.Add(allVessels[i].connection as CNCCommNetVessel);
+                    this.commVessels.Add(((CommNetManagerAPI.ModularCommNetVesselModule)allVessels[i].connection).GetModuleOfType<CNCCommNetVessel>());
                 }
             }
 
