@@ -50,7 +50,7 @@ namespace CommNetConstellation.UI
 
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
-            listComponments.Add(new DialogGUILabel("Here you can interact with constellations, ground stations and CommNet vessels.", false, false));
+            listComponments.Add(new DialogGUILabel("Administer multiple communication constellations of vessels with one or more frequencies. Ground, air and space vessels can be independently assigned and configured.", false, false));
             DialogGUIButton constellationBtn = new DialogGUIButton("Constellations", delegate { displayContentLayout(ContentType.CONSTELLATIONS); }, false);
             DialogGUIButton groundstationBtn = new DialogGUIButton("Ground Stations", delegate { displayContentLayout(ContentType.GROUNDSTATIONS); }, false);
             DialogGUIButton vesselBtn = new DialogGUIButton("CommNet Vessels", delegate { displayContentLayout(ContentType.VESSELS); }, false);

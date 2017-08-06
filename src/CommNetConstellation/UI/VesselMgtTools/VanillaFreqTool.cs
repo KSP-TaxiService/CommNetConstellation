@@ -15,7 +15,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         private DialogGUIImage constellationColorImage;
         private bool membershipOption;
 
-        public VanillaFreqTool(CommNetVessel thisVessel, Callback updateFreqRowsCallback) : base(thisVessel, "vanilla", "1 Frequency", new List<Callback>() { updateFreqRowsCallback })
+        public VanillaFreqTool(CommNetVessel thisVessel, Callback updateFreqRowsCallback) : base(thisVessel, "vanilla", "Master frequency", new List<Callback>() { updateFreqRowsCallback })
         {
         }
 
@@ -23,7 +23,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         {
             List<DialogGUIBase> layout = new List<DialogGUIBase>();
 
-            DialogGUILabel msgLbl = new DialogGUILabel("Set up the master frequency quickly", 100, 16);
+            DialogGUILabel msgLbl = new DialogGUILabel("Set up the master frequency in one go. All antennas will be assigned to this frequency, and Comm powers of those deployed antennas will be combined.", 100, 32);
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { msgLbl }));
 
             DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 52, 12);

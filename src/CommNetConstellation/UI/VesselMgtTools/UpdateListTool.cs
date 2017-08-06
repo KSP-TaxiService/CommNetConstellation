@@ -22,7 +22,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         {
             List<DialogGUIBase> layout = new List<DialogGUIBase>();
 
-            DialogGUILabel msgLbl = new DialogGUILabel("Decide how the vessel's frequency list is updated whenever one antenna is changed (eg deployed/retracted or frequency change)", 100, 32);
+            DialogGUILabel msgLbl = new DialogGUILabel("Decide how the vessel's frequency list should be updated whenever one antenna is changed (eg extended/retracted or frequency change).", 100, 32);
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { msgLbl }));
 
             DialogGUIToggleGroup toggleGrp = new DialogGUIToggleGroup();
@@ -38,7 +38,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
 
             DialogGUIToggle toggleBtn2 = new DialogGUIToggle((cncVessel.FreqListOperation == FrequencyListOperation.LockList) ? true : false, "", delegate (bool b) { ListOperationSelected(b, FrequencyListOperation.LockList); }, 20, 32);
             DialogGUILabel nameLabel2 = new DialogGUILabel("Lock List", style); nameLabel2.size = new Vector2(80, 32);
-            DialogGUILabel descriptionLabel2 = new DialogGUILabel("Disallow any change in the current list", style); descriptionLabel2.size = new Vector2(350, 32);
+            DialogGUILabel descriptionLabel2 = new DialogGUILabel("Disallow any change in the current list (except for staging)", style); descriptionLabel2.size = new Vector2(350, 32);
             toggleGrp.AddChild(toggleBtn2);
             nameColumn.AddChild(nameLabel2);
             descriptionColumn.AddChild(descriptionLabel2);

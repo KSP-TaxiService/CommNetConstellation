@@ -23,7 +23,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         {
             List<DialogGUIBase> layout = new List<DialogGUIBase>();
 
-            DialogGUILabel msgLbl = new DialogGUILabel("Choose some antennas to build the frequency list", 100, 16);
+            DialogGUILabel msgLbl = new DialogGUILabel("Select one or more antennas to manually build the frequency list instead of the default list. Only deployed antennas can be chosen.", 100, 32);
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { msgLbl }));
 
             toggleAntennaColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
@@ -37,8 +37,8 @@ namespace CommNetConstellation.UI.VesselMgtTools
                 CNCAntennaPartInfo antennaInfo = antennas[i];
 
                 DialogGUIToggle toggleBtn = new DialogGUIToggle(antennaInfo.inUse && antennaInfo.canComm, "", delegate (bool b) { vesselAntennaSelected(b, antennaInfo); actionCallbacks[0](); }, 20, 32);
-                DialogGUILabel nameLabel = new DialogGUILabel(antennaInfo.name, style); nameLabel.size = new Vector2(160, 32);
-                DialogGUILabel comPowerLabel = new DialogGUILabel(string.Format("Com power: {0}", UIUtils.RoundToNearestMetricFactor(antennaInfo.antennaPower, 2)), style); comPowerLabel.size = new Vector2(120, 32);
+                DialogGUILabel nameLabel = new DialogGUILabel(antennaInfo.name, style); nameLabel.size = new Vector2(150, 32);
+                DialogGUILabel comPowerLabel = new DialogGUILabel(string.Format("Com power: {0}", UIUtils.RoundToNearestMetricFactor(antennaInfo.antennaPower, 2)), style); comPowerLabel.size = new Vector2(130, 32);
                 DialogGUILabel frequencyLabel = new DialogGUILabel(string.Format("(<color={0}>{1}</color>)", UIUtils.colorToHex(Constellation.getColor(antennaInfo.frequency)), antennaInfo.frequency), style); frequencyLabel.size = new Vector2(60, 32);
                 DialogGUILabel combinableLabel = new DialogGUILabel("Combinable: " + (antennaInfo.antennaCombinable ? "<color=green>Yes</color>" : "<color=red>No</color>") + "\nBroadcast: " + (antennaInfo.canComm ? "<color=green>Yes</color>" : "<color=red>No</color>"), style); combinableLabel.size = new Vector2(90, 32);
 

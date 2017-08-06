@@ -24,7 +24,7 @@ namespace CommNetConstellation.CommNetLayer
         /// <summary>
         /// Edit the connectivity between two potential nodes
         /// </summary>
-        protected override bool SetNodeConnection(CommNode a, CommNode b) //TODO: add framework for third-party mods to add their own checks
+        protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
             //stop links between ground stations
             if (a.isHome && b.isHome)
