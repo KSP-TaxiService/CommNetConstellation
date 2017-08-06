@@ -80,7 +80,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         private void OnMapNodeUpdateVisible(MapNode node, MapNode.IconData iconData)
         {
-            CNCCommNetVessel thisVessel = ((ModularCommNetVesselModule)node.mapObject.vessel.connection).GetModuleOfType<CNCCommNetVessel>();
+            CNCCommNetVessel thisVessel = ((ModularCommNetVessel)node.mapObject.vessel.connection).GetModuleOfType<CNCCommNetVessel>();
             //(CNCCommNetVessel) node.mapObject.vessel.connection;
 
             if(thisVessel != null && node.mapObject.type == MapObject.ObjectType.Vessel)
@@ -97,9 +97,9 @@ namespace CommNetConstellation.CommNetLayer
             if (a.isHome || b.isHome)
                 return Constellation.getColor(CNCSettings.Instance.PublicRadioFrequency); // public
 
-            CNCCommNetVessel vesselA = ((ModularCommNetVesselModule)a.GetVessel().Connection).GetModuleOfType<CNCCommNetVessel>();
+            CNCCommNetVessel vesselA = ((ModularCommNetVessel)a.GetVessel().Connection).GetModuleOfType<CNCCommNetVessel>();
             //(CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(a).Connection;
-            CNCCommNetVessel vesselB = ((ModularCommNetVesselModule)b.GetVessel().Connection).GetModuleOfType<CNCCommNetVessel>();
+            CNCCommNetVessel vesselB = ((ModularCommNetVessel)b.GetVessel().Connection).GetModuleOfType<CNCCommNetVessel>();
             //(CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(b).Connection;
 
             if(vesselA.getRadioFrequency() == vesselB.getRadioFrequency())

@@ -22,8 +22,8 @@ namespace CommNetConstellation.CommNetLayer
 
             try
             {
-                aFreq = (a.isHome) ? publicFreq : ((ModularCommNetVesselModule)a.GetVessel().Connection).GetModuleOfType<CNCCommNetVessel>().getRadioFrequency();//((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(a).Connection).getRadioFrequency();
-                bFreq = (b.isHome) ? publicFreq : ((ModularCommNetVesselModule)b.GetVessel().Connection).GetModuleOfType<CNCCommNetVessel>().getRadioFrequency();//((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(b).Connection).getRadioFrequency();
+                aFreq = (a.isHome) ? publicFreq : ((ModularCommNetVessel)a.GetVessel().Connection).GetModuleOfType<CNCCommNetVessel>().getRadioFrequency();//((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(a).Connection).getRadioFrequency();
+                bFreq = (b.isHome) ? publicFreq : ((ModularCommNetVessel)b.GetVessel().Connection).GetModuleOfType<CNCCommNetVessel>().getRadioFrequency();//((CNCCommNetVessel)CNCCommNetScenario.Instance.findCorrespondingVessel(b).Connection).getRadioFrequency();
             }
             catch(NullReferenceException e) // either CommNode could be a kerbal on EVA
             {
@@ -41,8 +41,8 @@ namespace CommNetConstellation.CommNetLayer
 
             try
             {
-                aMembershipFlag = (a.isHome) ? false : ((ModularCommNetVesselModule)a.GetVessel().Connection).GetModuleOfType<CNCCommNetVessel>().getMembershipFlag();
-                bMembershipFlag = (b.isHome) ? false : ((ModularCommNetVesselModule)b.GetVessel().Connection).GetModuleOfType<CNCCommNetVessel>().getMembershipFlag();
+                aMembershipFlag = (a.isHome) ? false : ((ModularCommNetVessel)a.GetVessel().Connection).GetModuleOfType<CNCCommNetVessel>().getMembershipFlag();
+                bMembershipFlag = (b.isHome) ? false : ((ModularCommNetVessel)b.GetVessel().Connection).GetModuleOfType<CNCCommNetVessel>().getMembershipFlag();
             }
             catch(NullReferenceException e) // either CommNode could be a kerbal on EVA
             {

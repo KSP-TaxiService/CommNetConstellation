@@ -25,7 +25,7 @@ namespace CommNetConstellation.CommNetLayer
     /// <summary>
     /// Data structure for a CommNetVessel
     /// </summary>
-    public class CNCCommNetVessel : CommNetManagerAPI.ModularCommNetVessel
+    public class CNCCommNetVessel : CommNetManagerAPI.ModularCommNetVesselComponent
     {
         protected short radioFrequency;
         protected bool communicationMembershipFlag;

@@ -203,7 +203,7 @@ namespace CommNetConstellation.CommNetLayer
                 if (allVessels[i].connection != null) // && allVessels[i].FindPartModuleImplementing<ModuleCommand>())
                 {
                     CNCLog.Debug("Caching CommNetVessel '{0}'", allVessels[i].vesselName);
-                    this.commVessels.Add(((CommNetManagerAPI.ModularCommNetVesselModule)allVessels[i].connection).GetModuleOfType<CNCCommNetVessel>());
+                    this.commVessels.Add(((CommNetManagerAPI.ModularCommNetVessel)allVessels[i].connection).GetModuleOfType<CNCCommNetVessel>());
                 }
             }
 
