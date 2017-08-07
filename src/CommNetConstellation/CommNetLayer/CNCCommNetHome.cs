@@ -1,5 +1,6 @@
 ﻿using CommNet;
 using CommNetConstellation.UI;
+using CommNetManagerAPI;
 using UnityEngine;
 
 namespace CommNetConstellation.CommNetLayer
@@ -7,21 +8,16 @@ namespace CommNetConstellation.CommNetLayer
     /// <summary>
     /// Customise the home nodes
     /// </summary>
-    public class CNCCommNetHome : CommNetHome
+    public class CNCCommNetHome : CommNetManagerAPI.CNMHomeComponent
     {
         private static readonly Texture2D markTexture = UIUtils.loadImage("groundStationMark");
         private static GUIStyle groundStationHeadline;
         private bool loadCompleted = false;
 
-        public void copyOf(CommNetHome stockHome)
+        public override void Initialize(CNMHome stockHome)
         {
             CNCLog.Verbose("CommNet Home '{0}' added", stockHome.nodeName);
-
-            this.nodeName = stockHome.nodeName;
-            this.nodeTransform = stockHome.nodeTransform;
-            this.isKSC = stockHome.isKSC;
-            this.body = stockHome.GetComponentInParent<CelestialBody>();
-
+            
             //comm, lat, alt, lon are initialised by CreateNode() later
 
             groundStationHeadline = new GUIStyle(HighLogic.Skin.label)
@@ -44,10 +40,10 @@ namespace CommNetConstellation.CommNetLayer
             if (!(HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION))
                 return;
 
-            if ((!HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().enableGroundStations && !this.isKSC) || !MapView.MapIsEnabled || MapView.MapCamera == null)
+            if ((!HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().enableGroundStations && !this.CommNetHome.isKSC) || !MapView.MapIsEnabled || MapView.MapCamera == null)
                 return;
 
-            Vector3d worldPos = ScaledSpace.LocalToScaledSpace(nodeTransform.transform.position);
+            Vector3d worldPos = ScaledSpace.LocalToScaledSpace(CommNetHome.nodeTransform.transform.position);
 
             if (MapView.MapCamera.transform.InverseTransformPoint(worldPos).z < 0f)
                 return;
@@ -55,10 +51,10 @@ namespace CommNetConstellation.CommNetLayer
             Vector3 position = PlanetariumCamera.Camera.WorldToScreenPoint(worldPos);
             Rect groundStationRect = new Rect((position.x - 8), (Screen.height - position.y) - 8, 16, 16);
 
-            if (isOccluded(nodeTransform.transform.position, this.body))
+            if (isOccluded(CommNetHome.nodeTransform.transform.position, this.CommNetHome.Body))
                 return;
 
-            if (!isOccluded(nodeTransform.transform.position, this.body) && this.IsCamDistanceToWide(nodeTransform.transform.position))
+            if (!isOccluded(CommNetHome.nodeTransform.transform.position, this.CommNetHome.Body) && this.IsCamDistanceToWide(CommNetHome.nodeTransform.transform.position))
                 return;
 
             //draw the dot
@@ -71,12 +67,12 @@ namespace CommNetConstellation.CommNetLayer
             if (UIUtils.ContainsMouse(groundStationRect))
             {
                 Rect headlineRect = groundStationRect;
-                Vector2 nameDim = CNCCommNetHome.groundStationHeadline.CalcSize(new GUIContent(this.nodeName));
+                Vector2 nameDim = CNCCommNetHome.groundStationHeadline.CalcSize(new GUIContent(this.CommNetHome.nodeName));
                 headlineRect.x -= nameDim.x/2;
                 headlineRect.y -= nameDim.y + 5;
                 headlineRect.width = nameDim.x;
                 headlineRect.height = nameDim.y;
-                GUI.Label(headlineRect, this.nodeName, CNCCommNetHome.groundStationHeadline);
+                GUI.Label(headlineRect, this.CommNetHome.nodeName, CNCCommNetHome.groundStationHeadline);
             }
         }
 

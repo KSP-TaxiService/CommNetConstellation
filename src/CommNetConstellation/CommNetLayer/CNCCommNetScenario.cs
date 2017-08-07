@@ -51,6 +51,7 @@ namespace CommNetConstellation.CommNetLayer
             //CommNetNetwork.Instance.GetType().GetMethod("set_Instance").Invoke(CustomCommNetNetwork, null); // reflection to bypass Instance's protected set // don't seem to work
             */
 
+            /*
             //Replace the CommNet ground stations
             CommNetHome[] homes = FindObjectsOfType<CommNetHome>();
             for(int i=0; i<homes.Length; i++)
@@ -68,6 +69,8 @@ namespace CommNetConstellation.CommNetLayer
                 customBody.copyOf(bodies[i]);
                 UnityEngine.Object.Destroy(bodies[i]);
             }
+            */
+            CommNetManagerAPI.AssemblyChecker.SetCommNetTypes();
 
             CNCLog.Verbose("CommNet Scenario loading done! ");
         }
