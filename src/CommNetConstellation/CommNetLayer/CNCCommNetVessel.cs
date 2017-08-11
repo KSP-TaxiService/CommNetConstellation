@@ -2,7 +2,6 @@
 using CommNetConstellation.UI;
 using System;
 using System.Collections.Generic;
-using System.Linq; //unable to replace non-trival Linq functions
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -425,7 +424,15 @@ namespace CommNetConstellation.CommNetLayer
                 return onefreq;
             }
 
-            List<KeyValuePair<short, double>> decreasingFreqs= dict.OrderByDescending(x => x.Value).ToList();
+            //List<KeyValuePair<short, double>> decreasingFreqs= dict.OrderByDescending(x => x.Value).ToList();
+            List<KeyValuePair<short, double>> decreasingFreqs = new List<KeyValuePair<short, double>>();
+            var itr2 = dict.GetEnumerator();
+            while(itr2.MoveNext())
+            {
+                decreasingFreqs.Add(itr2.Current);
+            }
+            decreasingFreqs.Sort((a, b) => b.Value.CompareTo(a.Value));
+
             short freq = decreasingFreqs[0].Key;
 
             if(freq == CNCSettings.Instance.PublicRadioFrequency)
@@ -688,13 +695,31 @@ namespace CommNetConstellation.CommNetLayer
 
         public void PersistenceSave()
         {
-            FreqDictionaryKeys = FrequencyDict.Keys.ToList();
-            FreqDictionaryValues = FrequencyDict.Values.ToList();
+            List<short> keys = new List<short>();
+            var keyItr = FrequencyDict.Keys.GetEnumerator();
+            while(keyItr.MoveNext())
+            {
+                keys.Add(keyItr.Current);
+            }
+            FreqDictionaryKeys = keys;
+
+            List<double> values = new List<double>();
+            var valueItr = FrequencyDict.Values.GetEnumerator();
+            while (valueItr.MoveNext())
+            {
+                values.Add(valueItr.Current);
+            }
+            FreqDictionaryValues = values;
         }
 
         public void PersistenceLoad()
         {
-            FrequencyDict = Enumerable.Range(0, FreqDictionaryKeys.Count).ToDictionary(idx => FreqDictionaryKeys[idx], idx => FreqDictionaryValues[idx]);
+            //FrequencyDict = Enumerable.Range(0, FreqDictionaryKeys.Count).ToDictionary(idx => FreqDictionaryKeys[idx], idx => FreqDictionaryValues[idx]);
+            FrequencyDict = new Dictionary<short, double>();
+            for (int i=0; i< FreqDictionaryKeys.Count; i++)
+            {
+                FrequencyDict.Add(FreqDictionaryKeys[i], FreqDictionaryValues[i]);
+            }
         }
     }
 }
