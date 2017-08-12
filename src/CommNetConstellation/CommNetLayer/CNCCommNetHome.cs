@@ -1,5 +1,6 @@
 ﻿using CommNet;
 using CommNetConstellation.UI;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ namespace CommNetConstellation.CommNetLayer
     /// <summary>
     /// Customise the home nodes
     /// </summary>
-    public class CNCCommNetHome : CommNetHome
+    public class CNCCommNetHome : CommNetHome, IComparable<CNCCommNetHome>
     {
         private static readonly Texture2D markTexture = UIUtils.loadImage("groundStationMark");
         private static GUIStyle groundStationHeadline;
@@ -18,7 +19,7 @@ namespace CommNetConstellation.CommNetLayer
         [Persistent] public string ID;
         [Persistent] public Color Color = Color.red;
         [Persistent] protected string OptionalName = "";
-        [Persistent(collectionIndex = "Frequency")] public List<short> Frequencies;
+        [Persistent(collectionIndex = "Frequency")] public List<short> Frequencies = new List<short>();
 
         public double altitude { get { return this.alt; } }
         public double latitude { get { return this.lat; } }
@@ -28,12 +29,6 @@ namespace CommNetConstellation.CommNetLayer
         {
             get { return (this.OptionalName.Length == 0)? this.nodeName : this.OptionalName; }
             set { this.OptionalName = value; }
-        }
-
-        public CNCCommNetHome()
-        {
-            this.Frequencies = new List<short>();
-            this.Frequencies.Add(CNCSettings.Instance.PublicRadioFrequency);
         }
 
         public void copyOf(CommNetHome stockHome)
@@ -176,6 +171,14 @@ namespace CommNetConstellation.CommNetLayer
             if (distance >= CNCSettings.Instance.DistanceToHideGroundStations)
                 return true;
             return false;
+        }
+
+        /// <summary>
+        /// Allow to be sorted easily
+        /// </summary>
+        public int CompareTo(CNCCommNetHome other)
+        {
+            return this.stationName.CompareTo(other.stationName);
         }
     }
 }

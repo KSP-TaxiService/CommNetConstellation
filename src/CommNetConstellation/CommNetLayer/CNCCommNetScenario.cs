@@ -60,9 +60,10 @@ namespace CommNetConstellation.CommNetLayer
                 UnityEngine.Object.Destroy(homes[i]);
                 groundStations.Add(customHome);
             }
+            groundStations.Sort();
 
             //Apply the ground-station changes from persistent.sfs
-            for(int i=0; i<persistentGroundStations.Count;i++)
+            for (int i=0; i<persistentGroundStations.Count;i++)
             {
                 if(groundStations.Exists(x => x.ID.Equals(persistentGroundStations[i].ID)))
                 {

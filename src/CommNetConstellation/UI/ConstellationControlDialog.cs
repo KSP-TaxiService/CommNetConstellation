@@ -489,6 +489,7 @@ namespace CommNetConstellation.UI
 
         private string getFreqString(List<short> frequencies, short strongestFreq = -1)
         {
+            frequencies.Sort();
             string freqString = "Frequencies: ";
 
             if (frequencies.Count == 0) // nothing

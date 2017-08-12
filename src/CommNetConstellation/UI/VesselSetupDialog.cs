@@ -27,7 +27,7 @@ namespace CommNetConstellation.UI
                                                                                                                 0.5f, //x
                                                                                                                 0.5f, //y
                                                                                                                 500, //width
-                                                                                                                500, //height
+                                                                                                                600, //height
                                                                                                                 new DialogOptions[] {})
         {
             this.hostVessel = vessel;
@@ -62,6 +62,7 @@ namespace CommNetConstellation.UI
 
             CNCCommNetVessel cncVessel = (CNCCommNetVessel)this.hostVessel.Connection;
             List<short> vesselFrequencyList = cncVessel.getFrequencies();
+            vesselFrequencyList.Sort();
 
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description + "\n\n", false, false) }));
 
@@ -111,6 +112,8 @@ namespace CommNetConstellation.UI
 
             CNCCommNetVessel cncVessel = (CNCCommNetVessel)this.hostVessel.Connection;
             List<short> vesselFrequencyList = cncVessel.getFrequencies();
+            vesselFrequencyList.Sort();
+
             for (int i = 0; i < vesselFrequencyList.Count; i++)
             {
                 frequencyRowLayout.AddChild(createFrequencyRow(vesselFrequencyList[i]));

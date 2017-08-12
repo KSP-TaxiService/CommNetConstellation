@@ -357,14 +357,16 @@ namespace CommNetConstellation.CommNetLayer
         }
 
         /// <summary>
-        /// Get the list of frequencies only
+        /// Get the *unsorted* list of frequencies only
         /// </summary>
         public List<short> getFrequencies()
         {
             List<short> freqs = new List<short>();
             var itr = this.FrequencyDict.Keys.GetEnumerator();
             while (itr.MoveNext())
+            {
                 freqs.Add(itr.Current);
+            }
 
             return freqs;
         }
