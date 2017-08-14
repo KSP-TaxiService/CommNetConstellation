@@ -163,6 +163,11 @@ namespace CommNetConstellation.CommNetLayer
                         CNCCommNetHome dummyGroundStation = new CNCCommNetHome();
                         ConfigNode.LoadObjectFromConfig(dummyGroundStation, stationNodes[i]);
                         persistentGroundStations.Add(dummyGroundStation);
+
+                        if(!stationNodes[i].HasNode("Frequencies")) // empty list is not saved as empty node in persistent.sfs
+                        {
+                            dummyGroundStation.Frequencies.Clear();// clear the default frequency list
+                        }
                     }
                     ConfigNode.LoadObjectFromConfig(this, rootNode);
                 }

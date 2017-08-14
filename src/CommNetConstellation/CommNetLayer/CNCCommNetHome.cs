@@ -19,7 +19,7 @@ namespace CommNetConstellation.CommNetLayer
         [Persistent] public string ID;
         [Persistent] public Color Color = Color.red;
         [Persistent] protected string OptionalName = "";
-        [Persistent(collectionIndex = "Frequency")] public List<short> Frequencies = new List<short>();
+        [Persistent(collectionIndex = "Frequency")] public List<short> Frequencies = new List<short>(new short[] { CNCSettings.Instance.PublicRadioFrequency });
 
         public double altitude { get { return this.alt; } }
         public double latitude { get { return this.lat; } }
@@ -59,6 +59,7 @@ namespace CommNetConstellation.CommNetLayer
         {
             this.Color = stationSnapshot.Color;
             this.Frequencies = stationSnapshot.Frequencies;
+            this.OptionalName = stationSnapshot.OptionalName;
         }
 
         /// <summary>
