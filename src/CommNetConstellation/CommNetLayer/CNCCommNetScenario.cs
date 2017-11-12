@@ -102,6 +102,7 @@ namespace CommNetConstellation.CommNetLayer
 
             this.constellations.Clear();
             this.commVessels.Clear();
+            this.groundStations.Clear();
 
             GameEvents.onVesselCreate.Remove(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
             GameEvents.onVesselDestroy.Remove(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
