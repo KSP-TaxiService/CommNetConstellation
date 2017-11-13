@@ -85,9 +85,9 @@
 xcopy /Y "$(TargetPath)" "E:\GitHub\CommNetConstellation\GameData\CommNetConstellation\Plugins"
 xcopy /Y "$(TargetDir)$(TargetName).pdb" "E:\GitHub\CommNetConstellation\GameData\CommNetConstellation\Plugins"
 xcopy /Y "$(TargetDir)$(TargetName).dll.mdb" "E:\GitHub\CommNetConstellation\GameData\CommNetConstellation\Plugins"
-xcopy /Y "$(TargetPath)" "D:\KSPTools\StockKSP1.3\GameData\CommNetConstellation\Plugins"
-xcopy /Y "$(TargetDir)$(TargetName).pdb" "D:\KSPTools\StockKSP1.3\GameData\CommNetConstellation\Plugins"
-xcopy /Y "$(TargetDir)$(TargetName).dll.mdb" "D:\KSPTools\StockKSP1.3\GameData\CommNetConstellation\Plugins"</PostBuildEvent>
+xcopy /Y "$(TargetPath)" "D:\KSPTools\StockKSP1.3.1\GameData\CommNetConstellation\Plugins"
+xcopy /Y "$(TargetDir)$(TargetName).pdb" "D:\KSPTools\StockKSP1.3.1\GameData\CommNetConstellation\Plugins"
+xcopy /Y "$(TargetDir)$(TargetName).dll.mdb" "D:\KSPTools\StockKSP1.3.1\GameData\CommNetConstellation\Plugins"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -1,5 +1,6 @@
 ﻿using CommNet;
 using CommNetConstellation.CommNetLayer;
+using KSP.Localization;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -338,9 +339,9 @@ namespace CommNetConstellation.UI
                 focusButton = new DialogGUIButton("Focus", delegate { vesselFocusClick(thisVessel.Vessel); }, null, 32, 32, false);
             }
 
-            DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.vesselName, 160, 12);
+            DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.GetDisplayName(), 160, 12);
             DialogGUILabel freqLabel = new DialogGUILabel(getFreqString(thisVessel.getFrequencies(), thisVessel.getStrongestFrequency()), 160, 12);
-            DialogGUILabel locationLabel = new DialogGUILabel(string.Format("Orbiting: {0}", thisVessel.Vessel.mainBody.name), 100, 12);
+            DialogGUILabel locationLabel = new DialogGUILabel(Localizer.Format("Orbiting: <<1>>", thisVessel.Vessel.mainBody.GetDisplayName()), 100, 12);
             DialogGUIButton setupButton = new DialogGUIButton("Setup", delegate { vesselSetupClick(thisVessel.Vessel); }, 70, 32, false);
 
             DialogGUIHorizontalLayout vesselGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { focusButton, vesselLabel, freqLabel, locationLabel, setupButton });

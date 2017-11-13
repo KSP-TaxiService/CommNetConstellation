@@ -1,5 +1,6 @@
 ﻿using CommNet;
 using CommNetConstellation.UI;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,7 +28,7 @@ namespace CommNetConstellation.CommNetLayer
         public CommNode commNode { get { return this.comm; } }
         public string stationName
         {
-            get { return (this.OptionalName.Length == 0)? this.nodeName : this.OptionalName; }
+            get { return (this.OptionalName.Length == 0)? this.displaynodeName : this.OptionalName; }
             set { this.OptionalName = value; }
         }
 
@@ -37,6 +38,7 @@ namespace CommNetConstellation.CommNetLayer
 
             this.ID = stockHome.nodeName;
             this.nodeName = stockHome.nodeName;
+            this.displaynodeName = Localizer.Format(stockHome.displaynodeName);
             this.nodeTransform = stockHome.nodeTransform;
             this.isKSC = stockHome.isKSC;
             this.body = stockHome.GetComponentInParent<CelestialBody>();

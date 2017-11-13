@@ -457,7 +457,7 @@ namespace CommNetConstellation.CommNetLayer
                 return true;
             }
 
-            ScreenMessage msg = new ScreenMessage(string.Format("Frequency list of Vessel '{0}' is locked.", this.vessel.vesselName), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+            ScreenMessage msg = new ScreenMessage(string.Format("Frequency list of Vessel '{0}' is locked.", this.vessel.GetDisplayName()), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
             ScreenMessages.PostScreenMessage(msg);
             CNCLog.Verbose("CommNet Vessel '{0}''s freq list is locked", this.Vessel.GetName());
             return false;
