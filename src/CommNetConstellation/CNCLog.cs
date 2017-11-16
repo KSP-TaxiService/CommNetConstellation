@@ -9,19 +9,19 @@
 
         public static void Verbose(string message, params object[] param)
         {
-            UnityEngine.Debug.Log(string.Format("{0} -> verbose: {1}", NAME_LOG_PREFIX, string.Format(message, param)));
+            UnityEngine.Debug.Log(string.Format("[{0}] {1}", NAME_LOG_PREFIX, string.Format(message, param)));
         }
 
         public static void Debug(string message, params object[] param)
         {
 #if DEBUG
-            UnityEngine.Debug.Log(string.Format("{0} -> debug: {1}", NAME_LOG_PREFIX, string.Format(message, param)));
+            UnityEngine.Debug.Log(string.Format("[{0}] Debug: {1}", NAME_LOG_PREFIX, string.Format(message, param)));
 #endif
         }
 
         public static void Error(string message, params object[] param)
         {
-            UnityEngine.Debug.LogError(string.Format("{0} -> error: {1}", NAME_LOG_PREFIX, string.Format(message, param)));
+            UnityEngine.Debug.LogError(string.Format("[{0}] Error: {1}", NAME_LOG_PREFIX, string.Format(message, param)));
         }
     }
 }
