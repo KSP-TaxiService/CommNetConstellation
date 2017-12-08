@@ -30,13 +30,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\KSPTools\StockKSP1.3\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>D:\KSPTools\StockKSP1.3.1\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\KSPTools\StockKSP1.3\KSP_x64_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>D:\KSPTools\StockKSP1.3.1\KSP_x64_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -46,11 +46,11 @@
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\KSPTools\StockKSP1.3\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>D:\KSPTools\StockKSP1.3.1\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\KSPTools\StockKSP1.3\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>D:\KSPTools\StockKSP1.3.1\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -60,10 +60,12 @@
     <Compile Include="CommNetLayer\CNCCommNetNetwork.cs" />
     <Compile Include="CommNetLayer\CNCCommNetScenario.cs" />
     <Compile Include="CommNetLayer\CNCCommNetUI.cs" />
+    <Compile Include="CommNetLayer\CNCCommNetUIModeButton.cs" />
     <Compile Include="CommNetLayer\CNCCommNetVessel.cs" />
     <Compile Include="CommNetLayer\CNCCommNetwork.cs" />
     <Compile Include="CommNetLayer\CNCCommNetBody.cs" />
     <Compile Include="CommNetLayer\CNCCommNetHome.cs" />
+    <Compile Include="CommNetLayer\CNCTelemetryUpdate.cs" />
     <Compile Include="Constellation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\AbstractDialog.cs" />

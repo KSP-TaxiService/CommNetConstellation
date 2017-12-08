@@ -1,4 +1,5 @@
 ﻿using CommNet;
+using KSP.UI.Screens.Flight;
 using System.Collections.Generic;
 
 namespace CommNetConstellation.CommNetLayer
@@ -19,6 +20,8 @@ namespace CommNetConstellation.CommNetLayer
 
         private CNCCommNetUI CustomCommNetUI = null;
         private CNCCommNetNetwork CustomCommNetNetwork = null;
+        private CNCTelemetryUpdate CustomCommNetTelemetry = null;
+        private CNCCommNetUIModeButton CustomCommNetModeButton = null;
         public List<Constellation> constellations; // leave the initialisation to OnLoad()
         public List<CNCCommNetHome> groundStations; // leave the initialisation to OnLoad()
         private List<CNCCommNetHome> persistentGroundStations; // leave the initialisation to OnLoad()
@@ -49,6 +52,23 @@ namespace CommNetConstellation.CommNetLayer
             CustomCommNetNetwork = gameObject.AddComponent<CNCCommNetNetwork>();
             UnityEngine.Object.Destroy(net);
             //CommNetNetwork.Instance.GetType().GetMethod("set_Instance").Invoke(CustomCommNetNetwork, null); // reflection to bypass Instance's protected set // don't seem to work
+
+            //Replace the TelemetryUpdate
+            TelemetryUpdate tel = TelemetryUpdate.Instance; //only appear in flight
+            CommNetUIModeButton cnmodeUI = FindObjectOfType<CommNetUIModeButton>(); //only appear in tracking station; initialised separately by TelemetryUpdate in flight
+            if (tel != null && HighLogic.LoadedSceneIsFlight)
+            {
+                TelemetryUpdateData tempData = new TelemetryUpdateData(tel);
+                UnityEngine.Object.DestroyImmediate(tel); //seem like UE won't initialise CNCTelemetryUpdate instance in presence of TelemetryUpdate instance
+                CustomCommNetTelemetry = gameObject.AddComponent<CNCTelemetryUpdate>();
+                CustomCommNetTelemetry.copyOf(tempData);
+            }
+            else if(cnmodeUI != null && HighLogic.LoadedScene == GameScenes.TRACKSTATION)
+            {
+                CustomCommNetModeButton = cnmodeUI.gameObject.AddComponent<CNCCommNetUIModeButton>();
+                CustomCommNetModeButton.copyOf(cnmodeUI);
+                UnityEngine.Object.DestroyImmediate(cnmodeUI);
+            }
 
             //Replace the CommNet ground stations
             groundStations = new List<CNCCommNetHome>();
@@ -99,6 +119,12 @@ namespace CommNetConstellation.CommNetLayer
 
             if (this.CustomCommNetNetwork != null)
                 UnityEngine.Object.Destroy(this.CustomCommNetNetwork);
+
+            if (this.CustomCommNetTelemetry != null)
+                UnityEngine.Object.Destroy(this.CustomCommNetTelemetry);
+
+            if (this.CustomCommNetModeButton != null)
+                UnityEngine.Object.Destroy(this.CustomCommNetModeButton);
 
             this.constellations.Clear();
             this.commVessels.Clear();
