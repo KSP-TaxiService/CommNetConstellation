@@ -97,6 +97,12 @@ namespace CommNetConstellation.CommNetLayer
             {
                 validateAndUpgrade(this.Vessel);
 
+                if(readCommandData().Count <= 0) //no probe core/command module to "process" signal
+                {
+                    this.vessel.connection = null;
+                    throw new Exception();
+                }
+
                 if (this.FreqListOperation == CNCCommNetVessel.FrequencyListOperation.AutoBuild)
                 {
                     this.vesselAntennas = this.readAntennaData();
@@ -111,7 +117,7 @@ namespace CommNetConstellation.CommNetLayer
             }
             catch (Exception e)
             {
-                CNCLog.Error("Vessel '{0}' doesn't have any CommNet capability, likely a mislabelled junk or a kerbin on EVA", this.Vessel.GetName());
+                CNCLog.Verbose("Vessel '{0}' doesn't have any CommNet capability due to no probe core/command part or a kerbin on EVA", this.Vessel.GetName());
             }
         }
 
@@ -251,6 +257,31 @@ namespace CommNetConstellation.CommNetLayer
             }
 
             return antennas;
+        }
+
+        /// <summary>
+        /// Read the command part data of an unloaded/loaded vessel
+        /// </summary>
+        protected List<ModuleCommand> readCommandData()
+        {
+            if(this.vessel.loaded)//quick check
+            {
+                return this.vessel.FindPartModulesImplementing<ModuleCommand>();
+            }
+
+            //manually read on unloaded vessel
+            List<ModuleCommand> cmds = new List<ModuleCommand>();
+            int numParts = this.vessel.protoVessel.protoPartSnapshots.Count;
+
+            //inspect each part
+            for (int partIndex = 0; partIndex < numParts; partIndex++)
+            {
+                ProtoPartSnapshot partSnapshot = this.vessel.protoVessel.protoPartSnapshots[partIndex];
+                Part thisPart = partSnapshot.partInfo.partPrefab;
+                cmds.AddRange(thisPart.Modules.GetModules<ModuleCommand>());
+            }
+
+            return cmds;
         }
 
         /// <summary>
