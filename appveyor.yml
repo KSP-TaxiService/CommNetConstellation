@@ -21,7 +21,7 @@
     only:
       - master
     # blacklist
-    except:
+    #except:
 
   # Do not build on tags (note: otherwise appveyor keeps looping on a release)
   # we simply want to build on a new push
@@ -220,7 +220,7 @@
     only:
       - develop
     # blacklist
-    except:
+    #except:
 
   # Do not build on tags (note: otherwise appveyor keeps looping on a release)
   # we simply want to build on a new push
