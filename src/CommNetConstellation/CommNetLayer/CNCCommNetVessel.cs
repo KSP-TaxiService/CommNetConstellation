@@ -677,6 +677,14 @@ namespace CommNetConstellation.CommNetLayer
             }
         }
 
+        /// <summary>
+        /// On-demand method to do network update manually
+        /// </summary>
+        public void computeUnloadedUpdate()
+        {
+            this.unloadedDoOnce = true;
+        }
+
         protected override void OnSave(ConfigNode gameNode)
         {
             base.OnSave(gameNode);

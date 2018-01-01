@@ -30,11 +30,24 @@ namespace CommNetConstellation.CommNetLayer
             //GameEvents.CommNet.OnNetworkInitialized.Remove(new EventVoid.OnEvent(this.OnNetworkInitialized)); //see Awake()
         }
 
+        /// <summary>
+        /// Overrode to add custom display mode
+        /// </summary>
         public override void UpdateUI()
         {
             if (this.initialised)
             {
-                base.UpdateUI();
+                string text = Localizer.Format("#autoLOC_6002257") + ": " + CNCCommNetUI.CustomMode.displayDescription();
+                if (this.tooltip.textString != text)
+                {
+                    this.tooltip.SetText(text);
+                }
+
+                if(CNCCommNetUI.CustomMode == CNCCommNetUI.CustomDisplayMode.MultiPaths)
+                {
+                    this.stateImage.SetState((int)CNCCommNetUI.CustomDisplayMode.Network);//need to set to network img 1st before multipaths
+                }
+                this.stateImage.SetState((int)CNCCommNetUI.CustomMode);
             }
         }
     }

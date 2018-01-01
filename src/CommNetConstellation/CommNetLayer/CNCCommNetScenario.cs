@@ -1,5 +1,6 @@
 ﻿using CommNet;
 using KSP.UI.Screens.Flight;
+using System;
 using System.Collections.Generic;
 
 namespace CommNetConstellation.CommNetLayer
@@ -139,6 +140,22 @@ namespace CommNetConstellation.CommNetLayer
             base.OnLoad(gameNode);
             CNCLog.Verbose("Scenario content to be read:\n{0}", gameNode);
 
+            //Other variables
+            for (int i = 0; i < gameNode.values.Count; i++)
+            {
+                ConfigNode.Value value = gameNode.values[i];
+                string name = value.name;
+                switch (name)
+                {
+                    case "DisplayModeTracking":
+                        CNCCommNetUI.CustomModeTrackingStation = (CNCCommNetUI.CustomDisplayMode)((int)Enum.Parse(typeof(CNCCommNetUI.CustomDisplayMode), value.value));
+                        break;
+                    case "DisplayModeFlight":
+                        CNCCommNetUI.CustomModeFlightMap = (CNCCommNetUI.CustomDisplayMode)((int)Enum.Parse(typeof(CNCCommNetUI.CustomDisplayMode), value.value));
+                        break;
+                }
+            }
+
             //Constellations
             if (gameNode.HasNode("Constellations"))
             {
@@ -209,6 +226,10 @@ namespace CommNetConstellation.CommNetLayer
         public override void OnSave(ConfigNode gameNode)
         {
             ConfigNode rootNode;
+
+            //Other variables
+            gameNode.AddValue("DisplayModeTracking", CNCCommNetUI.CustomModeTrackingStation);
+            gameNode.AddValue("DisplayModeFlight", CNCCommNetUI.CustomModeFlightMap);
 
             //Constellations
             if (!gameNode.HasNode("Constellations"))

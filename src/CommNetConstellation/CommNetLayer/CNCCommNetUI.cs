@@ -1,17 +1,43 @@
 ﻿using CommNet;
 using KSP.UI.Screens.Mapview;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine;
 
 namespace CommNetConstellation.CommNetLayer
 {
-    //TODO: Add RT's Multi-Path mode
-
     /// <summary>
     /// CommNetUI is the view in the Model–view–controller sense. Everything a player is seeing goes through this class
     /// </summary>
     public class CNCCommNetUI : CommNetUI
     {
+        /// <summary>
+        /// Add own display mode in replacement of stock display mode which cannot be extended easily
+        /// </summary>
+        public enum CustomDisplayMode
+        {
+            [Description("None")]
+            None,
+            [Description("First Hop")]
+            FirstHop,
+            [Description("Working Connection")]
+            Path,
+            [Description("Vessel Links")]
+            VesselLinks,
+            [Description("Network")]
+            Network,
+            [Description("All Working Connections")]
+            MultiPaths
+        }
+
+        //New variables related to display mode
+        public static CustomDisplayMode CustomMode = CustomDisplayMode.Path;
+        public static CustomDisplayMode CustomModeTrackingStation = CustomDisplayMode.Network;
+        public static CustomDisplayMode CustomModeFlightMap = CustomDisplayMode.Path;
+        private static int CustomModeCount = Enum.GetValues(typeof(CustomDisplayMode)).Length;
+        private static readonly string displayModeMessagePrefix = "Link visualisation is ";
+
         public static new CNCCommNetUI Instance
         {
             get;
@@ -41,8 +67,14 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected override void UpdateDisplay()
         {
-            base.UpdateDisplay();
-            updateView();   
+            if (CommNetNetwork.Instance == null)
+            {
+                return;
+            }
+            else
+            {
+                updateCustomisedView();
+            }
         }
 
         /// <summary>
@@ -118,40 +150,132 @@ namespace CommNetConstellation.CommNetLayer
         }
 
         /// <summary>
-        /// Render the CommNet presentation
+        /// Overrode ResetMode to use custom display mode
         /// </summary>
-        private void updateView()
+        public override void ResetMode()
         {
+            CNCCommNetUI.CustomMode = CNCCommNetUI.CustomDisplayMode.None;
+
+            if (FlightGlobals.ActiveVessel == null)
+            {
+                CNCCommNetUI.CustomModeTrackingStation = CNCCommNetUI.CustomMode;
+            }
+            else
+            {
+                CNCCommNetUI.CustomModeFlightMap = CNCCommNetUI.CustomMode;
+            }
+
+            this.points.Clear();
+            ScreenMessages.PostScreenMessage(displayModeMessagePrefix + CNCCommNetUI.CustomMode.displayDescription(), CNCSettings.ScreenMessageDuration);
+        }
+
+        /// <summary>
+        /// Overrode SwitchMode to use custom display mode
+        /// </summary>
+        public override void SwitchMode(int step)
+        {
+            int modeIndex = (((int)CNCCommNetUI.CustomMode) + step + CNCCommNetUI.CustomModeCount) % CNCCommNetUI.CustomModeCount;
+            CNCCommNetUI.CustomDisplayMode newMode = (CNCCommNetUI.CustomDisplayMode)modeIndex;
+
+            if (this.useTSBehavior)
+            {
+                this.ClampAndSetMode(ref CNCCommNetUI.CustomModeTrackingStation, newMode);
+            }
+            else
+            {
+                this.ClampAndSetMode(ref CNCCommNetUI.CustomModeFlightMap, newMode);
+            }
+
+            this.points.Clear();
+            ScreenMessages.PostScreenMessage(displayModeMessagePrefix + CNCCommNetUI.CustomMode.displayDescription(), CNCSettings.ScreenMessageDuration);
+        }
+
+        /// <summary>
+        /// Add new ClampAndSetMode for custom display mode
+        /// </summary>
+        public void ClampAndSetMode(ref CNCCommNetUI.CustomDisplayMode curMode, CNCCommNetUI.CustomDisplayMode newMode)
+        {
+            if (this.vessel == null || this.vessel.connection == null || this.vessel.connection.Comm.Net == null)
+            {
+                if (newMode != CNCCommNetUI.CustomDisplayMode.None &&
+                    newMode != CNCCommNetUI.CustomDisplayMode.Network &&
+                    newMode != CNCCommNetUI.CustomDisplayMode.MultiPaths)
+                {
+                    newMode = ((curMode != CNCCommNetUI.CustomDisplayMode.None) ? CNCCommNetUI.CustomDisplayMode.None : CNCCommNetUI.CustomDisplayMode.Network);
+                }
+            }
+
+            CNCCommNetUI.CustomMode = (curMode = newMode);
+        }
+
+        /// <summary>
+        /// Overrode UpdateDisplay() fully and add own customisations
+        /// </summary>
+        private void updateCustomisedView()
+        {
+            if (FlightGlobals.ActiveVessel == null)
+            {
+                this.useTSBehavior = true;
+            }
+            else
+            {
+                this.useTSBehavior = false;
+                this.vessel = FlightGlobals.ActiveVessel;
+            }
+
+            if (this.vessel == null || this.vessel.connection == null || this.vessel.connection.Comm.Net == null) //revert to default display mode if saved mode is inconsistent in current situation
+            {
+                this.useTSBehavior = true;
+                if (CustomModeTrackingStation != CustomDisplayMode.None) 
+                {
+                    if (CustomModeTrackingStation != CustomDisplayMode.Network && CustomModeTrackingStation != CustomDisplayMode.MultiPaths)
+                    {
+                        CustomModeTrackingStation = CustomDisplayMode.Network;
+                        ScreenMessages.PostScreenMessage(displayModeMessagePrefix + CustomModeTrackingStation.displayDescription(), CNCSettings.ScreenMessageDuration);
+                    }
+                }
+            }
+            
+            if (this.useTSBehavior)
+            {
+                CNCCommNetUI.CustomMode = CNCCommNetUI.CustomModeTrackingStation;
+            }
+            else
+            {
+                CNCCommNetUI.CustomMode = CNCCommNetUI.CustomModeFlightMap;
+            }
+
             CommNetwork net = CommNetNetwork.Instance.CommNet;
             CommNetVessel cnvessel = null;
             CommNode node = null;
             CommPath path = null;
 
             if (this.vessel != null && this.vessel.connection != null && this.vessel.connection.Comm.Net != null)
-			{
+            {
                 cnvessel = this.vessel.connection;
                 node = cnvessel.Comm;
                 path = cnvessel.ControlPath;
-			}
+            }
 
-            //work out how many connections to paint
+            //work out which links to display
+            int count = this.points.Count;//save previous value
             int numLinks = 0;
-            switch (CommNetUI.Mode)
+            switch (CNCCommNetUI.CustomMode)
             {
-                case CommNetUI.DisplayMode.None:
+                case CNCCommNetUI.CustomDisplayMode.None:
                     numLinks = 0;
                     break;
 
-                case CommNetUI.DisplayMode.FirstHop:
-                case CommNetUI.DisplayMode.Path:
+                case CNCCommNetUI.CustomDisplayMode.FirstHop:
+                case CNCCommNetUI.CustomDisplayMode.Path:
                     if (cnvessel.ControlState == VesselControlState.Probe || cnvessel.ControlState == VesselControlState.Kerbal ||
-                        path == null || path.Count == 0)
+                        path.Count == 0)
                     {
                         numLinks = 0;
                     }
                     else
                     {
-                        if (CommNetUI.Mode == CommNetUI.DisplayMode.FirstHop)
+                        if (CNCCommNetUI.CustomMode == CNCCommNetUI.CustomDisplayMode.FirstHop)
                         {
                             path.First.GetPoints(this.points);
                             numLinks = 1;
@@ -164,12 +288,12 @@ namespace CommNetConstellation.CommNetLayer
                     }
                     break;
 
-                case CommNetUI.DisplayMode.VesselLinks:
+                case CNCCommNetUI.CustomDisplayMode.VesselLinks:
                     numLinks = node.Count;
                     node.GetLinkPoints(this.points);
                     break;
 
-                case CommNetUI.DisplayMode.Network:
+                case CNCCommNetUI.CustomDisplayMode.Network:
                     if (net.Links.Count == 0)
                     {
                         numLinks = 0;
@@ -180,9 +304,45 @@ namespace CommNetConstellation.CommNetLayer
                         net.GetLinkPoints(this.points);
                     }
                     break;
+                case CNCCommNetUI.CustomDisplayMode.MultiPaths:
+                    if (net.Links.Count == 0)
+                    {
+                        numLinks = 0;
+                    }
+                    else
+                    {
+                        CommPath newPath = new CommPath();
+
+                        var nodes = net;
+                        var vessels = CNCCommNetScenario.Instance.getCommNetVessels();//TODO: replace it with CNM
+                        for(int i=0; i<vessels.Count; i++)
+                        {
+                            var vessel = vessels[i];
+                            vessel.computeUnloadedUpdate();//network update is done only once for unloaded vessels so need to manually re-trigger every time
+
+                            if (!(vessel.ControlState == VesselControlState.Probe || vessel.ControlState == VesselControlState.Kerbal ||
+                                vessel.ControlPath == null || vessel.ControlPath.Count == 0))
+                            {
+                                for (int pathIndex=0; pathIndex< vessel.ControlPath.Count; pathIndex++)
+                                {
+                                    var link = vessel.ControlPath[pathIndex];
+                                    if (newPath.Find(x => (CNCCommNetwork.AreSame(x.a, link.a) && CNCCommNetwork.AreSame(x.b, link.b))) == null)//not found in list of links to be displayed
+                                    {
+                                        newPath.Add(link); //laziness wins
+                                        //KSP techincally does not care if path is consisted of non-continuous links or not
+                                    }
+                                }
+                            }
+                        }
+
+                        path = newPath;
+                        path.GetPoints(this.points, true);
+                        numLinks = path.Count;
+                    }
+                    break;
             }// end of switch
 
-            //check if nothing to draw
+            //check if nothing to display
             if (numLinks == 0)
             {
                 if (this.line != null)
@@ -192,10 +352,28 @@ namespace CommNetConstellation.CommNetLayer
                 return;
             }
 
-            //paint eligible connections
-            switch (CommNetUI.Mode)
+            if (this.line != null)
             {
-                case CommNetUI.DisplayMode.FirstHop:
+                this.line.active = true;
+            }
+            else
+            {
+                this.refreshLines = true;
+            }
+
+            ScaledSpace.LocalToScaledSpace(this.points); //seem very important
+
+            if (this.refreshLines || MapView.Draw3DLines != this.draw3dLines || count != this.points.Count || this.line == null)
+            {
+                this.CreateLine(ref this.line, this.points);//seems it is multiple separate lines not single continuous line
+                this.draw3dLines = MapView.Draw3DLines;
+                this.refreshLines = false;
+            }
+
+            //paint the links
+            switch (CNCCommNetUI.CustomMode)
+            {
+                case CNCCommNetUI.CustomDisplayMode.FirstHop:
                 {
                     float lvl = Mathf.Pow((float)path.First.signalStrength, this.colorLerpPower);
                     Color customHighColor = getConstellationColor(path.First.a, path.First.b);
@@ -205,7 +383,8 @@ namespace CommNetConstellation.CommNetLayer
                         this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, lvl), 0);
                     break;
                 }
-                case CommNetUI.DisplayMode.Path:
+                case CNCCommNetUI.CustomDisplayMode.Path:
+                case CNCCommNetUI.CustomDisplayMode.MultiPaths:
                 {
                     int linkIndex = numLinks;
                     for(int i=linkIndex-1; i>=0; i--)
@@ -219,7 +398,7 @@ namespace CommNetConstellation.CommNetLayer
                     }
                     break;
                 }
-                case CommNetUI.DisplayMode.VesselLinks:
+                case CNCCommNetUI.CustomDisplayMode.VesselLinks:
                 {
                     var itr = node.Values.GetEnumerator();
                     int linkIndex = 0;
@@ -235,7 +414,7 @@ namespace CommNetConstellation.CommNetLayer
                     }
                     break;
                 }
-                case CommNetUI.DisplayMode.Network:
+                case CNCCommNetUI.CustomDisplayMode.Network:
                 {
                     for (int i = numLinks-1; i >= 0; i--)
                     {
@@ -251,6 +430,17 @@ namespace CommNetConstellation.CommNetLayer
                     break;
                 }
             } // end of switch
+
+            if (this.draw3dLines)
+            {
+                this.line.SetWidth(this.lineWidth3D);
+                this.line.Draw3D();
+            }
+            else
+            {
+                this.line.SetWidth(this.lineWidth2D);
+                this.line.Draw();
+            }
         }
     }
 }
