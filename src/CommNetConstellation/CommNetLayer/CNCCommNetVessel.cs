@@ -97,9 +97,9 @@ namespace CommNetConstellation.CommNetLayer
             {
                 validateAndUpgrade(this.Vessel);
 
-                if(readCommandData().Count <= 0) //no probe core/command module to "process" signal
+                if (readCommandData().Count <= 0) //no probe core/command module to "process" signal
                 {
-                    this.vessel.connection = null;
+                    this.controlState = VesselControlState.None;
                     throw new Exception();
                 }
 
@@ -155,10 +155,17 @@ namespace CommNetConstellation.CommNetLayer
             {
                 CNCLog.Verbose("Active CommNet Vessel '{0}' is staged. Rebuilding the freq list on suriving antennas...", this.Vessel.vesselName);
 
-                //force-rebuild freq list to stop players from abusing LockList
-                this.vesselAntennas = this.readAntennaData();
-                this.FrequencyDict = buildFrequencyList(this.vesselAntennas);
-                this.strongestFreq = computeStrongestFrequency(this.FrequencyDict);
+                if (readCommandData().Count <= 0) //no probe core/command module to "process" signal
+                {
+                    this.controlState = VesselControlState.None;
+                }
+                else
+                {
+                    //force-rebuild freq list to stop players from abusing LockList
+                    this.vesselAntennas = this.readAntennaData();
+                    this.FrequencyDict = buildFrequencyList(this.vesselAntennas);
+                    this.strongestFreq = computeStrongestFrequency(this.FrequencyDict);
+                }
 
                 this.stageActivated = false;
             }

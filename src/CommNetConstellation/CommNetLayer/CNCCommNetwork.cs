@@ -31,38 +31,39 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
-            //stop links between ground stations
-            if (a.isHome && b.isHome)
-            {
-                this.Disconnect(a, b, true);
-                return false;
-            }
-
             List<short> aFreqs, bFreqs;
 
-            //each CommNode has at least some frequencies?
             try
             {
+                //stop links between ground stations
+                if (a.isHome && b.isHome)
+                {
+                    this.Disconnect(a, b, true);
+                    return false;
+                }
+
+                //each CommNode has at least some frequencies?
                 aFreqs = CNCCommNetScenario.Instance.getFrequencies(a);
                 bFreqs = CNCCommNetScenario.Instance.getFrequencies(b);
-            }
-            catch (NullReferenceException e) // either CommNode could be a kerbal on EVA
-            {
+
+                //share same frequency?
+                for (int i = 0; i < aFreqs.Count; i++)
+                {
+                    if (bFreqs.Contains(aFreqs[i])) // yes, it does
+                    {
+                        return base.SetNodeConnection(a, b);
+                    }
+                }
+
                 this.Disconnect(a, b, true);
                 return false;
             }
-
-            //share same frequency?
-            for (int i = 0; i < aFreqs.Count; i++)
+            catch (Exception e) // either CommNode could be a kerbal on EVA
             {
-                if (bFreqs.Contains(aFreqs[i])) // yes, it does
-                {
-                    return base.SetNodeConnection(a, b);
-                }
+                //CNCLog.Verbose("Error thrown when checking CommNodes '{0}' & '{1}' - {2}", a.name, b.name, e.Message);
+                this.Disconnect(a, b, true);
+                return false;
             }
-
-            this.Disconnect(a, b, true);
-            return false;
         }
     }
 }

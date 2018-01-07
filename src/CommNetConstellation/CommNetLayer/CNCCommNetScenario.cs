@@ -324,7 +324,7 @@ namespace CommNetConstellation.CommNetLayer
             List<Vessel> allVessels = FlightGlobals.fetch.vessels;
             for (int i = 0; i < allVessels.Count; i++)
             {
-                if (allVessels[i].connection != null && allVessels[i].vesselType != VesselType.Unknown)// && allVessels[i].vesselType != VesselType.Debris) // debris could be spent stage with functional probes and antennas
+                if (allVessels[i].connection != null && allVessels[i].connection.ControlState != VesselControlState.None && allVessels[i].vesselType != VesselType.Unknown)// && allVessels[i].vesselType != VesselType.Debris) // debris could be spent stage with functional probes and antennas
                 {
                     CNCLog.Debug("Caching CommNetVessel '{0}'", allVessels[i].vesselName);
                     this.commVessels.Add(allVessels[i].connection as CNCCommNetVessel);
