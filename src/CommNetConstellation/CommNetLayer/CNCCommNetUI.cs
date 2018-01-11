@@ -419,13 +419,12 @@ namespace CommNetConstellation.CommNetLayer
                     for (int i = numLinks-1; i >= 0; i--)
                     {
                         CommLink commLink = net.Links[i];
-                        float f = (float)net.Links[i].GetBestSignal();
-                        float t = Mathf.Pow(f, this.colorLerpPower);
+                        float lvl = Mathf.Pow((float)net.Links[i].GetBestSignal(), this.colorLerpPower);
                         Color customHighColor = getConstellationColor(commLink.a, commLink.b);
                         if (this.swapHighLow)
-                            this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, t), i);
+                            this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, lvl), i);
                         else
-                            this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, t), i);
+                            this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, lvl), i);
                     }
                     break;
                 }
