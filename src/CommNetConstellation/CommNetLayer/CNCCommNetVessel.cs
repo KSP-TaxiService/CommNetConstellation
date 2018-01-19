@@ -85,6 +85,7 @@ namespace CommNetConstellation.CommNetLayer
         protected short strongestFreq = -1;
         protected List<CNCAntennaPartInfo> vesselAntennas = new List<CNCAntennaPartInfo>();
         protected bool stageActivated = false;
+        public bool IsCommandable = true;
 
         /// <summary>
         /// Retrieve the CNC data from the vessel
@@ -99,8 +100,12 @@ namespace CommNetConstellation.CommNetLayer
 
                 if (readCommandData().Count <= 0) //no probe core/command module to "process" signal
                 {
-                    this.controlState = VesselControlState.None;
+                    this.IsCommandable = false;
                     throw new Exception();
+                }
+                else
+                {
+                    this.IsCommandable = true;
                 }
 
                 if (this.FreqListOperation == CNCCommNetVessel.FrequencyListOperation.AutoBuild)
@@ -157,10 +162,12 @@ namespace CommNetConstellation.CommNetLayer
 
                 if (readCommandData().Count <= 0) //no probe core/command module to "process" signal
                 {
-                    this.controlState = VesselControlState.None;
+                    this.IsCommandable = false;
                 }
                 else
                 {
+                    this.IsCommandable = true;
+
                     //force-rebuild freq list to stop players from abusing LockList
                     this.vesselAntennas = this.readAntennaData();
                     this.FrequencyDict = buildFrequencyList(this.vesselAntennas);
