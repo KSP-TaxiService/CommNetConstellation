@@ -22,13 +22,13 @@ namespace CommNetConstellation.CommNetLayer
             None,
             [Description("First Hop")]
             FirstHop,
-            [Description("Working Connection")]
+            [Description("Active Connection")]
             Path,
             [Description("Vessel Links")]
             VesselLinks,
             [Description("Network")]
             Network,
-            [Description("All Working Connections")]
+            [Description("All Active Connections")]
             MultiPaths
         }
 
@@ -49,6 +49,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public override void Show()
         {
+            this.lineWidth3D = this.lineWidth2D; //lineWidth3D=1 is too thin to see
             registerMapNodeIconCallbacks();
             base.Show();
         }
