@@ -143,7 +143,7 @@ namespace CommNetConstellation.UI
                     {
                         throw new Exception("Frequency cannot be negative");
                     }
-                    else if (this.hostStation.Frequencies.Contains(newFreq))
+                    else if (this.freqListShown.Contains(newFreq))
                     {
                         throw new Exception("Ground station has this frequency already");
                     }
