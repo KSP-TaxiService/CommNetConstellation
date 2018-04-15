@@ -502,7 +502,7 @@ namespace CommNetConstellation.CommNetLayer
                 return true;
             }
 
-            ScreenMessage msg = new ScreenMessage(string.Format("Frequency list of Vessel '{0}' is locked.", this.vessel.GetDisplayName()), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+            ScreenMessage msg = new ScreenMessage(string.Format("Frequency list of Vessel '{0}' is locked.", this.vessel.GetDisplayName()), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
             ScreenMessages.PostScreenMessage(msg);
             CNCLog.Verbose("CommNet Vessel '{0}''s freq list is locked", this.Vessel.GetName());
             return false;
@@ -645,7 +645,7 @@ namespace CommNetConstellation.CommNetLayer
         {
             if(!partInfo.canComm) // antenna is not deployed
             {
-                ScreenMessage msg = new ScreenMessage(string.Format("Antenna '{0}' is not deployed.", partInfo.name), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessage msg = new ScreenMessage(string.Format("Antenna '{0}' is not deployed.", partInfo.name), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                 ScreenMessages.PostScreenMessage(msg);
                 CNCLog.Verbose("Cannot set the non-deployed antenna '{0}' of CommNet vessel '{1}' to {2}", partInfo.name, this.Vessel.GetName(), inUse);
                 return;

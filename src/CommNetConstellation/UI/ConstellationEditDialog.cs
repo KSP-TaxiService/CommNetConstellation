@@ -71,16 +71,16 @@ namespace CommNetConstellation.UI
 
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description+"\n\n", false, false) }));
 
-            DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 52, 12);
+            DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 60, 12);
             nameInput = new DialogGUITextInput(constellName, false, CNCSettings.MaxLengthName, setConstellName, 170, 25);
             DialogGUIHorizontalLayout nameGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { nameLabel, nameInput });
             listComponments.Add(nameGroup);
 
-            DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 52, 12);
-            frequencyInput = new DialogGUITextInput(constellFreq.ToString(), false, CNCSettings.MaxDigits, setConstellFreq, 47, 25);
-            constellationColorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.zero, this.constellColor, colorTexture);
-            DialogGUIButton colorButton = new DialogGUIButton("Color", colorEditClick, null, 50, 32, false);
-            DialogGUIHorizontalLayout freqColorGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(16), colorButton, constellationColorImage });
+            DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 60, 12);
+            frequencyInput = new DialogGUITextInput(constellFreq.ToString(), false, CNCSettings.MaxDigits, setConstellFreq, 55, 25);
+            constellationColorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, this.constellColor, colorTexture);
+            DialogGUIButton colorButton = new DialogGUIButton("Color", colorEditClick, null, 50, 25, false);
+            DialogGUIHorizontalLayout freqColorGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(15), colorButton, constellationColorImage });
             listComponments.Add(freqColorGroup);
 
             DialogGUIButton updateButton = new DialogGUIButton(this.actionButtonText, actionClick, false);
@@ -167,7 +167,7 @@ namespace CommNetConstellation.UI
                         creationCallback(newConstellation);
 
                         string message = string.Format("New constellation '{0}' of frequency {1} is created", constellName, constellFreq);
-                        ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
+                        ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER));
 
                         CNCLog.Debug("New constellation: {0}, {1}", constellName, constellFreq);
 
@@ -195,7 +195,7 @@ namespace CommNetConstellation.UI
                                 affectedStations[i].replaceFrequency(prevFreq, this.existingConstellation.frequency);
                             }
 
-                            ScreenMessage msg = new ScreenMessage(string.Format("Constellation has the new frequency {0}", constellFreq), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                            ScreenMessage msg = new ScreenMessage(string.Format("Constellation has the new frequency {0}", constellFreq), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                             ScreenMessages.PostScreenMessage(msg);
                             changesCommitted = true;
                         }
@@ -204,7 +204,7 @@ namespace CommNetConstellation.UI
                         {
                             this.existingConstellation.name = constellName;
                             string message = string.Format("Constellation is renamed to '{0}'", constellName);
-                            ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
+                            ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER));
                             changesCommitted = true;
                         }
 
@@ -212,7 +212,7 @@ namespace CommNetConstellation.UI
                         {
                             this.existingConstellation.color = this.constellColor;
                             string message = string.Format("Constellation color becomes '{0}'", UIUtils.colorToHex(this.constellColor));
-                            ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT));
+                            ScreenMessages.PostScreenMessage(new ScreenMessage(message, CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER));
                             changesCommitted = true;
                         }
 
@@ -236,7 +236,7 @@ namespace CommNetConstellation.UI
             }
             catch (Exception e)
             {
-                ScreenMessage msg = new ScreenMessage("<color=red>" + e.Message + "</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessage msg = new ScreenMessage("<color=red>" + e.Message + "</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                 ScreenMessages.PostScreenMessage(msg);
             }
         }

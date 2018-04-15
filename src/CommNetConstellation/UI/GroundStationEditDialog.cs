@@ -57,18 +57,18 @@ namespace CommNetConstellation.UI
 
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description + "\n\n", false, false) }));
 
-            DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 80, 12);
+            DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 30, 12);
             nameInput = new DialogGUITextInput(this.hostStation.stationName, false, CNCSettings.MaxLengthName, setNameInput, 145, 25);
-            DialogGUIButton defaultButton = new DialogGUIButton("Reset", defaultNameClick, 40, 32, false);
-            DialogGUIHorizontalLayout nameGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { nameLabel, nameInput, defaultButton });
+            DialogGUIButton defaultButton = new DialogGUIButton("Reset", defaultNameClick, 40, 25, false);
+            DialogGUIHorizontalLayout nameGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { nameLabel, nameInput, new DialogGUIFlexibleSpace(), defaultButton });
             listComponments.Add(nameGroup);
 
             stationColorImage = new DialogGUIImage(new Vector2(16, 16), Vector2.zero, this.hostStation.Color, groundstationTexture);
-            DialogGUIButton colorButton = new DialogGUIButton("Color", colorEditClick, null, 50, 32, false);
-            DialogGUILabel freqLabel = new DialogGUILabel("<b>New frequency</b>", 80, 12);
-            frequencyInput = new DialogGUITextInput("", false, CNCSettings.MaxDigits, setFreqInput, 50, 25);
-            DialogGUIButton addButton = new DialogGUIButton("Add", addClick, 40, 32, false);
-            DialogGUIHorizontalLayout freqGRoup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { freqLabel, frequencyInput, addButton, new DialogGUISpace(5), colorButton, stationColorImage });
+            DialogGUIButton colorButton = new DialogGUIButton("Color", colorEditClick, null, 45, 25, false);
+            DialogGUILabel freqLabel = new DialogGUILabel("<b>New frequency</b>", 85, 12);
+            frequencyInput = new DialogGUITextInput("", false, CNCSettings.MaxDigits, setFreqInput, 60, 25);
+            DialogGUIButton addButton = new DialogGUIButton("Add", addClick, 40, 25, false);
+            DialogGUIHorizontalLayout freqGRoup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { freqLabel, frequencyInput, addButton, new DialogGUISpace(10), colorButton, stationColorImage });
             listComponments.Add(freqGRoup);
 
             //Prepare a list container for the GUILayout rows
@@ -80,7 +80,7 @@ namespace CommNetConstellation.UI
             }
 
             frequencyRowLayout = new DialogGUIVerticalLayout(10, 100, 0, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, rows);
-            listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, frequencyRowLayout));
+            listComponments.Add(new DialogGUIScrollList(new Vector2(240,100), false, true, frequencyRowLayout));
 
             DialogGUIButton updateButton = new DialogGUIButton("Update", updateAction, false);
             DialogGUIButton cancelButton = new DialogGUIButton("Cancel", delegate { this.dismiss(); }, false);
@@ -96,9 +96,9 @@ namespace CommNetConstellation.UI
             string name = Constellation.getName(freq);
 
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, color, colorTexture);
-            DialogGUILabel nameLabel = new DialogGUILabel(name, 150, 12);
-            DialogGUILabel eachFreqLabel = new DialogGUILabel(string.Format("(<color={0}>{1}</color>)", UIUtils.colorToHex(color), freq), 20, 12);
-            DialogGUIButton removeButton = new DialogGUIButton("Drop", delegate { deleteFreqClick(freq); }, 40, 32, false);
+            DialogGUILabel nameLabel = new DialogGUILabel(name, 140, 12);
+            DialogGUILabel eachFreqLabel = new DialogGUILabel(string.Format("(<color={0}>{1}</color>)", UIUtils.colorToHex(color), freq), 40, 12);
+            DialogGUIButton removeButton = new DialogGUIButton("Drop", delegate { deleteFreqClick(freq); }, 40, 25, false);
             return new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { colorImage, nameLabel, eachFreqLabel, removeButton });
         }
 
@@ -173,7 +173,7 @@ namespace CommNetConstellation.UI
             }
             catch (Exception e)
             {
-                ScreenMessage msg = new ScreenMessage("<color=red>" + e.Message + "</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessage msg = new ScreenMessage("<color=red>" + e.Message + "</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                 ScreenMessages.PostScreenMessage(msg);
             }
         }
@@ -255,7 +255,7 @@ namespace CommNetConstellation.UI
                 else
                     this.hostStation.stationName = newName;
 
-                ScreenMessage msg = new ScreenMessage(string.Format("Ground station is renamed to '{0}'", this.hostStation.stationName), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessage msg = new ScreenMessage(string.Format("Ground station is renamed to '{0}'", this.hostStation.stationName), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                 ScreenMessages.PostScreenMessage(msg);
                 changesCommitted = true;
             }
@@ -263,7 +263,7 @@ namespace CommNetConstellation.UI
             if(this.hostStation.Color != this.constellColor)
             {
                 this.hostStation.Color = this.constellColor;
-                ScreenMessage msg = new ScreenMessage(string.Format("Ground station is '{0}' now", UIUtils.colorToHex(this.hostStation.Color)), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessage msg = new ScreenMessage(string.Format("Ground station is '{0}' now", UIUtils.colorToHex(this.hostStation.Color)), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                 ScreenMessages.PostScreenMessage(msg);
                 changesCommitted = true;
             }
@@ -272,7 +272,7 @@ namespace CommNetConstellation.UI
             if (!(commonFreq == this.hostStation.Frequencies.Count && commonFreq == this.freqListShown.Count))
             {
                 this.hostStation.Frequencies = this.freqListShown;
-                ScreenMessage msg = new ScreenMessage("Ground station's frequency list is updated", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessage msg = new ScreenMessage("Ground station's frequency list is updated", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                 ScreenMessages.PostScreenMessage(msg);
                 changesCommitted = true;
             }

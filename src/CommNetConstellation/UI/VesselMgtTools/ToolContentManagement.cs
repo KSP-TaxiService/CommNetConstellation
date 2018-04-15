@@ -56,11 +56,14 @@ namespace CommNetConstellation.UI.VesselMgtTools
         protected DialogGUIVerticalLayout toolContentLayout;
         protected List<AbstractMgtTool> tools;
         private AbstractMgtTool currentTool;
+        private float width, height;
 
-        public ToolContentManagement()
+        public ToolContentManagement(float width, float height)
         {
             this.tools = new List<AbstractMgtTool>();
             this.currentTool = null;
+            this.width = width;
+            this.height = height;
         }
 
         public void add(AbstractMgtTool newTool)
@@ -89,7 +92,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
 
             //Tool content
             this.toolContentLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[] { new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true) });
-            layout.Add(new DialogGUIScrollList(Vector2.one, false, true, this.toolContentLayout));
+            layout.Add(new DialogGUIScrollList(new Vector2(this.width, this.height), false, true, this.toolContentLayout));
 
             return layout;
         }

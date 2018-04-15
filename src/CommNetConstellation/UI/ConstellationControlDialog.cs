@@ -52,16 +52,19 @@ namespace CommNetConstellation.UI
 
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
-            listComponments.Add(new DialogGUILabel("Administer multiple communication constellations of vessels with one or more frequencies. Ground, air and space vessels can be independently assigned and configured.", false, false));
-            DialogGUIButton constellationBtn = new DialogGUIButton("Constellations", delegate { displayContentLayout(ContentType.CONSTELLATIONS); }, false);
-            DialogGUIButton groundstationBtn = new DialogGUIButton("Ground Stations", delegate { displayContentLayout(ContentType.GROUNDSTATIONS); }, false);
-            DialogGUIButton vesselBtn = new DialogGUIButton("CommNet Vessels", delegate { displayContentLayout(ContentType.VESSELS); }, false);
+            listComponments.Add(new DialogGUILabel("Manage communication networks of ground, air and space vessels.", false, false));
+
+            float btnWidth = (600-50)/3;
+            float btnHeight = 32;
+            DialogGUIButton constellationBtn = new DialogGUIButton("Constellations", delegate { displayContentLayout(ContentType.CONSTELLATIONS); }, btnWidth, btnHeight, false);
+            DialogGUIButton groundstationBtn = new DialogGUIButton("Ground Stations", delegate { displayContentLayout(ContentType.GROUNDSTATIONS); }, btnWidth, btnHeight, false);
+            DialogGUIButton vesselBtn = new DialogGUIButton("CommNet Vessels", delegate { displayContentLayout(ContentType.VESSELS); }, btnWidth, btnHeight, false);
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { constellationBtn, groundstationBtn, vesselBtn}));
 
             contentLayout = new DialogGUIVerticalLayout(true, false, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[] { new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true) });
             contentLayout.AddChildren(getVesselContentLayout().ToArray());
             this.currentContentType = ContentType.VESSELS;
-            listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, contentLayout));
+            listComponments.Add(new DialogGUIScrollList(new Vector2(550, 250), false, true, contentLayout));
 
             sortVesselBtnLayout = new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, getVesselSortLayout());
             listComponments.Add(sortVesselBtnLayout);
@@ -317,11 +320,14 @@ namespace CommNetConstellation.UI
 
         private DialogGUIBase[] getVesselSortLayout()
         {
-            DialogGUILabel sortLabel = new DialogGUILabel("Sort by");
-            DialogGUIButton launchSortBtn = new DialogGUIButton("Launch time", delegate { currentVesselSort = VesselListSort.LAUNCHDATE; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
-            DialogGUIButton freqSortBtn = new DialogGUIButton("Strongest frequency", delegate { currentVesselSort = VesselListSort.RADIOFREQ; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
-            DialogGUIButton nameSortBtn = new DialogGUIButton("Vessel name", delegate { currentVesselSort = VesselListSort.VESSELNAME; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
-            DialogGUIButton bodySortBtn = new DialogGUIButton("Celestial body", delegate { currentVesselSort = VesselListSort.CBODY; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, false);
+            float btnWidth = 100;
+            float btnHeight = 28;
+
+            DialogGUILabel sortLabel = new DialogGUILabel("Sort by", 35, 12);
+            DialogGUIButton launchSortBtn = new DialogGUIButton("Launch time", delegate { currentVesselSort = VesselListSort.LAUNCHDATE; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);
+            DialogGUIButton freqSortBtn = new DialogGUIButton("Strongest frequency", delegate { currentVesselSort = VesselListSort.RADIOFREQ; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth+40, btnHeight, false);
+            DialogGUIButton nameSortBtn = new DialogGUIButton("Vessel name", delegate { currentVesselSort = VesselListSort.VESSELNAME; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);
+            DialogGUIButton bodySortBtn = new DialogGUIButton("Celestial body", delegate { currentVesselSort = VesselListSort.CBODY; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);
 
             return new DialogGUIBase[] { sortLabel, launchSortBtn, freqSortBtn, nameSortBtn, bodySortBtn };
         }

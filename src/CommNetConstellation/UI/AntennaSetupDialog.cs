@@ -27,7 +27,7 @@ namespace CommNetConstellation.UI
                                                                                     0.5f, //x
                                                                                     0.5f, //y
                                                                                     250, //width
-                                                                                    230, //height
+                                                                                    210, //height
                                                                                     new DialogOptions[] { DialogOptions.HideCloseButton})
         {
             this.hostVessel = vessel;
@@ -50,20 +50,20 @@ namespace CommNetConstellation.UI
 
             DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 40, 12);
             nameInput = new DialogGUITextInput(antennaModule.Name, false, CNCSettings.MaxLengthName, setNameInput, 145, 25);
-            DialogGUIButton defaultButton = new DialogGUIButton("Reset", defaultNameClick, 40, 32, false);
+            DialogGUIButton defaultButton = new DialogGUIButton("Reset", defaultNameClick, 45, 25, false);
             DialogGUIHorizontalLayout nameGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { nameLabel, nameInput, defaultButton });
             listComponments.Add(nameGroup);
 
             DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 52, 12);
             frequencyInput = new DialogGUITextInput(antennaModule.Frequency.ToString(), false, CNCSettings.MaxDigits, setConstellFreq, 45, 25);
-            DialogGUIButton publicButton = new DialogGUIButton("Revert to public", defaultFreqClick, false);
+            DialogGUIButton publicButton = new DialogGUIButton("Revert to public", defaultFreqClick, 100, 25, false);
             DialogGUIHorizontalLayout freqGRoup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { freqLabel, frequencyInput, publicButton });
             listComponments.Add(freqGRoup);
 
             constellationColorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, Color.white, colorTexture);
             DialogGUILabel constNameLabel = new DialogGUILabel(getConstellationName, 200, 12);
             DialogGUIHorizontalLayout constellationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(5, 25, 5, 5), TextAnchor.MiddleCenter, new DialogGUIBase[] { constellationColorImage, constNameLabel });
-            listComponments.Add(new DialogGUIScrollList(Vector2.one, false, false, constellationGroup));
+            listComponments.Add(new DialogGUIScrollList(new Vector2(200, 40), false, false, constellationGroup));
 
             DialogGUIButton updateButton = new DialogGUIButton("Update", updateAction, false);
             DialogGUIButton cancelButton = new DialogGUIButton("Cancel", delegate { this.dismiss(); }, false);
@@ -138,7 +138,7 @@ namespace CommNetConstellation.UI
                     if (this.antennaModule.Frequency != inputFreq) // different frequency
                     {
                         this.antennaModule.Frequency = inputFreq;
-                        ScreenMessage msg = new ScreenMessage(string.Format("Frequency is updated to {0}", inputFreq), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                        ScreenMessage msg = new ScreenMessage(string.Format("Frequency is updated to {0}", inputFreq), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                         ScreenMessages.PostScreenMessage(msg);
                         changesCommitted = true;
                     }
@@ -146,7 +146,7 @@ namespace CommNetConstellation.UI
                     if (!this.antennaModule.Name.Equals(inputName)) // different name
                     {
                         this.antennaModule.Name = inputName;
-                        ScreenMessage msg = new ScreenMessage(string.Format("Antenna is renamed to '{0}'", this.antennaModule.Name), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                        ScreenMessage msg = new ScreenMessage(string.Format("Antenna is renamed to '{0}'", this.antennaModule.Name), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                         ScreenMessages.PostScreenMessage(msg);
                         changesCommitted = true;
                     }
@@ -175,7 +175,7 @@ namespace CommNetConstellation.UI
             }
             catch (Exception e)
             {
-                ScreenMessage msg = new ScreenMessage("<color=red>" + e.Message + "</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessage msg = new ScreenMessage("<color=red>" + e.Message + "</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                 ScreenMessages.PostScreenMessage(msg);
             }
         }

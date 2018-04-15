@@ -34,7 +34,7 @@ namespace CommNetConstellation.UI
             this.updateCallback = updateCallback;
             this.description = string.Format("Active frequencies allow this vessel '{0}' to talk with other vessels, which share one or more of these frequencies.", this.hostVessel.GetDisplayName());
 
-            this.toolMgt = new ToolContentManagement();
+            this.toolMgt = new ToolContentManagement(450, 100);
             UpdateListTool updateTool = new UpdateListTool(this.hostVessel.connection);
             this.toolMgt.add(updateTool);
             AntennaTool antennaTool = new AntennaTool(this.hostVessel.connection, refreshFrequencyRows);
@@ -85,7 +85,7 @@ namespace CommNetConstellation.UI
                 }
             }
             frequencyRowLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, frequencyRows);
-            listComponments.Add(new DialogGUIScrollList(Vector2.one, false, true, frequencyRowLayout));
+            listComponments.Add(new DialogGUIScrollList(new Vector2(450, 100), false, true, frequencyRowLayout));
 
             //tools
             listComponments.AddRange(this.toolMgt.getLayoutContents());
@@ -100,9 +100,9 @@ namespace CommNetConstellation.UI
             string name = Constellation.getName(freq);
 
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, color, colorTexture);
-            DialogGUILabel nameLabel = new DialogGUILabel(name, 160, 12);
+            DialogGUILabel nameLabel = new DialogGUILabel(name, 170, 12);
             DialogGUILabel eachFreqLabel = new DialogGUILabel(string.Format("(<color={0}>{1}</color>)", UIUtils.colorToHex(color), freq), 70, 12);
-            DialogGUILabel freqPowerLabel = new DialogGUILabel(string.Format("Combined Comm Power: {0}", UIUtils.RoundToNearestMetricFactor(cncVessel.getMaxComPower(freq), 2)), 180, 12);
+            DialogGUILabel freqPowerLabel = new DialogGUILabel(string.Format("Combined Comm Power: {0}", UIUtils.RoundToNearestMetricFactor(cncVessel.getMaxComPower(freq), 2)), 190, 12);
             return new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { colorImage, nameLabel, eachFreqLabel, freqPowerLabel });
         }
 
