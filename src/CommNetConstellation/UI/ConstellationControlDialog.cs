@@ -451,6 +451,12 @@ namespace CommNetConstellation.UI
         private List<DialogGUIBase> getGroundstationContentLayout()
         {
             List<DialogGUIBase> stationComponments = new List<DialogGUIBase>();
+
+            //toggle button for ground station markers
+            DialogGUIToggleButton toggleStationButton = new DialogGUIToggleButton(CNCCommNetScenario.Instance.hideGroundStations, "Hide all station markers", delegate (bool b) { CNCCommNetScenario.Instance.hideGroundStations = !CNCCommNetScenario.Instance.hideGroundStations; }, 60, 25);
+            DialogGUIHorizontalLayout toggleStationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), toggleStationButton, new DialogGUIFlexibleSpace() });
+            stationComponments.Add(toggleStationGroup);
+
             List<DialogGUIHorizontalLayout> rows = populateGroundStationRows();
             for (int i = 0; i < rows.Count; i++)
             {
@@ -485,7 +491,7 @@ namespace CommNetConstellation.UI
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(16, 16), Vector2.one, thisStation.Color, groundstationTexture);
             DialogGUILabel stationNameLabel = new DialogGUILabel(thisStation.stationName, 170, 12);
             DialogGUILabel locationLabel = new DialogGUILabel(string.Format("LAT: {0:0.0}\nLON: {1:0.0}", thisStation.latitude, thisStation.longitude), 100, 24);
-            DialogGUILabel freqsLabel = new DialogGUILabel(getFreqString(thisStation.Frequencies), 200, 12);
+            DialogGUILabel freqsLabel = new DialogGUILabel(getFreqString(thisStation.Frequencies), 210, 12);
             DialogGUIButton updateButton = new DialogGUIButton("Edit", delegate { groundstationEditClick(thisStation); }, 50, 32, false);
 
             DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, stationNameLabel, locationLabel, freqsLabel, updateButton };

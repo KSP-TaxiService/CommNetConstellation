@@ -28,6 +28,7 @@ namespace CommNetConstellation.CommNetLayer
         private List<CNCCommNetHome> persistentGroundStations; // leave the initialisation to OnLoad()
         private List<CNCCommNetVessel> commVessels;
         private bool dirtyCommNetVesselList;
+        public bool hideGroundStations;
 
         public static new CNCCommNetScenario Instance
         {
@@ -153,6 +154,9 @@ namespace CommNetConstellation.CommNetLayer
                     case "DisplayModeFlight":
                         CNCCommNetUI.CustomModeFlightMap = (CNCCommNetUI.CustomDisplayMode)((int)Enum.Parse(typeof(CNCCommNetUI.CustomDisplayMode), value.value));
                         break;
+                    case "HideGroundStations":
+                        this.hideGroundStations = Boolean.Parse(value.value);
+                        break;
                 }
             }
 
@@ -230,6 +234,7 @@ namespace CommNetConstellation.CommNetLayer
             //Other variables
             gameNode.AddValue("DisplayModeTracking", CNCCommNetUI.CustomModeTrackingStation);
             gameNode.AddValue("DisplayModeFlight", CNCCommNetUI.CustomModeFlightMap);
+            gameNode.AddValue("HideGroundStations", this.hideGroundStations);
 
             //Constellations
             if (!gameNode.HasNode("Constellations"))

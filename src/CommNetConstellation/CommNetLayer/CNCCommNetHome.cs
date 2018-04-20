@@ -96,6 +96,9 @@ namespace CommNetConstellation.CommNetLayer
             if ((!HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().enableGroundStations && !this.isKSC) || !MapView.MapIsEnabled || MapView.MapCamera == null)
                 return;
 
+            if (CNCCommNetScenario.Instance.hideGroundStations)
+                return;
+
             Vector3d worldPos = ScaledSpace.LocalToScaledSpace(nodeTransform.transform.position);
 
             if (MapView.MapCamera.transform.InverseTransformPoint(worldPos).z < 0f)
