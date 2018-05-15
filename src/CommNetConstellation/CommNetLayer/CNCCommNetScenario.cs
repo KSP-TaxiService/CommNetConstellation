@@ -163,8 +163,8 @@ namespace CommNetConstellation.CommNetLayer
             //Constellations
             if (gameNode.HasNode("Constellations"))
             {
-                ConfigNode rootNode = gameNode.GetNode("Constellations");
-                ConfigNode[] constellationNodes = rootNode.GetNodes();
+                ConfigNode constellationNode = gameNode.GetNode("Constellations");
+                ConfigNode[] constellationNodes = constellationNode.GetNodes();
 
                 if (constellationNodes.Length < 1) // missing constellation list
                 {
@@ -181,7 +181,6 @@ namespace CommNetConstellation.CommNetLayer
                         ConfigNode.LoadObjectFromConfig(newConstellation, constellationNodes[i]);
                         constellations.Add(newConstellation);
                     }
-                    ConfigNode.LoadObjectFromConfig(this, rootNode);
                 }
             }
             else
@@ -196,8 +195,8 @@ namespace CommNetConstellation.CommNetLayer
             persistentGroundStations = new List<CNCCommNetHome>();
             if (gameNode.HasNode("GroundStations"))
             {
-                ConfigNode rootNode = gameNode.GetNode("GroundStations");
-                ConfigNode[] stationNodes = rootNode.GetNodes();
+                ConfigNode stationNode = gameNode.GetNode("GroundStations");
+                ConfigNode[] stationNodes = stationNode.GetNodes();
 
                 if (stationNodes.Length < 1) // missing ground-station list
                 {
@@ -210,14 +209,12 @@ namespace CommNetConstellation.CommNetLayer
                     {
                         CNCCommNetHome dummyGroundStation = new CNCCommNetHome();
                         ConfigNode.LoadObjectFromConfig(dummyGroundStation, stationNodes[i]);
-                        persistentGroundStations.Add(dummyGroundStation);
-
                         if(!stationNodes[i].HasNode("Frequencies")) // empty list is not saved as empty node in persistent.sfs
                         {
                             dummyGroundStation.Frequencies.Clear();// clear the default frequency list
                         }
+                        persistentGroundStations.Add(dummyGroundStation);
                     }
-                    ConfigNode.LoadObjectFromConfig(this, rootNode);
                 }
             }
             else
@@ -229,49 +226,55 @@ namespace CommNetConstellation.CommNetLayer
 
         public override void OnSave(ConfigNode gameNode)
         {
-            ConfigNode rootNode;
-
             //Other variables
             gameNode.AddValue("DisplayModeTracking", CNCCommNetUI.CustomModeTrackingStation);
             gameNode.AddValue("DisplayModeFlight", CNCCommNetUI.CustomModeFlightMap);
             gameNode.AddValue("HideGroundStations", this.hideGroundStations);
 
             //Constellations
-            if (!gameNode.HasNode("Constellations"))
+            if (gameNode.HasNode("Constellations"))
             {
-                rootNode = new ConfigNode("Constellations");
-                gameNode.AddNode(rootNode);
-            }
-            else
-            {
-                rootNode = gameNode.GetNode("Constellations");
-                rootNode.ClearNodes();
+                gameNode.RemoveNode("Constellations");
             }
 
-            for (int i=0; i<constellations.Count; i++)
+            ConfigNode constellationNode = new ConfigNode("Constellations");
+            for (int i = 0; i < constellations.Count; i++)
             {
                 ConfigNode newConstellationNode = new ConfigNode("Constellation");
                 newConstellationNode = ConfigNode.CreateConfigFromObject(constellations[i], newConstellationNode);
-                rootNode.AddNode(newConstellationNode);
+                constellationNode.AddNode(newConstellationNode);
             }
 
-            //Ground stations
-            if (!gameNode.HasNode("GroundStations"))
+            if (constellations.Count <= 0)
             {
-                rootNode = new ConfigNode("GroundStations");
-                gameNode.AddNode(rootNode);
+                CNCLog.Error("No user-defined constellations to save!");
             }
             else
             {
-                rootNode = gameNode.GetNode("GroundStations");
-                rootNode.ClearNodes();
+                gameNode.AddNode(constellationNode);
             }
 
+            //Ground stations
+            if (gameNode.HasNode("GroundStations"))
+            {
+                gameNode.RemoveNode("GroundStations");
+            }
+
+            ConfigNode stationNode = new ConfigNode("GroundStations");
             for (int i = 0; i < groundStations.Count; i++)
             {
                 ConfigNode newGroundStationNode = new ConfigNode("GroundStation");
                 newGroundStationNode = ConfigNode.CreateConfigFromObject(groundStations[i], newGroundStationNode);
-                rootNode.AddNode(newGroundStationNode);
+                stationNode.AddNode(newGroundStationNode);
+            }
+
+            if (groundStations.Count <= 0)
+            {
+                CNCLog.Error("No ground stations to save!");
+            }
+            else
+            {
+                gameNode.AddNode(stationNode);
             }
 
             CNCLog.Verbose("Scenario content to be saved:\n{0}", gameNode);
