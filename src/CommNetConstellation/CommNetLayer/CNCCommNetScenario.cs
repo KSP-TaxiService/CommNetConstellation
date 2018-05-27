@@ -23,9 +23,9 @@ namespace CommNetConstellation.CommNetLayer
         private CNCCommNetNetwork CustomCommNetNetwork = null;
         private CNCTelemetryUpdate CustomCommNetTelemetry = null;
         private CNCCommNetUIModeButton CustomCommNetModeButton = null;
-        public List<Constellation> constellations; // leave the initialisation to OnLoad()
-        public List<CNCCommNetHome> groundStations; // leave the initialisation to OnLoad()
-        private List<CNCCommNetHome> persistentGroundStations; // leave the initialisation to OnLoad()
+        public List<Constellation> constellations = new List<Constellation>();
+        public List<CNCCommNetHome> groundStations = new List<CNCCommNetHome>();
+        private List<CNCCommNetHome> persistentGroundStations = new List<CNCCommNetHome>();
         private List<CNCCommNetVessel> commVessels;
         private bool dirtyCommNetVesselList;
         public bool hideGroundStations;
@@ -73,7 +73,7 @@ namespace CommNetConstellation.CommNetLayer
             }
 
             //Replace the CommNet ground stations
-            groundStations = new List<CNCCommNetHome>();
+            groundStations.Clear();
             CommNetHome[] homes = FindObjectsOfType<CommNetHome>();
             for(int i=0; i<homes.Length; i++)
             {
@@ -128,9 +128,7 @@ namespace CommNetConstellation.CommNetLayer
             if (this.CustomCommNetModeButton != null)
                 UnityEngine.Object.Destroy(this.CustomCommNetModeButton);
 
-            this.constellations.Clear();
             this.commVessels.Clear();
-            this.groundStations.Clear();
 
             GameEvents.onVesselCreate.Remove(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
             GameEvents.onVesselDestroy.Remove(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
@@ -173,8 +171,7 @@ namespace CommNetConstellation.CommNetLayer
                 }
                 else
                 {
-                    constellations = new List<Constellation>();
-
+                    constellations.Clear();
                     for (int i = 0; i < constellationNodes.Length; i++)
                     {
                         Constellation newConstellation = new Constellation();
@@ -192,7 +189,6 @@ namespace CommNetConstellation.CommNetLayer
             constellations.Sort();
 
             //Ground stations
-            persistentGroundStations = new List<CNCCommNetHome>();
             if (gameNode.HasNode("GroundStations"))
             {
                 ConfigNode stationNode = gameNode.GetNode("GroundStations");
@@ -205,6 +201,7 @@ namespace CommNetConstellation.CommNetLayer
                 }
                 else
                 {
+                    persistentGroundStations.Clear();
                     for (int i = 0; i < stationNodes.Length; i++)
                     {
                         CNCCommNetHome dummyGroundStation = new CNCCommNetHome();
