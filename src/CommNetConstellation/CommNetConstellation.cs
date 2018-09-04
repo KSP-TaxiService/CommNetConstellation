@@ -12,11 +12,16 @@ namespace CommNetConstellation
     {
         public override void Start()
         {
-            this.controlDialog = new ConstellationControlDialog("CommNet Constellation - <color=#00ff00>Control Panel</color>");
-            this.launcherButton = ApplicationLauncher.Instance.AddModApplication(
-                delegate { controlDialog.launch(); }, controlDialog.dismiss, null, null, null, null,
-                ApplicationLauncher.AppScenes.TRACKSTATION,
-                UIUtils.loadImage("cnclauncherbutton"));
+            SetupAppLauncher(ApplicationLauncher.AppScenes.TRACKSTATION);
+        }
+
+        protected override void Launch()
+        {
+            if (this.controlDialog == null)
+            {
+                this.controlDialog = new ConstellationControlDialog("CommNet Constellation - <color=#00ff00>Control Panel</color>");
+            }
+            this.controlDialog.launch();
         }
     }
 
@@ -28,11 +33,7 @@ namespace CommNetConstellation
 
         public virtual void Start()
         {
-            this.controlDialog = new ConstellationControlDialog("CommNet Constellation - <color=#00ff00>Control Panel</color>");
-            this.launcherButton = ApplicationLauncher.Instance.AddModApplication(
-                delegate { controlDialog.launch(); }, controlDialog.dismiss, null, null, null, null,
-                ApplicationLauncher.AppScenes.MAPVIEW,
-                UIUtils.loadImage("cnclauncherbutton"));
+            SetupAppLauncher(ApplicationLauncher.AppScenes.MAPVIEW);
         }
 
         public void OnDestroy()
@@ -41,6 +42,59 @@ namespace CommNetConstellation
             {
                 ApplicationLauncher.Instance.RemoveModApplication(launcherButton);
             }
+        }
+
+        protected virtual void Launch()
+        {
+            if (this.controlDialog == null)
+            {
+                this.controlDialog = new ConstellationControlDialog("CommNet Constellation - <color=#00ff00>Control Panel</color>");
+            }
+            this.controlDialog.launch();
+        }
+
+        protected virtual void Dismiss()
+        {
+            if (this.controlDialog != null)
+            {
+                this.controlDialog.dismiss();
+                this.controlDialog = null;
+            }
+        }
+
+        protected virtual void SetupAppLauncher(ApplicationLauncher.AppScenes scenes)
+        {
+            this.launcherButton = ApplicationLauncher.Instance.AddModApplication(
+                Launch, Dismiss, OnHover, OnHoverOut, OnEnable, OnDisable, 
+                scenes, UIUtils.loadImage("cnclauncherbutton"));
+        }
+
+        /// <summary>
+        /// Called when scene is entered
+        /// </summary>
+        protected virtual void OnEnable()
+        {
+        }
+
+        /// <summary>
+        /// Called when scene is exited
+        /// </summary>
+        protected virtual void OnDisable()
+        {
+        }
+
+        /// <summary>
+        /// Called when mouse cursor is over app button
+        /// </summary>
+        protected virtual void OnHover()
+        {
+        }
+
+        /// <summary>
+        /// Called when mouse cursor is out of app button
+        /// </summary>
+        protected virtual void OnHoverOut()
+        {
         }
     }
 }

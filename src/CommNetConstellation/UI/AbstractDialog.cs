@@ -22,7 +22,6 @@ namespace CommNetConstellation.UI
     /// </summary>
     public abstract class AbstractDialog
     {
-        protected bool isDisplayed = false;
         protected string dialogHandler;
         protected string dialogTitle;
         protected int windowWidth;
@@ -119,11 +118,11 @@ namespace CommNetConstellation.UI
         /// </summary>
         public void launch(System.Object[] args)
         {
-            if (this.isDisplayed)
+            if (popupDialog != null)
                 return;
 
-            this.isDisplayed = true;
             popupDialog = spawnDialog();
+            popupDialog.OnDismiss = new Callback(dismiss);
             OnAwake(args);
         }
 
@@ -132,11 +131,11 @@ namespace CommNetConstellation.UI
         /// </summary>
         public void dismiss()
         {
-            if (this.isDisplayed && popupDialog != null)
+            if (popupDialog != null)
             {
                 OnPreDismiss();
                 popupDialog.Dismiss();
-                this.isDisplayed = false;
+                popupDialog = null;
             }
         }
 
