@@ -1,4 +1,5 @@
 ﻿using CommNet;
+using CommNetConstellation.UI;
 using KSP.UI.Screens.Flight;
 using System;
 using System.Collections.Generic;
@@ -103,7 +104,7 @@ namespace CommNetConstellation.CommNetLayer
                 UnityEngine.Object.Destroy(bodies[i]);
             }
 
-            CNCLog.Verbose("CommNet Scenario loading done! ");
+            CNCLog.Verbose("CommNet Scenario loading done!");
         }
 
         public override void OnAwake()
@@ -208,7 +209,7 @@ namespace CommNetConstellation.CommNetLayer
                         ConfigNode.LoadObjectFromConfig(dummyGroundStation, stationNodes[i]);
                         if(!stationNodes[i].HasNode("Frequencies")) // empty list is not saved as empty node in persistent.sfs
                         {
-                            dummyGroundStation.Frequencies.Clear();// clear the default frequency list
+                            dummyGroundStation.deleteFrequencies();// clear the default frequency list
                         }
                         persistentGroundStations.Add(dummyGroundStation);
                     }
@@ -288,7 +289,7 @@ namespace CommNetConstellation.CommNetLayer
             List<CNCCommNetVessel> newList = new List<CNCCommNetVessel>();
             for(int i=0; i<commVessels.Count; i++)
             {
-                if (commVessels[i].getFrequencies().Contains(targetFrequency) || targetFrequency == -1)
+                if (targetFrequency == -1 || GameUtils.firstCommonElement(commVessels[i].getFrequencyArray(), new short[] { targetFrequency }) >= 0)
                     newList.Add(commVessels[i]);
             }
 
@@ -359,20 +360,16 @@ namespace CommNetConstellation.CommNetLayer
         /// <summary>
         /// Convenient method to obtain a frequency list from a given CommNode
         /// </summary>
-        public List<short> getFrequencies(CommNode a)
+        public short[] getFrequencies(CommNode a)
         {
-            List<short> aFreqs = new List<short>();
-
             if (a.isHome && findCorrespondingGroundStation(a) != null)
             {
-                aFreqs.AddRange(findCorrespondingGroundStation(a).Frequencies);
+                return findCorrespondingGroundStation(a).getFrequencyArray();
             }
             else
             {
-                aFreqs = ((CNCCommNetVessel)findCorrespondingVessel(a).Connection).getFrequencies();
+                return ((CNCCommNetVessel)findCorrespondingVessel(a).Connection).getFrequencyArray();
             }
-
-            return aFreqs;
         }
 
         /// <summary>

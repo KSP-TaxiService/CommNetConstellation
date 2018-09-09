@@ -20,7 +20,10 @@ namespace CommNetConstellation.CommNetLayer
         [Persistent] public string ID;
         [Persistent] public Color Color = Color.red;
         [Persistent] protected string OptionalName = "";
-        [Persistent(collectionIndex = "Frequency")] public List<short> Frequencies = new List<short>(new short[] { CNCSettings.Instance.PublicRadioFrequency });
+        [Persistent(collectionIndex = "Frequency")] protected List<short> Frequencies = new List<short>(new short[] { CNCSettings.Instance.PublicRadioFrequency });
+
+        //for low-gc operations
+        protected short[] sorted_frequency_array;
 
         public double altitude { get { return this.alt; } }
         public double latitude { get { return this.lat; } }
@@ -72,14 +75,54 @@ namespace CommNetConstellation.CommNetLayer
             this.Frequencies.Remove(oldFrequency);
             this.Frequencies.Add(newFrequency);
             this.Frequencies.Sort();
+            regenerateFrequencyArray(this.Frequencies);
         }
 
         /// <summary>
         /// Drop the specific frequency from the list
         /// </summary>
-        public bool deleteFrequency(short frequency)
+        public void deleteFrequency(short frequency)
         {
-            return this.Frequencies.Remove(frequency);
+            this.Frequencies.Remove(frequency);
+            regenerateFrequencyArray(this.Frequencies);
+        }
+
+        /// <summary>
+        /// Get the *sorted* array of frequencies only
+        /// </summary>
+        public short[] getFrequencyArray()
+        {
+            if(this.sorted_frequency_array == null)
+            {
+                regenerateFrequencyArray(this.Frequencies);
+            }
+            return this.sorted_frequency_array;
+        }
+
+        /// <summary>
+        /// Get the *sorted* list of frequencies only
+        /// </summary>
+        public List<short> getFrequencyList()
+        {
+            return this.Frequencies;
+        }
+
+        /// <summary>
+        /// Remove all frequencies
+        /// </summary>
+        public void deleteFrequencies()
+        {
+            this.Frequencies.Clear();
+            regenerateFrequencyArray(this.Frequencies);
+        }
+
+        /// <summary>
+        /// Replace all frequencies
+        /// </summary>
+        public void replaceFrequencies(List<short> newFreqs)
+        {
+            this.Frequencies = newFreqs;
+            regenerateFrequencyArray(this.Frequencies);
         }
 
         /// <summary>
@@ -185,6 +228,25 @@ namespace CommNetConstellation.CommNetLayer
         public int CompareTo(CNCCommNetHome other)
         {
             return this.stationName.CompareTo(other.stationName);
+        }
+
+        /// <summary>
+        /// Regenerate frequency array used for low-gc operations
+        /// </summary>
+        protected void regenerateFrequencyArray(List<short> list)
+        {
+            if (list.Count == 0)
+            {
+                sorted_frequency_array = new short[] { };
+            }
+
+            sorted_frequency_array = new short[list.Count];
+            for(int i=0; i< list.Count; i++)
+            {
+                sorted_frequency_array[i] = list[i];
+            }
+
+            GameUtils.Quicksort(sorted_frequency_array, 0, sorted_frequency_array.Length - 1);
         }
     }
 }

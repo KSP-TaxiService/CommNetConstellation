@@ -1,6 +1,6 @@
 ﻿using CommNet;
+using CommNetConstellation.UI;
 using System;
-using System.Collections.Generic;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -31,39 +31,33 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
-            List<short> aFreqs, bFreqs;
-
             try
             {
                 //stop links between ground stations
                 if (a.isHome && b.isHome)
                 {
                     this.Disconnect(a, b, true);
-                    return false;
                 }
-
-                //each CommNode has at least some frequencies?
-                aFreqs = CNCCommNetScenario.Instance.getFrequencies(a);
-                bFreqs = CNCCommNetScenario.Instance.getFrequencies(b);
-
-                //share same frequency?
-                for (int i = 0; i < aFreqs.Count; i++)
+                else
                 {
-                    if (bFreqs.Contains(aFreqs[i])) // yes, it does
+                    //each CommNode has at least some frequencies?
+                    if (GameUtils.firstCommonElement(CNCCommNetScenario.Instance.getFrequencies(a), CNCCommNetScenario.Instance.getFrequencies(b)) >= 0)
                     {
                         return base.SetNodeConnection(a, b);
                     }
+                    else
+                    {
+                        this.Disconnect(a, b, true);
+                    }
                 }
-
-                this.Disconnect(a, b, true);
-                return false;
             }
             catch (Exception e) // either CommNode could be a kerbal on EVA
             {
                 //CNCLog.Verbose("Error thrown when checking CommNodes '{0}' & '{1}' - {2}", a.name, b.name, e.Message);
                 this.Disconnect(a, b, true);
-                return false;
             }
+
+            return false;
         }
     }
 }

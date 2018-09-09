@@ -257,7 +257,7 @@ namespace CommNetConstellation.UI
 
                 short publicFrequency = CNCSettings.Instance.PublicRadioFrequency;
 
-                List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(deletedConstellation.frequency));
+                List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencyList().Contains(deletedConstellation.frequency));
                 for (int i = 0; i < affectedVessels.Count; i++)
                 {
                     affectedVessels[i].replaceAllFrequencies(deletedConstellation.frequency, publicFrequency);
@@ -269,7 +269,7 @@ namespace CommNetConstellation.UI
                     updateConstellationGUIRow(publicFrequency, -1);
                 }
 
-                List<CNCCommNetHome> affectedStations = CNCCommNetScenario.Instance.groundStations.FindAll(x => x.Frequencies.Contains(deletedConstellation.frequency));
+                List<CNCCommNetHome> affectedStations = CNCCommNetScenario.Instance.groundStations.FindAll(x => x.getFrequencyList().Contains(deletedConstellation.frequency));
                 for (int i = 0; i < affectedStations.Count; i++)
                 {
                     affectedStations[i].deleteFrequency(deletedConstellation.frequency);
@@ -346,7 +346,7 @@ namespace CommNetConstellation.UI
             }
 
             DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.GetDisplayName(), 160, 12);
-            DialogGUILabel freqLabel = new DialogGUILabel(getFreqString(thisVessel.getFrequencies(), thisVessel.getStrongestFrequency()), 160, 12);
+            DialogGUILabel freqLabel = new DialogGUILabel(getFreqString(thisVessel.getFrequencyList(), thisVessel.getStrongestFrequency()), 160, 12);
             DialogGUILabel locationLabel = new DialogGUILabel(Localizer.Format("Orbiting: <<1>>", thisVessel.Vessel.mainBody.GetDisplayName()), 100, 12);
             DialogGUIButton setupButton = new DialogGUIButton("Setup", delegate { vesselSetupClick(thisVessel.Vessel); }, 70, 32, false);
 
@@ -369,7 +369,7 @@ namespace CommNetConstellation.UI
                 if (thisRow.OptionText.Equals(updatedVessel.id.ToString()))
                 {
                     DialogGUILabel freqLabel = thisRow.children[2] as DialogGUILabel;
-                    freqLabel.SetOptionText(getFreqString(thisVessel.getFrequencies(), thisVessel.getStrongestFrequency()));
+                    freqLabel.SetOptionText(getFreqString(thisVessel.getFrequencyList(), thisVessel.getStrongestFrequency()));
                     return;
                 }
             }
@@ -491,7 +491,7 @@ namespace CommNetConstellation.UI
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(16, 16), Vector2.one, thisStation.Color, groundstationTexture);
             DialogGUILabel stationNameLabel = new DialogGUILabel(thisStation.stationName, 170, 12);
             DialogGUILabel locationLabel = new DialogGUILabel(string.Format("LAT: {0:0.0}\nLON: {1:0.0}", thisStation.latitude, thisStation.longitude), 100, 24);
-            DialogGUILabel freqsLabel = new DialogGUILabel(getFreqString(thisStation.Frequencies), 210, 12);
+            DialogGUILabel freqsLabel = new DialogGUILabel(getFreqString(thisStation.getFrequencyList()), 210, 12);
             DialogGUIButton updateButton = new DialogGUIButton("Edit", delegate { groundstationEditClick(thisStation); }, 50, 32, false);
 
             DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, stationNameLabel, locationLabel, freqsLabel, updateButton };
@@ -537,7 +537,7 @@ namespace CommNetConstellation.UI
                     CNCCommNetHome station = CNCCommNetScenario.Instance.groundStations.Find(x => x.ID.Equals(stationID));
                     colorImage.uiItem.GetComponent<RawImage>().color = station.Color;
                     nameLabel.SetOptionText(station.stationName);
-                    freqsLabel.SetOptionText(getFreqString(station.Frequencies));
+                    freqsLabel.SetOptionText(getFreqString(station.getFrequencyList()));
 
                     break;
                 }

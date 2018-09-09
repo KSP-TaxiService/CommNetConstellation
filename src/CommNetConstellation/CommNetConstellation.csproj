@@ -80,6 +80,7 @@
     <Compile Include="UI\ColorPickerDialog.cs" />
     <Compile Include="UI\ConstellationControlDialog.cs" />
     <Compile Include="UI\ConstellationEditDialog.cs" />
+    <Compile Include="UI\GameUtils.cs" />
     <Compile Include="UI\GroundStationEditDialog.cs" />
     <Compile Include="UI\UIUtils.cs" />
     <Compile Include="UI\VesselMgtTools\AntennaTool.cs" />

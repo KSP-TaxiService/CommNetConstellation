@@ -38,7 +38,7 @@ namespace CommNetConstellation.UI
             this.hostStation = thisStation;
             this.updateCallback = updateCallback;
             this.description = string.Format("You are editing the ground station '{0}'.", thisStation.stationName);
-            this.freqListShown.AddRange(thisStation.Frequencies);
+            this.freqListShown.AddRange(thisStation.getFrequencyList());
             this.freqListShown.Sort();
             this.constellColor = thisStation.Color;
 
@@ -72,7 +72,7 @@ namespace CommNetConstellation.UI
             listComponments.Add(freqGRoup);
 
             //Prepare a list container for the GUILayout rows
-            DialogGUIBase[] rows = new DialogGUIBase[this.hostStation.Frequencies.Count + 1];
+            DialogGUIBase[] rows = new DialogGUIBase[this.hostStation.getFrequencyList().Count + 1];
             rows[0] = new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true);
             for (int i = 0; i < this.freqListShown.Count; i++)
             {
@@ -147,7 +147,7 @@ namespace CommNetConstellation.UI
                     {
                         throw new Exception("Ground station has this frequency already");
                     }
-                    else if (!Constellation.NonLinqAny(CNCCommNetScenario.Instance.constellations, newFreq))
+                    else if (!GameUtils.NonLinqAny(CNCCommNetScenario.Instance.constellations, newFreq))
                     {
                         throw new Exception("Please choose an existing constellation");
                     }
@@ -268,10 +268,10 @@ namespace CommNetConstellation.UI
                 changesCommitted = true;
             }
 
-            int commonFreq = Constellation.NonLinqIntersect(this.freqListShown, this.hostStation.Frequencies).Count;
-            if (!(commonFreq == this.hostStation.Frequencies.Count && commonFreq == this.freqListShown.Count))
+            int commonFreq = GameUtils.NonLinqIntersect(this.freqListShown.ToArray(), this.hostStation.getFrequencyArray()).Length;
+            if (!(commonFreq == this.hostStation.getFrequencyList().Count && commonFreq == this.freqListShown.Count))
             {
-                this.hostStation.Frequencies = this.freqListShown;
+                this.hostStation.replaceFrequencies(this.freqListShown);
                 ScreenMessage msg = new ScreenMessage("Ground station's frequency list is updated", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
                 ScreenMessages.PostScreenMessage(msg);
                 changesCommitted = true;

@@ -82,6 +82,9 @@ namespace CommNetConstellation.CommNetLayer
         [Persistent] private List<double> FreqDictionaryValues = new List<double>();
         [Persistent] public FrequencyListOperation FreqListOperation = FrequencyListOperation.AutoBuild; // initial value
 
+        //for low-gc operations
+        protected short[] sorted_frequency_array;
+
         protected short strongestFreq = -1;
         protected List<CNCAntennaPartInfo> vesselAntennas = new List<CNCAntennaPartInfo>();
         protected bool stageActivated = false;
@@ -392,19 +395,33 @@ namespace CommNetConstellation.CommNetLayer
                 short freq = allFreqs[i];
 
                 //best antenna power * (total power / best power) ^ (sum(expo*power)/total power)
-                double weightedExpo = Constellation.NonLinqSum(expoFreqDict[freq]) / Constellation.NonLinqSum(combinepowerFreqDict[freq]);
-                double combinedPower = (combinepowerFreqDict[freq].Count == 0)? 0.0 : Constellation.NonLinqMax(combinepowerFreqDict[freq]) * Math.Pow((Constellation.NonLinqSum(combinepowerFreqDict[freq]) / Constellation.NonLinqMax(combinepowerFreqDict[freq])), weightedExpo);
+                double weightedExpo = GameUtils.NonLinqSum(expoFreqDict[freq]) / GameUtils.NonLinqSum(combinepowerFreqDict[freq]);
+                double combinedPower = (combinepowerFreqDict[freq].Count == 0)? 0.0 : GameUtils.NonLinqMax(combinepowerFreqDict[freq]) * Math.Pow((GameUtils.NonLinqSum(combinepowerFreqDict[freq]) / GameUtils.NonLinqMax(combinepowerFreqDict[freq])), weightedExpo);
                 freqDict.Add(freq, Math.Max(combinedPower, noncombinepowerDict[freq]));
                 CNCLog.Debug("CommNet Vessel '{0}''s freq list has freq {1} of {2} power", this.Vessel.GetName(), freq, Math.Max(combinedPower, noncombinepowerDict[freq]));
             }
+
+            regenerateFrequencyArray(freqDict);
 
             return freqDict;
         }
 
         /// <summary>
+        /// Get the *sorted* array of frequencies only
+        /// </summary>
+        public short[] getFrequencyArray()
+        {
+            if(sorted_frequency_array == null)
+            {
+                regenerateFrequencyArray(this.FrequencyDict);
+            }
+            return sorted_frequency_array;
+        }
+
+        /// <summary>
         /// Get the *unsorted* list of frequencies only
         /// </summary>
-        public List<short> getFrequencies()
+        public List<short> getFrequencyList()
         {
             List<short> freqs = new List<short>();
             var itr = this.FrequencyDict.Keys.GetEnumerator();
@@ -557,6 +574,8 @@ namespace CommNetConstellation.CommNetLayer
             else
                 this.FrequencyDict.Add(frequency, commPower);
 
+            regenerateFrequencyArray(this.FrequencyDict);
+
             CNCLog.Debug("CommNet Vessel '{0}''s freq list gains {1} ({2} power)", this.Vessel.GetName(), frequency, commPower);
         }
 
@@ -568,6 +587,8 @@ namespace CommNetConstellation.CommNetLayer
             if (!isFreqListEditable()) return; 
 
             this.FrequencyDict.Remove(frequency);
+            regenerateFrequencyArray(this.FrequencyDict);
+
             CNCLog.Debug("CommNet Vessel '{0}''s freq list loses freq {1}", this.Vessel.GetName(), frequency);
         }
 
@@ -579,6 +600,8 @@ namespace CommNetConstellation.CommNetLayer
             if (!isFreqListEditable()) return;
 
             this.FrequencyDict.Clear();
+            regenerateFrequencyArray(this.FrequencyDict);
+
             CNCLog.Debug("CommNet Vessel '{0}''s freq list is cleared", this.Vessel.GetName());
         }
 
@@ -775,6 +798,29 @@ namespace CommNetConstellation.CommNetLayer
             {
                 FrequencyDict.Add(FreqDictionaryKeys[i], FreqDictionaryValues[i]);
             }
+            regenerateFrequencyArray(FrequencyDict);
+        }
+
+        /// <summary>
+        /// Regenerate frequency array used for low-gc operations
+        /// </summary>
+        protected void regenerateFrequencyArray(Dictionary<short, double> dict)
+        {
+            if (dict.Keys.Count == 0)
+            {
+                sorted_frequency_array = new short[] { };
+            }
+
+            int i = 0;
+            sorted_frequency_array = new short[dict.Keys.Count];
+
+            var valueItr = dict.Keys.GetEnumerator();
+            while (valueItr.MoveNext())
+            {
+                sorted_frequency_array[i++] = valueItr.Current;
+            }
+
+            GameUtils.Quicksort(sorted_frequency_array, 0, sorted_frequency_array.Length - 1);
         }
     }
 }

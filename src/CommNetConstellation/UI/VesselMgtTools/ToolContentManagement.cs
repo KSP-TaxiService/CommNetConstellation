@@ -47,7 +47,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         public virtual void precompute()
         {
             this.antennas = this.cncVessel.getAllAntennaInfo(true);
-            this.initialFrequencies = this.cncVessel.getFrequencies();
+            this.initialFrequencies = this.cncVessel.getFrequencyList();
         }
     }
 

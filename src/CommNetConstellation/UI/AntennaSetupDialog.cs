@@ -125,7 +125,7 @@ namespace CommNetConstellation.UI
                     {
                         throw new Exception("Frequency cannot be negative");
                     }
-                    else if (!Constellation.NonLinqAny(CNCCommNetScenario.Instance.constellations, inputFreq))
+                    else if (!GameUtils.NonLinqAny(CNCCommNetScenario.Instance.constellations, inputFreq))
                     {
                         throw new Exception("Please choose an existing constellation");
                     }

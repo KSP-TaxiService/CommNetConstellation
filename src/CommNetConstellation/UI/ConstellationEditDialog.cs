@@ -149,12 +149,12 @@ namespace CommNetConstellation.UI
                             throw new Exception("New frequency cannot be " + CNCSettings.Instance.PublicRadioFrequency);
                         }
                         */
-                        else if (Constellation.NonLinqAny(CNCCommNetScenario.Instance.constellations, constellFreq) && this.existingConstellation.frequency != constellFreq)
+                        else if (GameUtils.NonLinqAny(CNCCommNetScenario.Instance.constellations, constellFreq) && this.existingConstellation.frequency != constellFreq)
                         {
                             throw new Exception("Frequency is in use already");
                         }
                     }
-                    else if (this.existingConstellation == null && Constellation.NonLinqAny(CNCCommNetScenario.Instance.constellations, constellFreq))
+                    else if (this.existingConstellation == null && GameUtils.NonLinqAny(CNCCommNetScenario.Instance.constellations, constellFreq))
                     {
                         throw new Exception("Frequency is in use already");
                     }
@@ -182,14 +182,14 @@ namespace CommNetConstellation.UI
                         {    
                             this.existingConstellation.frequency = constellFreq;
 
-                            List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencies().Contains(prevFreq));
+                            List<CNCCommNetVessel> affectedVessels = CNCCommNetScenario.Instance.getCommNetVessels().FindAll(x => x.getFrequencyList().Contains(prevFreq));
                             for (int i = 0; i < affectedVessels.Count; i++)
                             {
                                 affectedVessels[i].replaceAllFrequencies(prevFreq, this.existingConstellation.frequency);
                                 affectedVessels[i].OnAntennaChange();
                             }
 
-                            List<CNCCommNetHome> affectedStations = CNCCommNetScenario.Instance.groundStations.FindAll(x => x.Frequencies.Contains(prevFreq));
+                            List<CNCCommNetHome> affectedStations = CNCCommNetScenario.Instance.groundStations.FindAll(x => x.getFrequencyList().Contains(prevFreq));
                             for(int i=0; i < affectedStations.Count; i++)
                             {
                                 affectedStations[i].replaceFrequency(prevFreq, this.existingConstellation.frequency);

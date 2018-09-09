@@ -61,7 +61,7 @@ namespace CommNetConstellation.UI
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
             CNCCommNetVessel cncVessel = (CNCCommNetVessel)this.hostVessel.Connection;
-            List<short> vesselFrequencyList = cncVessel.getFrequencies();
+            List<short> vesselFrequencyList = cncVessel.getFrequencyList();
             vesselFrequencyList.Sort();
 
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description + "\n\n", false, false) }));
@@ -111,7 +111,7 @@ namespace CommNetConstellation.UI
             deregisterLayoutComponents(frequencyRowLayout);
 
             CNCCommNetVessel cncVessel = (CNCCommNetVessel)this.hostVessel.Connection;
-            List<short> vesselFrequencyList = cncVessel.getFrequencies();
+            List<short> vesselFrequencyList = cncVessel.getFrequencyList();
             vesselFrequencyList.Sort();
 
             for (int i = 0; i < vesselFrequencyList.Count; i++)

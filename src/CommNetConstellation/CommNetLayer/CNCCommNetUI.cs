@@ -1,4 +1,5 @@
 ﻿using CommNet;
+using CommNetConstellation.UI;
 using KSP.Localization;
 using KSP.UI.Screens.Mapview;
 using System;
@@ -130,12 +131,12 @@ namespace CommNetConstellation.CommNetLayer
         private Color getConstellationColor(CommNode a, CommNode b)
         {
             //Assume the connection between A and B passes the check test
-            List<short> commonFreqs = Constellation.NonLinqIntersect(CNCCommNetScenario.Instance.getFrequencies(a), CNCCommNetScenario.Instance.getFrequencies(b));
+            short[] commonFreqs = GameUtils.NonLinqIntersect(CNCCommNetScenario.Instance.getFrequencies(a), CNCCommNetScenario.Instance.getFrequencies(b));
             IRangeModel rangeModel = CNCCommNetScenario.RangeModel;
             short strongestFreq = -1;
             double longestRange = 0.0;
 
-            for (int i = 0; i < commonFreqs.Count; i++)
+            for (int i = 0; i < commonFreqs.Length; i++)
             {
                 short thisFreq = commonFreqs[i];
                 double thisRange = rangeModel.GetMaximumRange(CNCCommNetScenario.Instance.getCommPower(a, thisFreq), CNCCommNetScenario.Instance.getCommPower(b, thisFreq));
