@@ -23,10 +23,10 @@
     <LangVersion>default</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath Condition="Exists('$(KSPDEVDIR)\GameData\CommNetConstellation\Plugins\')">$(KSPDEVDIR)\GameData\CommNetConstellation\Plugins\</OutputPath>
-    <OutputPath Condition="!Exists('$(KSPDEVDIR)\GameData\CommNetConstellation\Plugins\')">obj\CommNetConstellation\</OutputPath>
+    <OutputPath Condition="!Exists('$(KSPDEVDIR)\GameData\CommNetConstellation\Plugins\')">..\..\GameData\CommNetConstellation\Plugins\</OutputPath>
     <DefineConstants></DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -46,8 +46,6 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath Condition="Exists('$(KSPDEVDIR)\KSP_x64_Data\Managed\UnityEngine.dll')">$(KSPDEVDIR)\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
