@@ -9,6 +9,9 @@ namespace CommNetConstellation.CommNetLayer
     /// </summary>
     public class CNCCommNetwork : CommNetwork
     {
+        private const int REFRESH_TICKS = 10;
+        private int mTick = 0, mTickIndex = 0;
+
         private short publicFreq = CNCSettings.Instance.PublicRadioFrequency;
 
         //IEqualityComparer<CommNode> comparer = commNode.Comparer; // a combination of third-party mods somehow  affects CommNode's IEqualityComparer on two objects
@@ -58,6 +61,31 @@ namespace CommNetConstellation.CommNetLayer
             }
 
             return false;
+        }
+
+        protected override void UpdateNetwork()
+        {
+            /*
+            UpdateNetwork is part of a Unity physical frame, which happens few times per time second (4?)
+            This optimisation is to spread the full workload of connection check to few frames, instead of every frame, as RemoteTech does
+            Directly copied from RemoteTech codebase
+            */
+            var count = this.nodes.Count;
+            if (count == 0) { return; }
+
+            var baseline = (count / REFRESH_TICKS);
+            var takeCount = baseline + (((mTick++ % REFRESH_TICKS) < (count - baseline * REFRESH_TICKS)) ? 1 : 0);
+
+            for (int i = mTickIndex ; i < mTickIndex + takeCount; i++)
+            {
+                for (int j = i + 1; j < count; j++)
+                {
+                    this.SetNodeConnection(this.nodes[i], this[j]);
+                }
+            }
+
+            mTickIndex += takeCount;
+            mTickIndex = mTickIndex % this.nodes.Count;
         }
     }
 }
