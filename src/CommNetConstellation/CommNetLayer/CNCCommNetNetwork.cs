@@ -1,4 +1,5 @@
 ﻿using CommNet;
+using UnityEngine;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -7,6 +8,10 @@ namespace CommNetConstellation.CommNetLayer
     /// </summary>
     public class CNCCommNetNetwork : CommNetNetwork
     {
+        //Part of inactive network optimisation in CNCCommNetNetwork.Update()
+        //private float nextUpdateTime = 0.0f;
+        //private const float networkInterval = 0.1f; // in seconds
+
         public static new CNCCommNetNetwork Instance
         {
             get;
@@ -35,6 +40,18 @@ namespace CommNetConstellation.CommNetLayer
 
             this.CommNet = new CNCCommNetwork();
             GameEvents.CommNet.OnNetworkInitialized.Fire();
+        }
+
+        protected override void Update()
+        {
+            //Comment: Not recommended to run along with other active optimisation of evaluating
+            //subset of connections in CNCCommNetwork.UpdateNetwork()
+            //Effect of running both optimisations is unacceptable low rate of connection check per second
+            //if (Time.time >= nextUpdateTime)
+            //{
+            base.Update();
+                //nextUpdateTime += networkInterval;
+            //}
         }
     }
 }
