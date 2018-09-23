@@ -284,13 +284,13 @@
   configuration:
     - Release
 
-  #build:
+  build:
     # enable MSBuild parallel builds
-  #  parallel: true
+    parallel: true
     # path to Visual Studio solution or project
-  #  project: .\src\CommNetConstellation\CommNetConstellation.sln
+    project: .\src\CommNetConstellation\CommNetConstellation.sln
     # MSBuild verbosity level
-  #  verbosity: detailed
+    verbosity: detailed
 
   # scripts to run before build
   before_build:
@@ -315,7 +315,7 @@
   build_script:
 
   # to disable automatic builds
-  build: off
+  #build: off
 
   #---------------------------------#
   #      artifacts configuration    #
