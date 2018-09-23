@@ -315,7 +315,7 @@
   build_script:
 
   # to disable automatic builds
-  #build: off
+  build: off
 
   #---------------------------------#
   #      artifacts configuration    #
