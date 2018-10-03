@@ -130,11 +130,12 @@ namespace CommNetConstellation.UI
 
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, thisConstellation.color, colorTexture);
             DialogGUILabel constNameLabel = new DialogGUILabel(thisConstellation.name, 160, 12);
-            DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(color), thisConstellation.frequency), 120, 12);
-            DialogGUILabel numSatsLabel = new DialogGUILabel(string.Format("{0} vessels", Constellation.countVessels(thisConstellation)), 80, 12);
+            DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(color), thisConstellation.frequency), 90, 12);
+            DialogGUILabel numSatsLabel = new DialogGUILabel(string.Format("{0} vessels", Constellation.countVessels(thisConstellation)), 65, 12);
             DialogGUIButton updateButton = new DialogGUIButton("Edit", delegate { editConstellationClick(thisConstellation); }, 50, 32, false);
+            DialogGUIToggleButton toggleButton = new DialogGUIToggleButton(thisConstellation.visibility, "Map", delegate { toggleConstellationVisibility(thisConstellation); }, 45, 32);
 
-            DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, constNameLabel, freqLabel, numSatsLabel, updateButton, null };
+            DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, constNameLabel, freqLabel, numSatsLabel, toggleButton, updateButton, null };
             if (thisConstellation.frequency == CNCSettings.Instance.PublicRadioFrequency)
                 rowGUIBase[rowGUIBase.Length - 1] = new DialogGUIButton("Reset", resetPublicConstClick, 60, 32, false);
             else
@@ -143,6 +144,11 @@ namespace CommNetConstellation.UI
             DialogGUIHorizontalLayout constellationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, rowGUIBase);
             constellationGroup.SetOptionText(thisConstellation.frequency.ToString()); //for quick identification
             return constellationGroup;
+        }
+
+        private void toggleConstellationVisibility(Constellation thisConstellation)
+        {
+            thisConstellation.visibility = !thisConstellation.visibility;
         }
 
         private int deleteConstellationGUIRow(Constellation thisConstellation)

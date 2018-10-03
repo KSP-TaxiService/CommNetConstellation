@@ -139,8 +139,14 @@ namespace CommNetConstellation.CommNetLayer
             for (int i = 0; i < commonFreqs.Length; i++)
             {
                 short thisFreq = commonFreqs[i];
-                double thisRange = rangeModel.GetMaximumRange(CNCCommNetScenario.Instance.getCommPower(a, thisFreq), CNCCommNetScenario.Instance.getCommPower(b, thisFreq));
 
+                Constellation thisConstell = Constellation.find(thisFreq);
+                if (thisConstell != null && !thisConstell.visibility)
+                {
+                    continue;
+                }
+
+                double thisRange = rangeModel.GetMaximumRange(CNCCommNetScenario.Instance.getCommPower(a, thisFreq), CNCCommNetScenario.Instance.getCommPower(b, thisFreq));
                 if(thisRange > longestRange)
                 {
                     longestRange = thisRange;
@@ -386,58 +392,49 @@ namespace CommNetConstellation.CommNetLayer
             {
                 case CNCCommNetUI.CustomDisplayMode.FirstHop:
                 {
-                    float lvl = Mathf.Pow((float)path.First.signalStrength, this.colorLerpPower);
-                    Color customHighColor = getConstellationColor(path.First.a, path.First.b);
-                    if (this.swapHighLow)
-                        this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, lvl), 0);
-                    else
-                        this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, lvl), 0);
-                    break;
+                        this.line.SetColor(colorBlending(getConstellationColor(path.First.a, path.First.b), 
+                                                         this.colorLow, 
+                                                         Mathf.Pow((float) path.First.signalStrength, this.colorLerpPower), 
+                                                         this.swapHighLow), 0);
+                        break;
                 }
                 case CNCCommNetUI.CustomDisplayMode.Path:
                 case CNCCommNetUI.CustomDisplayMode.MultiPaths:
                 {
-                    int linkIndex = numLinks;
-                    for(int i=linkIndex-1; i>=0; i--)
-                    {
-                        float lvl = Mathf.Pow((float)path[i].signalStrength, this.colorLerpPower);
-                        Color customHighColor = getConstellationColor(path[i].a, path[i].b);
-                        if (this.swapHighLow)
-                            this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, lvl), i);
-                        else
-                            this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, lvl), i);
-                    }
-                    break;
+                        int linkIndex = numLinks;
+                        for(int i=linkIndex-1; i>=0; i--)
+                        {
+                            this.line.SetColor(colorBlending(getConstellationColor(path[i].a, path[i].b),
+                                                                this.colorLow,
+                                                                Mathf.Pow((float) path[i].signalStrength, this.colorLerpPower),
+                                                                this.swapHighLow), i);
+                        }
+                        break;
                 }
                 case CNCCommNetUI.CustomDisplayMode.VesselLinks:
                 {
-                    var itr = node.Values.GetEnumerator();
-                    int linkIndex = 0;
-                    while(itr.MoveNext())
-                    {
-                        CommLink link = itr.Current;
-                        float lvl = Mathf.Pow((float)link.GetSignalStrength(link.a != node, link.b != node), this.colorLerpPower);
-                        Color customHighColor = getConstellationColor(link.a, link.b);
-                        if (this.swapHighLow)
-                            this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, lvl), linkIndex++);
-                        else
-                            this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, lvl), linkIndex++);
-                    }
-                    break;
+                        var itr = node.Values.GetEnumerator();
+                        int linkIndex = 0;
+                        while(itr.MoveNext())
+                        {
+                            CommLink link = itr.Current;
+                            this.line.SetColor(colorBlending(getConstellationColor(link.a, link.b),
+                                                             this.colorLow,
+                                                             Mathf.Pow((float) link.GetSignalStrength(link.a != node, link.b != node), this.colorLerpPower),
+                                                             this.swapHighLow), linkIndex++);
+                        }
+                        break;
                 }
                 case CNCCommNetUI.CustomDisplayMode.Network:
                 {
-                    for (int i = numLinks-1; i >= 0; i--)
-                    {
-                        CommLink commLink = net.Links[i];
-                        float lvl = Mathf.Pow((float)net.Links[i].GetBestSignal(), this.colorLerpPower);
-                        Color customHighColor = getConstellationColor(commLink.a, commLink.b);
-                        if (this.swapHighLow)
-                            this.line.SetColor(Color.Lerp(customHighColor, this.colorLow, lvl), i);
-                        else
-                            this.line.SetColor(Color.Lerp(this.colorLow, customHighColor, lvl), i);
-                    }
-                    break;
+                        for (int i = numLinks-1; i >= 0; i--)
+                        {
+                            this.line.SetColor(colorBlending(getConstellationColor(net.Links[i].a, net.Links[i].b),
+                                                             this.colorLow,
+                                                             Mathf.Pow((float) net.Links[i].GetBestSignal(), this.colorLerpPower),
+                                                             this.swapHighLow), i);
+                        }
+                        break;
                 }
             } // end of switch
 
@@ -450,6 +447,25 @@ namespace CommNetConstellation.CommNetLayer
             {
                 this.line.SetWidth(this.lineWidth2D);
                 this.line.Draw();
+            }
+        }
+
+        /// <summary>
+        /// Compute final color based on inputs
+        /// </summary>
+        private Color colorBlending(Color colorHigh, Color colorLow, float colorLevel, bool swapHLColors)
+        {
+            if (colorHigh == Color.clear)
+            {
+                return colorHigh;
+            }
+            else if (swapHLColors)
+            {
+                return Color.Lerp(colorHigh, colorLow, colorLevel);
+            }
+            else
+            {
+                return Color.Lerp(colorLow, colorHigh, colorLevel);
             }
         }
     }

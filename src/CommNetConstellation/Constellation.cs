@@ -14,6 +14,7 @@ namespace CommNetConstellation
         [Persistent] public short frequency;
         [Persistent] public string name;
         [Persistent] public Color color;
+        [Persistent] public bool visibility = true;
 
         /// <summary>
         /// Empty constructor for ConfigNode.LoadObjectFromConfig()
@@ -28,6 +29,7 @@ namespace CommNetConstellation
             this.frequency = frequency;
             this.name = name;
             this.color = color;
+            this.visibility = true;
         }
 
         /// <summary>
@@ -37,7 +39,7 @@ namespace CommNetConstellation
         {
             Constellation possibleMatch = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == givenFreq);
             if (possibleMatch == null)
-                return CNCSettings.Instance.DefaultPublicColor; // fallback color
+                return Color.clear; // fallback color
             else
                 return possibleMatch.color;
         }
@@ -49,7 +51,7 @@ namespace CommNetConstellation
         {
             Constellation possibleMatch = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == givenFreq);
             if (possibleMatch == null)
-                return getName(CNCSettings.Instance.PublicRadioFrequency); // fallback constellation
+                return "Not-Found"; // fallback name
             else
                 return possibleMatch.name;
         }
@@ -63,6 +65,14 @@ namespace CommNetConstellation
                 return false;
 
             return true;
+        }
+
+        /// <summary>
+        /// Retrieve the constellation assoicated with the frequency
+        /// </summary>
+        public static Constellation find(int givenFreq)
+        {
+            return CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == givenFreq);
         }
 
         /// <summary>
