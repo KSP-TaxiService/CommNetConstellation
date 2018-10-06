@@ -37,7 +37,7 @@ namespace CommNetConstellation
         /// </summary>
         public static Color getColor(int givenFreq)
         {
-            Constellation possibleMatch = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == givenFreq);
+            Constellation possibleMatch = find(givenFreq);
             if (possibleMatch == null)
                 return Color.clear; // fallback color
             else
@@ -49,7 +49,7 @@ namespace CommNetConstellation
         /// </summary>
         public static string getName(int givenFreq)
         {
-            Constellation possibleMatch = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == givenFreq);
+            Constellation possibleMatch = find(givenFreq);
             if (possibleMatch == null)
                 return "Not-Found"; // fallback name
             else
@@ -72,7 +72,14 @@ namespace CommNetConstellation
         /// </summary>
         public static Constellation find(int givenFreq)
         {
-            return CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == givenFreq);
+            for(int i=0; i<CNCCommNetScenario.Instance.constellations.Count; i++)
+            {
+                if(CNCCommNetScenario.Instance.constellations[i].frequency == givenFreq)
+                {
+                    return CNCCommNetScenario.Instance.constellations[i];
+                }
+            }
+            return null;
         }
 
         /// <summary>

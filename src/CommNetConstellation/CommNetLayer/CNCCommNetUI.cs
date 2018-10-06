@@ -132,25 +132,21 @@ namespace CommNetConstellation.CommNetLayer
         {
             //Assume the connection between A and B passes the check test
             short[] commonFreqs = GameUtils.NonLinqIntersect(CNCCommNetScenario.Instance.getFrequencies(a), CNCCommNetScenario.Instance.getFrequencies(b));
-            IRangeModel rangeModel = CNCCommNetScenario.RangeModel;
             short strongestFreq = -1;
-            double longestRange = 0.0;
+            double longestRange = 0.0, thisRange;
 
             for (int i = 0; i < commonFreqs.Length; i++)
             {
-                short thisFreq = commonFreqs[i];
-
-                Constellation thisConstell = Constellation.find(thisFreq);
-                if (thisConstell != null && !thisConstell.visibility)
+                if (!Constellation.find(commonFreqs[i]).visibility)
                 {
                     continue;
                 }
 
-                double thisRange = rangeModel.GetMaximumRange(CNCCommNetScenario.Instance.getCommPower(a, thisFreq), CNCCommNetScenario.Instance.getCommPower(b, thisFreq));
+                thisRange = CNCCommNetScenario.RangeModel.GetMaximumRange(CNCCommNetScenario.Instance.getCommPower(a, commonFreqs[i]), CNCCommNetScenario.Instance.getCommPower(b, commonFreqs[i]));
                 if(thisRange > longestRange)
                 {
                     longestRange = thisRange;
-                    strongestFreq = thisFreq;
+                    strongestFreq = commonFreqs[i];
                 }
             }
 
@@ -277,6 +273,7 @@ namespace CommNetConstellation.CommNetLayer
             //work out which links to display
             int count = this.points.Count;//save previous value
             int numLinks = 0;
+            bool pathLinkExist;
             switch (CNCCommNetUI.CustomMode)
             {
                 case CNCCommNetUI.CustomDisplayMode.None:
@@ -328,31 +325,40 @@ namespace CommNetConstellation.CommNetLayer
                     }
                     else
                     {
-                        CommPath newPath = new CommPath();
+                        path = new CommPath();
+                        path.Capacity = net.Links.Count;
 
-                        var nodes = net;
                         var vessels = CNCCommNetScenario.Instance.getCommNetVessels();//TODO: replace it with CNM
                         for(int i=0; i<vessels.Count; i++)
                         {
-                            var vessel = vessels[i];
-                            vessel.computeUnloadedUpdate();//network update is done only once for unloaded vessels so need to manually re-trigger every time
+                            vessels[i].computeUnloadedUpdate();//network update is done only once for unloaded vessels so need to manually re-trigger every time
 
-                            if (!(vessel.ControlState == VesselControlState.Probe || vessel.ControlState == VesselControlState.Kerbal ||
-                                vessel.ControlPath == null || vessel.ControlPath.Count == 0))
+                            //is vessel real/alive?
+                            if (!(vessels[i].ControlState == VesselControlState.Probe || vessels[i].ControlState == VesselControlState.Kerbal ||
+                                vessels[i].ControlPath == null || vessels[i].ControlPath.Count == 0))
                             {
-                                for (int pathIndex=0; pathIndex< vessel.ControlPath.Count; pathIndex++)
+                                //add each link in control path to overall path
+                                for (int controlpathIndex=0; controlpathIndex< vessels[i].ControlPath.Count; controlpathIndex++)
                                 {
-                                    var link = vessel.ControlPath[pathIndex];
-                                    if (newPath.Find(x => (CNCCommNetwork.AreSame(x.a, link.a) && CNCCommNetwork.AreSame(x.b, link.b))) == null)//not found in list of links to be displayed
+                                    pathLinkExist = false;
+                                    for (int overallpathIndex = 0; overallpathIndex < path.Count; overallpathIndex++)//check if overall path has this link already
                                     {
-                                        newPath.Add(link); //laziness wins
+                                        if(CNCCommNetwork.AreSame(path[overallpathIndex].a,vessels[i].ControlPath[controlpathIndex].a) && 
+                                            CNCCommNetwork.AreSame(path[overallpathIndex].b, vessels[i].ControlPath[controlpathIndex].b))
+                                        {
+                                            pathLinkExist = true;
+                                            break;
+                                        }
+                                    }
+                                    if(!pathLinkExist)
+                                    {
+                                        path.Add(vessels[i].ControlPath[controlpathIndex]); //laziness wins
                                         //KSP techincally does not care if path is consisted of non-continuous links or not
                                     }
                                 }
                             }
                         }
 
-                        path = newPath;
                         path.GetPoints(this.points, true);
                         numLinks = path.Count;
                     }
@@ -394,45 +400,43 @@ namespace CommNetConstellation.CommNetLayer
                 {
                         this.line.SetColor(colorBlending(getConstellationColor(path.First.a, path.First.b), 
                                                          this.colorLow, 
-                                                         Mathf.Pow((float) path.First.signalStrength, this.colorLerpPower), 
-                                                         this.swapHighLow), 0);
+                                                         Mathf.Pow((float) path.First.signalStrength, this.colorLerpPower)),
+                                                         0);
                         break;
                 }
                 case CNCCommNetUI.CustomDisplayMode.Path:
                 case CNCCommNetUI.CustomDisplayMode.MultiPaths:
                 {
-                        int linkIndex = numLinks;
-                        for(int i=linkIndex-1; i>=0; i--)
+                        for(int i= numLinks - 1; i >= 0; i--)
                         {
                             this.line.SetColor(colorBlending(getConstellationColor(path[i].a, path[i].b),
                                                                 this.colorLow,
-                                                                Mathf.Pow((float) path[i].signalStrength, this.colorLerpPower),
-                                                                this.swapHighLow), i);
+                                                                Mathf.Pow((float) path[i].signalStrength, this.colorLerpPower)),
+                                                                i);
                         }
                         break;
                 }
                 case CNCCommNetUI.CustomDisplayMode.VesselLinks:
                 {
-                        var itr = node.Values.GetEnumerator();
-                        int linkIndex = 0;
-                        while(itr.MoveNext())
+                        CommLink[] links = new CommLink[node.Count];
+                        node.Values.CopyTo(links, 0);
+                        for(int i = 0; i < links.Length; i++)
                         {
-                            CommLink link = itr.Current;
-                            this.line.SetColor(colorBlending(getConstellationColor(link.a, link.b),
+                            this.line.SetColor(colorBlending(getConstellationColor(links[i].a, links[i].b),
                                                              this.colorLow,
-                                                             Mathf.Pow((float) link.GetSignalStrength(link.a != node, link.b != node), this.colorLerpPower),
-                                                             this.swapHighLow), linkIndex++);
+                                                             Mathf.Pow((float) links[i].GetSignalStrength(links[i].a != node, links[i].b != node), this.colorLerpPower)),
+                                                             i);
                         }
                         break;
                 }
                 case CNCCommNetUI.CustomDisplayMode.Network:
                 {
-                        for (int i = numLinks-1; i >= 0; i--)
+                        for (int i = numLinks - 1; i >= 0; i--)
                         {
                             this.line.SetColor(colorBlending(getConstellationColor(net.Links[i].a, net.Links[i].b),
                                                              this.colorLow,
-                                                             Mathf.Pow((float) net.Links[i].GetBestSignal(), this.colorLerpPower),
-                                                             this.swapHighLow), i);
+                                                             Mathf.Pow((float) net.Links[i].GetBestSignal(), this.colorLerpPower)),
+                                                             i);
                         }
                         break;
                 }
@@ -453,13 +457,13 @@ namespace CommNetConstellation.CommNetLayer
         /// <summary>
         /// Compute final color based on inputs
         /// </summary>
-        private Color colorBlending(Color colorHigh, Color colorLow, float colorLevel, bool swapHLColors)
+        private Color colorBlending(Color colorHigh, Color colorLow, float colorLevel)
         {
             if (colorHigh == Color.clear)
             {
                 return colorHigh;
             }
-            else if (swapHLColors)
+            else if (this.swapHighLow)
             {
                 return Color.Lerp(colorHigh, colorLow, colorLevel);
             }
