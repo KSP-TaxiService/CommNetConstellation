@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("KSP-TaxiService")]
 [assembly: AssemblyProduct("CommNetConstellation")]
-[assembly: AssemblyCopyright("Copyright © 2016-2018")]
+[assembly: AssemblyCopyright("Copyright © 2016-2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -37,7 +37,7 @@ using System.Runtime.InteropServices;
 // DLLs any time it changes.  Breaking on a minor revision is probably acceptable - it's
 // unlikely that there wouldn't be other breaking changes on a minor version change.
 [assembly: AssemblyVersion("1.3")]
-[assembly: AssemblyFileVersion("1.3.0")]
+[assembly: AssemblyFileVersion("1.3.1")]
 
 // Use KSPAssembly to allow other DLLs to make this DLL a dependency in a
 // non-hacky way in KSP.  Format is (AssemblyProduct, major, minor), and it
