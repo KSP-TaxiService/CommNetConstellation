@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
+using TMPro;
 
 namespace CommNetConstellation.UI
 {
@@ -17,13 +18,14 @@ namespace CommNetConstellation.UI
         private int displayTextureHeight = 250;
         private DialogGUIImage colorPickerImage;
         private Texture2D colorPickerTexture;
+        private DialogGUITextInput colorHexInput;
 
         private static int dialogWidth = 250 + 10;
         private static int dialogHeight = 300;
 
         private Color currentColor;
         private Color chosenColor;
-        private DialogGUIImage newColorImage;       
+        private DialogGUIImage newColorImage;
 
         private float hueValue = 0f;
         private int sliderHeight = 5;
@@ -98,6 +100,12 @@ namespace CommNetConstellation.UI
             DialogGUIImage hueSliderImage = new DialogGUIImage(new Vector2(displayTextureWidth, sliderHeight * 2), Vector2.zero, Color.white, renderHueSliderTexture());
             DialogGUISlider hueSlider = new DialogGUISlider(() => hueValue, 0f, 1f, false, displayTextureWidth, sliderHeight, setHueValue);
             listComponments.Add(new DialogGUIVerticalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { colorPickerImage, new DialogGUISpace(5f), hueSliderImage, hueSlider }));
+
+            DialogGUILabel hexColorLabel = new DialogGUILabel("<b>Or hex color #</b>", true, false);
+            colorHexInput = new DialogGUITextInput("", false, 6, setColorHexString, 47, 24);
+            DialogGUIButton hexGoButton = new DialogGUIButton("Parse", delegate { this.readColorHexString(); }, 40, 24, false);
+            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(0,0,0,5), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUISpace(5), hexColorLabel, colorHexInput, new DialogGUISpace(1), hexGoButton, new DialogGUISpace(5) }));
+
             return listComponments;
         }
 
@@ -154,6 +162,45 @@ namespace CommNetConstellation.UI
             this.hueValue = newValue;
             renderColorPicker(colorPickerTexture, newValue);
             colorPickerImage.uiItem.GetComponent<RawImage>().texture = colorPickerTexture;
+        }
+
+        /// <summary>
+        /// For the color hex field to call upon new input
+        /// </summary>
+        private string setColorHexString(string newHexString)
+        {
+            //do nothing
+            return newHexString;
+        }
+
+        /// <summary>
+        /// Action to parse hex string and update chosen color
+        /// </summary>
+        private void readColorHexString()
+        {
+            try
+            {
+                string hexStr = "#"+colorHexInput.uiItem.GetComponent<TMP_InputField>().text.Trim();
+
+                if (hexStr.Length < 7) //nice try
+                {
+                    throw new Exception("Hex string must be in format RRGGBB");
+                }
+
+                if (!ColorUtility.TryParseHtmlString(hexStr, out chosenColor))
+                {
+                    throw new Exception("Unable to parse hex string");
+                }
+                else//all ok!
+                {
+                    newColorImage.uiItem.GetComponent<RawImage>().color = chosenColor;
+                }
+            }
+            catch(Exception e)
+            {
+                ScreenMessage msg = new ScreenMessage("<color=red>"+e.Message+"</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(msg);
+            }
         }
 
         /// <summary>
