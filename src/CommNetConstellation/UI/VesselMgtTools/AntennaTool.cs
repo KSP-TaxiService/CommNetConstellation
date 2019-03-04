@@ -38,7 +38,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
 
                 DialogGUIToggle toggleBtn = new DialogGUIToggle(antennaInfo.inUse && antennaInfo.canComm, "", delegate (bool b) { vesselAntennaSelected(b, antennaInfo); actionCallbacks[0](); }, 20, 32);
                 DialogGUILabel nameLabel = new DialogGUILabel(antennaInfo.name, style); nameLabel.size = new Vector2(150, 32);
-                DialogGUILabel comPowerLabel = new DialogGUILabel(string.Format("Com power: {0}", UIUtils.RoundToNearestMetricFactor(antennaInfo.antennaPower, 2)), style); comPowerLabel.size = new Vector2(130, 32);
+                DialogGUILabel comPowerLabel = new DialogGUILabel(string.Format("Com power: {0}", UIUtils.RoundToNearestMetricFactor(antennaInfo.antennaPower*(double)HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().rangeModifier, 2)), style); comPowerLabel.size = new Vector2(130, 32);
                 DialogGUILabel frequencyLabel = new DialogGUILabel(string.Format("(<color={0}>{1}</color>)", UIUtils.colorToHex(Constellation.getColor(antennaInfo.frequency)), antennaInfo.frequency), style); frequencyLabel.size = new Vector2(60, 32);
                 DialogGUILabel combinableLabel = new DialogGUILabel("Combinable: " + (antennaInfo.antennaCombinable ? "<color=green>Yes</color>" : "<color=red>No</color>") + "\nBroadcast: " + (antennaInfo.canComm ? "<color=green>Yes</color>" : "<color=red>No</color>"), style); combinableLabel.size = new Vector2(90, 32);
 

@@ -379,12 +379,12 @@ namespace CommNetConstellation.CommNetLayer
 
                 if (antennas[i].antennaCombinable)
                 {
-                    expoFreqDict[thisFreq].Add(antennas[i].antennaPower*antennas[i].antennaCombinableExponent);
-                    combinepowerFreqDict[thisFreq].Add(antennas[i].antennaPower);
+                    expoFreqDict[thisFreq].Add(antennas[i].antennaPower*antennas[i].antennaCombinableExponent*(double)HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().rangeModifier);
+                    combinepowerFreqDict[thisFreq].Add(antennas[i].antennaPower*(double)HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().rangeModifier);
                 }
                 else
                 {
-                    noncombinepowerDict[thisFreq] = Math.Max(noncombinepowerDict[thisFreq], antennas[i].antennaPower);
+                    noncombinepowerDict[thisFreq] = Math.Max(noncombinepowerDict[thisFreq], antennas[i].antennaPower*(double)HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().rangeModifier);
                 }
             }
 
@@ -466,8 +466,9 @@ namespace CommNetConstellation.CommNetLayer
             base.UpdateComm();
 
             this.comm.antennaTransmit.power = getMaxComPower(this.strongestFreq);
-            this.comm.antennaTransmit.power *= (double)HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().rangeModifier;
-            this.comm.antennaRelay.power *= (double)HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().rangeModifier;
+            //commented as range multiplier is applied by the mod
+            //this.comm.antennaTransmit.power *= (double)HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().rangeModifier;
+            //this.comm.antennaRelay.power *= (double)HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().rangeModifier;
         }
 
         /// <summary>
