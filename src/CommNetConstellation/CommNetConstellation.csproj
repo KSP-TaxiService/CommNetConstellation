@@ -81,7 +81,8 @@
     <Compile Include="UI\GameUtils.cs" />
     <Compile Include="UI\GroundStationEditDialog.cs" />
     <Compile Include="UI\UIUtils.cs" />
-    <Compile Include="UI\VesselMgtTools\AntennaTool.cs" />
+    <Compile Include="UI\VesselMgtTools\IndepAntennaFreqTool.cs" />
+    <Compile Include="UI\VesselMgtTools\AntennaSelectionTool.cs" />
     <Compile Include="UI\VesselMgtTools\ToolContentManagement.cs" />
     <Compile Include="UI\VesselMgtTools\UpdateListTool.cs" />
     <Compile Include="UI\VesselMgtTools\VanillaFreqTool.cs" />

@@ -5,12 +5,12 @@ using CommNetConstellation.CommNetLayer;
 
 namespace CommNetConstellation.UI.VesselMgtTools
 {
-    public class AntennaTool : AbstractMgtTool
+    public class AntennaSelectionTool : AbstractMgtTool
     {
         private DialogGUIVerticalLayout toggleAntennaColumn;
         private UIStyle style;
 
-        public AntennaTool(CommNetVessel thisVessel, Callback updateFreqRowsCallback) : base(thisVessel, "antenna", "Antennas", new List<Callback>() { updateFreqRowsCallback })
+        public AntennaSelectionTool(CommNetVessel thisVessel, Callback updateFreqRowsCallback) : base(thisVessel, "antenna", "Antenna Selection", new List<Callback>() { updateFreqRowsCallback })
         {
             this.style = new UIStyle();
             this.style.alignment = TextAnchor.MiddleLeft;

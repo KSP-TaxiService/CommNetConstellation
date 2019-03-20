@@ -26,7 +26,7 @@ namespace CommNetConstellation.UI
                                                                                                                 title, 
                                                                                                                 0.5f, //x
                                                                                                                 0.5f, //y
-                                                                                                                500, //width
+                                                                                                                550, //width
                                                                                                                 600, //height
                                                                                                                 new DialogOptions[] {})
         {
@@ -34,11 +34,13 @@ namespace CommNetConstellation.UI
             this.updateCallback = updateCallback;
             this.description = string.Format("Active frequencies allow this vessel '{0}' to talk with other vessels, which share one or more of these frequencies.", this.hostVessel.GetDisplayName());
 
-            this.toolMgt = new ToolContentManagement(450, 100);
+            this.toolMgt = new ToolContentManagement(500, 100);
             UpdateListTool updateTool = new UpdateListTool(this.hostVessel.connection);
             this.toolMgt.add(updateTool);
-            AntennaTool antennaTool = new AntennaTool(this.hostVessel.connection, refreshFrequencyRows);
+            AntennaSelectionTool antennaTool = new AntennaSelectionTool(this.hostVessel.connection, refreshFrequencyRows);
             this.toolMgt.add(antennaTool);
+            IndepAntennaFreqTool antennaTool2 = new IndepAntennaFreqTool(this.hostVessel.connection, refreshFrequencyRows);
+            this.toolMgt.add(antennaTool2);
             VanillaFreqTool vanillaTool = new VanillaFreqTool(this.hostVessel.connection, refreshFrequencyRows);
             this.toolMgt.add(vanillaTool);
 
@@ -102,8 +104,8 @@ namespace CommNetConstellation.UI
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, color, colorTexture);
             DialogGUILabel nameLabel = new DialogGUILabel(name, 170, 12);
             DialogGUILabel eachFreqLabel = new DialogGUILabel(string.Format("(<color={0}>{1}</color>)", UIUtils.colorToHex(color), freq), 70, 12);
-            DialogGUILabel freqPowerLabel = new DialogGUILabel(string.Format("Combined Comm Power: {0}", UIUtils.RoundToNearestMetricFactor(cncVessel.getMaxComPower(freq), 2)), 190, 12);
-            return new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { colorImage, nameLabel, eachFreqLabel, freqPowerLabel });
+            DialogGUILabel freqPowerLabel = new DialogGUILabel(string.Format("Combined Comm Power: {0}", UIUtils.RoundToNearestMetricFactor(cncVessel.getMaxComPower(freq), 2)), 220, 12);
+            return new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { colorImage, new DialogGUISpace(20), nameLabel, eachFreqLabel, freqPowerLabel });
         }
 
         private void refreshFrequencyRows()
