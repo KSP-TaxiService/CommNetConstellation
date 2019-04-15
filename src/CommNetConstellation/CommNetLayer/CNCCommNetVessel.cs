@@ -269,7 +269,7 @@ namespace CommNetConstellation.CommNetLayer
                 if (populatedAntennaInfo) // valid info?
                 {
                     antennas.Add(newAntennaPartInfo);
-                    CNCLog.Debug("CommNet Vessel '{0}' has antenna '{1}' of {2} and {3} power", this.Vessel.GetName(), newAntennaPartInfo.name, newAntennaPartInfo.frequency, newAntennaPartInfo.antennaPower);
+                    CNCLog.Debug("CommNet Vessel '{0}' has antenna '{1}' of {2} and {3} power (w/o range modifier)", this.Vessel.GetName(), newAntennaPartInfo.name, newAntennaPartInfo.frequency, newAntennaPartInfo.antennaPower);
                 }
             }
 
