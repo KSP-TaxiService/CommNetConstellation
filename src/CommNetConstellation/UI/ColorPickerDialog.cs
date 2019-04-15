@@ -101,10 +101,10 @@ namespace CommNetConstellation.UI
             DialogGUISlider hueSlider = new DialogGUISlider(() => hueValue, 0f, 1f, false, displayTextureWidth, sliderHeight, setHueValue);
             listComponments.Add(new DialogGUIVerticalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { colorPickerImage, new DialogGUISpace(5f), hueSliderImage, hueSlider }));
 
-            DialogGUILabel hexColorLabel = new DialogGUILabel("<b>Or hex color #</b>", true, false);
-            colorHexInput = new DialogGUITextInput("", false, 6, setColorHexString, 47, 24);
+            DialogGUILabel hexColorLabel = new DialogGUILabel("<b>Or hex color <size=15>#</size></b>", true, false);
+            colorHexInput = new DialogGUITextInput("", false, 6, setColorHexString, 75, 24);
             DialogGUIButton hexGoButton = new DialogGUIButton("Parse", delegate { this.readColorHexString(); }, 40, 24, false);
-            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(0,0,0,5), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUISpace(5), hexColorLabel, colorHexInput, new DialogGUISpace(1), hexGoButton, new DialogGUISpace(5) }));
+            listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(0,0,0,5), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUISpace(5), hexColorLabel, colorHexInput, new DialogGUISpace(3), hexGoButton, new DialogGUISpace(5) }));
 
             return listComponments;
         }
