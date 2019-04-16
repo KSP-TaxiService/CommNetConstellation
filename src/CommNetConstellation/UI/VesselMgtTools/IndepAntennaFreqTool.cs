@@ -42,7 +42,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
                 DialogGUILabel nameLabel = new DialogGUILabel(string.Format("Name: {0}",antennaInfo.name), style); nameLabel.size = new Vector2(200, 32);
                 DialogGUILabel usageLabel = new DialogGUILabel("In Use: " + (antennaInfo.inUse ? "<color=green>Yes</color>" : "<color=red>No</color>"), style); usageLabel.size = new Vector2(75, 32);
                 DialogGUILabel freqLabel = new DialogGUILabel("Frequency", style); freqLabel.size = new Vector2(65, 32);
-                freqInputArray[i] = new DialogGUITextInput(antennaInfo.frequency.ToString(), false, CNCSettings.MaxDigits, setAntennaFreq, 45, 25);
+                freqInputArray[i] = new DialogGUITextInput(antennaInfo.frequency.ToString(), false, CNCSettings.MaxDigits, setAntennaFreq, 65, 25);
                 DialogGUIButton updateButton = new DialogGUIButton("Update", delegate { updateAntennaFreq(antennaInfo, freqInputArray[index].uiItem.GetComponent<TMP_InputField>().text); }, 70, 25, false);
 
                 rowLayout.AddChild(nameLabel);
@@ -51,7 +51,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
                 rowLayout.AddChild(new DialogGUISpace(5));
                 rowLayout.AddChild(freqLabel);
                 rowLayout.AddChild(freqInputArray[index]);
-                rowLayout.AddChild(new DialogGUISpace(10));
+                rowLayout.AddChild(new DialogGUISpace(5));
                 rowLayout.AddChild(updateButton);
                 rows.AddChild(rowLayout);
             }
