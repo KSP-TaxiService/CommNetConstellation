@@ -111,172 +111,191 @@ namespace CommNetConstellation.CommNetLayer
         {
             //override to turn off CommNetScenario's instance check
 
+            CNCCommNetScenario.Instance = this;
+
             GameEvents.onVesselCreate.Add(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
             GameEvents.onVesselDestroy.Add(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
         }
 
         private void OnDestroy()
         {
-            if (this.CustomCommNetUI != null)
-                UnityEngine.Object.Destroy(this.CustomCommNetUI);
+            if (CNCCommNetScenario.Instance != null)
+            {
+                if (this.CustomCommNetUI != null)
+                    UnityEngine.Object.Destroy(this.CustomCommNetUI);
 
-            if (this.CustomCommNetNetwork != null)
-                UnityEngine.Object.Destroy(this.CustomCommNetNetwork);
+                if (this.CustomCommNetNetwork != null)
+                    UnityEngine.Object.Destroy(this.CustomCommNetNetwork);
 
-            if (this.CustomCommNetTelemetry != null)
-                UnityEngine.Object.Destroy(this.CustomCommNetTelemetry);
+                if (this.CustomCommNetTelemetry != null)
+                    UnityEngine.Object.Destroy(this.CustomCommNetTelemetry);
 
-            if (this.CustomCommNetModeButton != null)
-                UnityEngine.Object.Destroy(this.CustomCommNetModeButton);
+                if (this.CustomCommNetModeButton != null)
+                    UnityEngine.Object.Destroy(this.CustomCommNetModeButton);
 
-            this.commVessels.Clear();
+                this.commVessels.Clear();
 
-            GameEvents.onVesselCreate.Remove(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
-            GameEvents.onVesselDestroy.Remove(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
+                GameEvents.onVesselCreate.Remove(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
+                GameEvents.onVesselDestroy.Remove(new EventData<Vessel>.OnEvent(this.onVesselCountChanged));
+
+                CNCCommNetScenario.Instance = null;
+            }
         }
 
         public override void OnLoad(ConfigNode gameNode)
         {
-            base.OnLoad(gameNode);
-            CNCLog.Verbose("Scenario content to be read:\n{0}", gameNode);
-
-            //Other variables
-            for (int i = 0; i < gameNode.values.Count; i++)
+            try
             {
-                ConfigNode.Value value = gameNode.values[i];
-                string name = value.name;
-                switch (name)
+                CNCLog.Verbose("Scenario content to be read:\n{0}", gameNode);
+
+                //Other variables
+                for (int i = 0; i < gameNode.values.Count; i++)
                 {
-                    case "DisplayModeTracking":
-                        CNCCommNetUI.CustomModeTrackingStation = (CNCCommNetUI.CustomDisplayMode)((int)Enum.Parse(typeof(CNCCommNetUI.CustomDisplayMode), value.value));
-                        break;
-                    case "DisplayModeFlight":
-                        CNCCommNetUI.CustomModeFlightMap = (CNCCommNetUI.CustomDisplayMode)((int)Enum.Parse(typeof(CNCCommNetUI.CustomDisplayMode), value.value));
-                        break;
-                    case "HideGroundStations":
-                        this.hideGroundStations = Boolean.Parse(value.value);
-                        break;
+                    ConfigNode.Value value = gameNode.values[i];
+                    string name = value.name;
+                    switch (name)
+                    {
+                        case "DisplayModeTracking":
+                            CNCCommNetUI.CustomModeTrackingStation = (CNCCommNetUI.CustomDisplayMode)((int)Enum.Parse(typeof(CNCCommNetUI.CustomDisplayMode), value.value));
+                            break;
+                        case "DisplayModeFlight":
+                            CNCCommNetUI.CustomModeFlightMap = (CNCCommNetUI.CustomDisplayMode)((int)Enum.Parse(typeof(CNCCommNetUI.CustomDisplayMode), value.value));
+                            break;
+                        case "HideGroundStations":
+                            this.hideGroundStations = Boolean.Parse(value.value);
+                            break;
+                    }
                 }
-            }
 
-            //Constellations
-            if (gameNode.HasNode("Constellations"))
-            {
-                ConfigNode constellationNode = gameNode.GetNode("Constellations");
-                ConfigNode[] constellationNodes = constellationNode.GetNodes();
-
-                if (constellationNodes.Length < 1) // missing constellation list
+                //Constellations
+                if (gameNode.HasNode("Constellations"))
                 {
-                    CNCLog.Error("The 'Constellations' node is malformed! Reverted to the default constellation list.");
+                    ConfigNode constellationNode = gameNode.GetNode("Constellations");
+                    ConfigNode[] constellationNodes = constellationNode.GetNodes();
+
+                    if (constellationNodes.Length < 1) // missing constellation list
+                    {
+                        CNCLog.Error("The 'Constellations' node is malformed! Reverted to the default constellation list.");
+                        constellations = CNCSettings.Instance.Constellations;
+                    }
+                    else
+                    {
+                        constellations.Clear();
+                        for (int i = 0; i < constellationNodes.Length; i++)
+                        {
+                            Constellation newConstellation = new Constellation();
+                            ConfigNode.LoadObjectFromConfig(newConstellation, constellationNodes[i]);
+                            constellations.Add(newConstellation);
+                        }
+                    }
+                }
+                else
+                {
+                    CNCLog.Verbose("The 'Constellations' node is not found. The default constellation list is loaded.");
                     constellations = CNCSettings.Instance.Constellations;
                 }
-                else
+
+                constellations.Sort();
+
+                //Ground stations
+                if (gameNode.HasNode("GroundStations"))
                 {
-                    constellations.Clear();
-                    for (int i = 0; i < constellationNodes.Length; i++)
+                    ConfigNode stationNode = gameNode.GetNode("GroundStations");
+                    ConfigNode[] stationNodes = stationNode.GetNodes();
+
+                    if (stationNodes.Length < 1) // missing ground-station list
                     {
-                        Constellation newConstellation = new Constellation();
-                        ConfigNode.LoadObjectFromConfig(newConstellation, constellationNodes[i]);
-                        constellations.Add(newConstellation);
+                        CNCLog.Error("The 'GroundStations' node is malformed! Reverted to the default list of ground stations.");
+                        //do nothing since KSP provides this default list
+                    }
+                    else
+                    {
+                        persistentGroundStations.Clear();
+                        for (int i = 0; i < stationNodes.Length; i++)
+                        {
+                            CNCCommNetHome dummyGroundStation = new CNCCommNetHome();
+                            ConfigNode.LoadObjectFromConfig(dummyGroundStation, stationNodes[i]);
+                            if(!stationNodes[i].HasNode("Frequencies")) // empty list is not saved as empty node in persistent.sfs
+                            {
+                                dummyGroundStation.deleteFrequencies();// clear the default frequency list
+                            }
+                            persistentGroundStations.Add(dummyGroundStation);
+                        }
                     }
                 }
-            }
-            else
-            {
-                CNCLog.Verbose("The 'Constellations' node is not found. The default constellation list is loaded.");
-                constellations = CNCSettings.Instance.Constellations;
-            }
-
-            constellations.Sort();
-
-            //Ground stations
-            if (gameNode.HasNode("GroundStations"))
-            {
-                ConfigNode stationNode = gameNode.GetNode("GroundStations");
-                ConfigNode[] stationNodes = stationNode.GetNodes();
-
-                if (stationNodes.Length < 1) // missing ground-station list
+                else
                 {
-                    CNCLog.Error("The 'GroundStations' node is malformed! Reverted to the default list of ground stations.");
+                    CNCLog.Verbose("The 'GroundStations' node is not found. The default list of ground stations is loaded from KSP's data.");
                     //do nothing since KSP provides this default list
                 }
-                else
-                {
-                    persistentGroundStations.Clear();
-                    for (int i = 0; i < stationNodes.Length; i++)
-                    {
-                        CNCCommNetHome dummyGroundStation = new CNCCommNetHome();
-                        ConfigNode.LoadObjectFromConfig(dummyGroundStation, stationNodes[i]);
-                        if(!stationNodes[i].HasNode("Frequencies")) // empty list is not saved as empty node in persistent.sfs
-                        {
-                            dummyGroundStation.deleteFrequencies();// clear the default frequency list
-                        }
-                        persistentGroundStations.Add(dummyGroundStation);
-                    }
-                }
             }
-            else
+            catch (Exception e)
             {
-                CNCLog.Verbose("The 'GroundStations' node is not found. The default list of ground stations is loaded from KSP's data.");
-                //do nothing since KSP provides this default list
+                CNCLog.Error("Error when loading CNCCommNetScenario: {0}", e.Message);
             }
         }
 
         public override void OnSave(ConfigNode gameNode)
         {
-            //Other variables
-            gameNode.AddValue("DisplayModeTracking", CNCCommNetUI.CustomModeTrackingStation);
-            gameNode.AddValue("DisplayModeFlight", CNCCommNetUI.CustomModeFlightMap);
-            gameNode.AddValue("HideGroundStations", this.hideGroundStations);
+            try
+            {
+                //Other variables
+                gameNode.AddValue("DisplayModeTracking", CNCCommNetUI.CustomModeTrackingStation);
+                gameNode.AddValue("DisplayModeFlight", CNCCommNetUI.CustomModeFlightMap);
+                gameNode.AddValue("HideGroundStations", this.hideGroundStations);
 
-            //Constellations
-            if (gameNode.HasNode("Constellations"))
-            {
-                gameNode.RemoveNode("Constellations");
-            }
+                //Constellations
+                if (gameNode.HasNode("Constellations"))
+                {
+                    gameNode.RemoveNode("Constellations");
+                }
 
-            ConfigNode constellationNode = new ConfigNode("Constellations");
-            for (int i = 0; i < constellations.Count; i++)
-            {
-                ConfigNode newConstellationNode = new ConfigNode("Constellation");
-                newConstellationNode = ConfigNode.CreateConfigFromObject(constellations[i], newConstellationNode);
-                constellationNode.AddNode(newConstellationNode);
-            }
+                ConfigNode constellationNode = new ConfigNode("Constellations");
+                for (int i = 0; i < constellations.Count; i++)
+                {
+                    ConfigNode newConstellationNode = new ConfigNode("Constellation");
+                    newConstellationNode = ConfigNode.CreateConfigFromObject(constellations[i], newConstellationNode);
+                    constellationNode.AddNode(newConstellationNode);
+                }
 
-            if (constellations.Count <= 0)
-            {
-                CNCLog.Error("No user-defined constellations to save!");
-            }
-            else
-            {
-                gameNode.AddNode(constellationNode);
-            }
+                if (constellations.Count <= 0)
+                {
+                    CNCLog.Error("No user-defined constellations to save!");
+                }
+                else
+                {
+                    gameNode.AddNode(constellationNode);
+                }
 
-            //Ground stations
-            if (gameNode.HasNode("GroundStations"))
-            {
-                gameNode.RemoveNode("GroundStations");
-            }
+                //Ground stations
+                if (gameNode.HasNode("GroundStations"))
+                {
+                    gameNode.RemoveNode("GroundStations");
+                }
 
-            ConfigNode stationNode = new ConfigNode("GroundStations");
-            for (int i = 0; i < groundStations.Count; i++)
-            {
-                ConfigNode newGroundStationNode = new ConfigNode("GroundStation");
-                newGroundStationNode = ConfigNode.CreateConfigFromObject(groundStations[i], newGroundStationNode);
-                stationNode.AddNode(newGroundStationNode);
-            }
+                ConfigNode stationNode = new ConfigNode("GroundStations");
+                for (int i = 0; i < groundStations.Count; i++)
+                {
+                    ConfigNode newGroundStationNode = new ConfigNode("GroundStation");
+                    newGroundStationNode = ConfigNode.CreateConfigFromObject(groundStations[i], newGroundStationNode);
+                    stationNode.AddNode(newGroundStationNode);
+                }
 
-            if (groundStations.Count <= 0)
-            {
-                CNCLog.Error("No ground stations to save!");
-            }
-            else
-            {
-                gameNode.AddNode(stationNode);
-            }
+                if (groundStations.Count <= 0)
+                {
+                    CNCLog.Error("No ground stations to save!");
+                }
+                else
+                {
+                    gameNode.AddNode(stationNode);
+                }
 
-            CNCLog.Verbose("Scenario content to be saved:\n{0}", gameNode);
-            base.OnSave(gameNode);
+                CNCLog.Verbose("Scenario content to be saved:\n{0}", gameNode);
+            }
+            catch (Exception e)
+            {
+                CNCLog.Error("Error when saving CNCCommNetScenario: {0}", e.Message);
+            }
         }
 
         /// <summary>
