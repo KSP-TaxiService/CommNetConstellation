@@ -102,7 +102,7 @@ namespace CommNetConstellation.UI
         /// </summary>
         public static Texture2D createAndOverlay(Texture2D baseTexture, Texture2D frontTexture)
         {
-            Texture2D newTexture = new Texture2D(baseTexture.width, baseTexture.height);
+            Texture2D newTexture = new Texture2D(baseTexture.width, baseTexture.height, TextureFormat.ARGB32, false);
             newTexture.filterMode = FilterMode.Point;
             newTexture.wrapMode = TextureWrapMode.Clamp;
 
@@ -117,7 +117,8 @@ namespace CommNetConstellation.UI
                 }
             }
 
-            newTexture.Apply();
+            newTexture.Compress(true);
+            newTexture.Apply(false, true);
             return newTexture;
         }
 
