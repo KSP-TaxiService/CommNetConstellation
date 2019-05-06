@@ -117,8 +117,8 @@ namespace CommNetConstellation.UI
                 }
             }
 
+            newTexture.Compress(true);
             newTexture.Apply(false, true);
-			newTexture.Compress(true);
             return newTexture;
         }
 
