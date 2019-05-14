@@ -17,7 +17,7 @@ namespace CommNetConstellation.UI
         private enum ContentType { CONSTELLATIONS, GROUNDSTATIONS, VESSELS };
 
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
-        private static readonly Texture2D focusTexture = UIUtils.loadImage("focusEye");
+        private static Texture2D focusTexture = UIUtils.loadImage("focusEye");
         private static readonly Texture2D groundstationTexture = UIUtils.loadImage("groundStationMark");
         private UIStyle focusImageButtonStyle = null;
 
@@ -44,19 +44,10 @@ namespace CommNetConstellation.UI
             {
                 focusImageButtonStyle = UIUtils.createImageButtonStyle(focusTexture);
             }
-            catch (UnityException e) // temp workaround for Mac players because the focus texture is somehow made unreadable by unknown force on Mac only
+            catch (UnityException e) // temp workaround for Mac players
             {
-                CNCLog.Error("Texture \"{0}\" for a image button is unreadable. A text button is used instead.", focusTexture.ToString());
-
-                //Based on https://github.com/cake-pie/CommunityTraitIcons/commit/f46b64331e1d4d2be02c35cfd87e566f135bb542
-                RenderTexture bak = RenderTexture.active;
-                RenderTexture tmp = RenderTexture.GetTemporary(focusTexture.width, focusTexture.height, 0);
-                Graphics.Blit(focusTexture, tmp);
-                RenderTexture.active = tmp;
-                focusTexture.ReadPixels(new Rect(0, 0, focusTexture.width, focusTexture.height), 0, 0);
-                RenderTexture.active = bak;
-                RenderTexture.ReleaseTemporary(tmp);
-
+                CNCLog.Error("Error encountered when processing texture \"{0}\" for a image button. This texture is forcibly made readable.", focusTexture.ToString());
+                focusTexture = UIUtils.getReadableCopy(focusTexture);
                 focusImageButtonStyle = UIUtils.createImageButtonStyle(focusTexture);//try again
             }
 

@@ -30,6 +30,7 @@ namespace CommNetConstellation
     {
         protected ApplicationLauncherButton launcherButton = null;
         protected ConstellationControlDialog controlDialog;
+        protected static Texture2D appIconTexture = null;
 
         public virtual void Start()
         {
@@ -64,9 +65,17 @@ namespace CommNetConstellation
 
         protected virtual void SetupAppLauncher(ApplicationLauncher.AppScenes scenes)
         {
+            if (appIconTexture == null)
+            {
+                var interfaceTexture = UIUtils.loadImage("cnclauncherbutton");
+                Texture2D temp = UIUtils.getReadableCopy(interfaceTexture);
+                appIconTexture = UIUtils.createSubregionTexture(temp, 1, 1, 38, 38);
+                Texture2D.DestroyImmediate(temp);
+            }
+
             this.launcherButton = ApplicationLauncher.Instance.AddModApplication(
                 Launch, Dismiss, OnHover, OnHoverOut, OnEnable, OnDisable, 
-                scenes, UIUtils.loadImage("cnclauncherbutton"));
+                scenes, appIconTexture);
         }
 
         /// <summary>

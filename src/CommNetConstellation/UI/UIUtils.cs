@@ -40,7 +40,9 @@ namespace CommNetConstellation.UI
         {
             string str = TextureDirectory + fileName;
             if (GameDatabase.Instance.ExistsTexture(str))
+            {
                 return GameDatabase.Instance.GetTexture(str, false);
+            }
             else
             {
                 CNCLog.Error("Cannot find the texture '{0}': {1}", fileName, str);
@@ -205,6 +207,46 @@ namespace CommNetConstellation.UI
                 return string.Format(formatStr+" k", number / Math.Pow(10, 3));
             else
                 return string.Format(formatStr, number);
+        }
+
+        /// <summary>
+        /// Duplicate and make given texture readable
+        /// </summary>
+        public static Texture2D getReadableCopy(Texture2D source)
+        {
+            //source: https://stackoverflow.com/questions/44733841/how-to-make-texture2d-readable-via-script
+            RenderTexture tmp = RenderTexture.GetTemporary(
+                source.width, source.height,
+                0,
+                RenderTextureFormat.Default,
+                RenderTextureReadWrite.Linear);
+            Graphics.Blit(source, tmp);
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = tmp;
+
+            Texture2D readable = new Texture2D(source.width, source.height, TextureFormat.ARGB32, false);
+            readable.ReadPixels(new Rect(0, 0, tmp.width, tmp.height), 0, 0);
+            readable.Apply(false, false); //latter false to keep readable
+
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(tmp);
+
+            return readable;
+        }
+
+        /// <summary>
+        /// Make new unreadble texture on subregion of a bigger texture
+        /// Eg make a bunch of UI textures out of 1 giant texture of bunch subregions
+        /// </summary>
+        public static Texture2D createSubregionTexture(Texture2D source, int startX, int startY, int subregionWidth, int subregionHeight, bool compress = false, bool readable = false)
+        {
+            Texture2D newTexture = new Texture2D(subregionWidth, subregionHeight, TextureFormat.ARGB32, false);
+            Color[] c = source.GetPixels(startX, startY, subregionWidth, subregionHeight, 0);
+            newTexture.SetPixels(c, 0);
+            if (compress) { newTexture.Compress(true); }
+            newTexture.Apply(false, !readable); //unreadable state has performance boost
+
+            return newTexture;
         }
     }
 }
