@@ -125,39 +125,6 @@ namespace CommNetConstellation.UI
         }
 
         /// <summary>
-        /// Build a button style for the different states
-        /// </summary>
-        public static UIStyle createImageButtonStyle(Texture2D iconTexture)
-        {
-            Texture2D activeButtonTx = createAndOverlay(loadImage("activeButtonBg"), iconTexture);
-            Texture2D disableButtonTx = createAndOverlay(loadImage("disableButtonBg"), iconTexture);
-            Texture2D hoverButtonTx = createAndOverlay(loadImage("hoverButtonBg"), iconTexture);
-            Texture2D pressButtonTx = createAndOverlay(loadImage("pressButtonBg"), iconTexture);
-
-            UIStyle buttonStyle = new UIStyle();
-            float width = iconTexture.width;
-            float height = iconTexture.height;
-
-            buttonStyle.normal = new UIStyleState();
-            buttonStyle.normal.background = Sprite.Create(activeButtonTx, new Rect(0, 0, width, height), Vector2.zero);
-            buttonStyle.normal.textColor = Color.green;
-
-            buttonStyle.highlight = new UIStyleState();
-            buttonStyle.highlight.background = Sprite.Create(hoverButtonTx, new Rect(0, 0, width, height), Vector2.zero);
-            buttonStyle.highlight.textColor = Color.green;
-
-            buttonStyle.active = new UIStyleState();
-            buttonStyle.active.background = Sprite.Create(pressButtonTx, new Rect(0, 0, width, height), Vector2.zero);
-            buttonStyle.active.textColor = Color.green;
-
-            buttonStyle.disabled = new UIStyleState();
-            buttonStyle.disabled.background = Sprite.Create(disableButtonTx, new Rect(0, 0, width, height), Vector2.zero);
-            buttonStyle.disabled.textColor = Color.green;
-
-            return buttonStyle;
-        }
-
-        /// <summary>
         /// Cursor detection within the given window
         /// </summary>
         public static bool ContainsMouse(Rect window)

@@ -17,9 +17,8 @@ namespace CommNetConstellation.UI
         private enum ContentType { CONSTELLATIONS, GROUNDSTATIONS, VESSELS };
 
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
-        private static Texture2D focusTexture = UIUtils.loadImage("focusEye");
+        private static readonly Texture2D focusTexture = UIUtils.loadImage("focusEye");
         private static readonly Texture2D groundstationTexture = UIUtils.loadImage("groundStationMark");
-        private UIStyle focusImageButtonStyle = null;
 
         private ContentType currentContentType;
         private DialogGUIVerticalLayout contentLayout;
@@ -40,17 +39,6 @@ namespace CommNetConstellation.UI
 
         protected override List<DialogGUIBase> drawContentComponents()
         {
-            try
-            {
-                focusImageButtonStyle = UIUtils.createImageButtonStyle(focusTexture);
-            }
-            catch (UnityException e) // temp workaround for Mac players
-            {
-                CNCLog.Error("Error encountered when processing texture \"{0}\" for a image button. This texture is forcibly made readable.", focusTexture.ToString());
-                focusTexture = UIUtils.getReadableCopy(focusTexture);
-                focusImageButtonStyle = UIUtils.createImageButtonStyle(focusTexture);//try again
-            }
-
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
             listComponments.Add(new DialogGUILabel("Manage communication networks of ground, air and space vessels.", false, false));
@@ -129,10 +117,10 @@ namespace CommNetConstellation.UI
         {
             Color color = Constellation.getColor(thisConstellation.frequency);
 
-            DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, thisConstellation.color, colorTexture);
-            DialogGUILabel constNameLabel = new DialogGUILabel(thisConstellation.name, 160, 12);
-            DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(color), thisConstellation.frequency), 90, 12);
-            DialogGUILabel numSatsLabel = new DialogGUILabel(string.Format("{0} vessels", Constellation.countVessels(thisConstellation)), 65, 12);
+            DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.zero, thisConstellation.color, colorTexture);
+            DialogGUILabel constNameLabel = new DialogGUILabel(thisConstellation.name, 170, 12);
+            DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(color), thisConstellation.frequency), 100, 12);
+            DialogGUILabel numSatsLabel = new DialogGUILabel(string.Format("{0} vessels", Constellation.countVessels(thisConstellation)), 75, 12);
             DialogGUIButton updateButton = new DialogGUIButton("Edit", delegate { editConstellationClick(thisConstellation); }, 50, 32, false);
             DialogGUIToggleButton toggleButton = new DialogGUIToggleButton(thisConstellation.visibility, "Map", delegate { toggleConstellationVisibility(thisConstellation); }, 45, 32);
 
@@ -341,16 +329,10 @@ namespace CommNetConstellation.UI
 
         private DialogGUIHorizontalLayout createVesselRow(CNCCommNetVessel thisVessel)
         {
-            DialogGUIButton focusButton;
-            if(focusImageButtonStyle != null)
-            {
-                focusButton = new DialogGUIButton("", delegate { vesselFocusClick(thisVessel.Vessel); }, null, 32, 32, false, focusImageButtonStyle);
-                focusButton.image = focusImageButtonStyle.normal.background;
-            }
-            else
-            {
-                focusButton = new DialogGUIButton("Focus", delegate { vesselFocusClick(thisVessel.Vessel); }, null, 32, 32, false);
-            }
+            //answer is from FlagBrowserGUIButton
+            DialogGUIImage focusImage = new DialogGUIImage(new Vector2(32f, 32f), Vector2.zero, Color.white, focusTexture);
+            DialogGUIHorizontalLayout imageBtnLayout = new DialogGUIHorizontalLayout(true, true, 0f, new RectOffset(1, 1, 1, 1), TextAnchor.MiddleCenter, new DialogGUIBase[]{ focusImage });
+            DialogGUIButton focusButton= new DialogGUIButton("", delegate { vesselFocusClick(thisVessel.Vessel); }, 34, 34, false, new DialogGUIBase[] { imageBtnLayout });
 
             DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.GetDisplayName(), 160, 12);
             DialogGUILabel freqLabel = new DialogGUILabel(getFreqString(thisVessel.getFrequencyList(), thisVessel.getStrongestFrequency()), 160, 12);

@@ -63,12 +63,15 @@ namespace CommNetConstellation.UI
             DialogGUIHorizontalLayout nameGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { nameLabel, nameInput, new DialogGUIFlexibleSpace(), defaultButton });
             listComponments.Add(nameGroup);
 
-            stationColorImage = new DialogGUIImage(new Vector2(16, 16), Vector2.zero, this.hostStation.Color, groundstationTexture);
-            DialogGUIButton colorButton = new DialogGUIButton("Color", colorEditClick, null, 45, 25, false);
             DialogGUILabel freqLabel = new DialogGUILabel("<b>New frequency</b>", 85, 12);
             frequencyInput = new DialogGUITextInput("", false, CNCSettings.MaxDigits, setFreqInput, 60, 25);
             DialogGUIButton addButton = new DialogGUIButton("Add", addClick, 40, 25, false);
-            DialogGUIHorizontalLayout freqGRoup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { freqLabel, frequencyInput, addButton, new DialogGUISpace(10), colorButton, stationColorImage });
+
+            stationColorImage = new DialogGUIImage(new Vector2(16f, 16f), Vector2.zero, this.hostStation.Color, groundstationTexture);
+            DialogGUIHorizontalLayout imageBtnLayout = new DialogGUIHorizontalLayout(true, true, 0f, new RectOffset(5, 5, 5, 5), TextAnchor.MiddleCenter, new DialogGUIBase[] { stationColorImage });
+            DialogGUIButton colorButton = new DialogGUIButton("", colorEditClick, 26, 26, false, new DialogGUIBase[] { imageBtnLayout });
+
+            DialogGUIHorizontalLayout freqGRoup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { freqLabel, frequencyInput, addButton, new DialogGUISpace(50), colorButton});
             listComponments.Add(freqGRoup);
 
             //Prepare a list container for the GUILayout rows

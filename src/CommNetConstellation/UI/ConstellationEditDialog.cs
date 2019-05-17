@@ -78,9 +78,12 @@ namespace CommNetConstellation.UI
 
             DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 60, 12);
             frequencyInput = new DialogGUITextInput(constellFreq.ToString(), false, CNCSettings.MaxDigits, setConstellFreq, 55, 25);
-            constellationColorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, this.constellColor, colorTexture);
-            DialogGUIButton colorButton = new DialogGUIButton("Color", colorEditClick, null, 50, 25, false);
-            DialogGUIHorizontalLayout freqColorGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(15), colorButton, constellationColorImage });
+
+            constellationColorImage = new DialogGUIImage(new Vector2(32f, 32f), Vector2.zero, this.constellColor, colorTexture);
+            DialogGUIHorizontalLayout imageBtnLayout = new DialogGUIHorizontalLayout(true, true, 0f, new RectOffset(1, 1, 1, 1), TextAnchor.MiddleCenter, new DialogGUIBase[] { constellationColorImage });
+            DialogGUIButton colorButton = new DialogGUIButton("", colorEditClick, 34, 34, false, new DialogGUIBase[] { imageBtnLayout });
+
+            DialogGUIHorizontalLayout freqColorGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(30), colorButton, new DialogGUISpace(30) });
             listComponments.Add(freqColorGroup);
 
             DialogGUIButton updateButton = new DialogGUIButton(this.actionButtonText, actionClick, false);
