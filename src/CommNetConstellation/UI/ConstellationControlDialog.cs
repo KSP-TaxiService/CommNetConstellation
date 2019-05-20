@@ -1,5 +1,6 @@
 ﻿using CommNet;
 using CommNetConstellation.CommNetLayer;
+using CommNetConstellation.UI.DialogGUI;
 using KSP.Localization;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,7 +25,7 @@ namespace CommNetConstellation.UI
         private DialogGUIVerticalLayout contentLayout;
         private VesselListSort currentVesselSort;
         private DialogGUIHorizontalLayout sortVesselBtnLayout;
-        
+        private CustomDialogGUIScrollList scrollArea;
 
         public ConstellationControlDialog(string title) : base("CNCControl",
                                                             title, 
@@ -53,7 +54,8 @@ namespace CommNetConstellation.UI
             contentLayout = new DialogGUIVerticalLayout(true, false, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[] { new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true) });
             contentLayout.AddChildren(getVesselContentLayout().ToArray());
             this.currentContentType = ContentType.VESSELS;
-            listComponments.Add(new DialogGUIScrollList(new Vector2(550, 250), false, true, contentLayout));
+            scrollArea = new CustomDialogGUIScrollList(new Vector2(550, 250), false, true, contentLayout);
+            listComponments.Add(scrollArea);
 
             sortVesselBtnLayout = new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, getVesselSortLayout());
             listComponments.Add(sortVesselBtnLayout);
@@ -91,6 +93,7 @@ namespace CommNetConstellation.UI
             this.currentContentType = type;
             registerLayoutComponents(contentLayout);
             registerLayoutComponents(sortVesselBtnLayout);
+            scrollArea.Resize();
         }
 
         /////////////////////

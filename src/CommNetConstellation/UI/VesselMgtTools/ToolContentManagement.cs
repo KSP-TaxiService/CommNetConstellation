@@ -1,5 +1,6 @@
 ﻿using CommNet;
 using CommNetConstellation.CommNetLayer;
+using CommNetConstellation.UI.DialogGUI;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -57,6 +58,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         protected List<AbstractMgtTool> tools;
         private AbstractMgtTool currentTool;
         private float width, height;
+        protected CustomDialogGUIScrollList scrollArea;
 
         public ToolContentManagement(float width, float height)
         {
@@ -92,7 +94,8 @@ namespace CommNetConstellation.UI.VesselMgtTools
 
             //Tool content
             this.toolContentLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[] { new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true) });
-            layout.Add(new DialogGUIScrollList(new Vector2(this.width, this.height), false, true, this.toolContentLayout));
+            scrollArea = new CustomDialogGUIScrollList(new Vector2(this.width, this.height), false, true, this.toolContentLayout);
+            layout.Add(scrollArea);
 
             return layout;
         }
@@ -115,6 +118,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
             }
 
             AbstractDialog.registerLayoutComponents(this.toolContentLayout);
+            scrollArea.Resize();
         }
     }
 }

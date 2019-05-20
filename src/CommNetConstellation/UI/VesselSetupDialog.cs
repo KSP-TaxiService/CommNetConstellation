@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using CommNetConstellation.UI.VesselMgtTools;
+using CommNetConstellation.UI.DialogGUI;
 
 namespace CommNetConstellation.UI
 {
@@ -21,6 +22,7 @@ namespace CommNetConstellation.UI
         private DialogGUIVerticalLayout frequencyRowLayout;
         private ToolContentManagement toolMgt;
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
+        private CustomDialogGUIScrollList scrollArea;
 
         public VesselSetupDialog(string title, Vessel vessel, Callback<Vessel>  updateCallback) : base("vesselEdit",
                                                                                                                 title, 
@@ -87,7 +89,8 @@ namespace CommNetConstellation.UI
                 }
             }
             frequencyRowLayout = new DialogGUIVerticalLayout(10, 100, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, frequencyRows);
-            listComponments.Add(new DialogGUIScrollList(new Vector2(450, 100), false, true, frequencyRowLayout));
+            scrollArea = new CustomDialogGUIScrollList(new Vector2(450, 100), false, true, frequencyRowLayout);
+            listComponments.Add(scrollArea);
 
             //tools
             listComponments.AddRange(this.toolMgt.getLayoutContents());
@@ -127,6 +130,7 @@ namespace CommNetConstellation.UI
             }
 
             registerLayoutComponents(frequencyRowLayout);
+            scrollArea.Resize();
         }
     }
 }

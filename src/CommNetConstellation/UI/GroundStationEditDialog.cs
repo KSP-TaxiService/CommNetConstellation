@@ -1,4 +1,5 @@
 ﻿using CommNetConstellation.CommNetLayer;
+using CommNetConstellation.UI.DialogGUI;
 using System;
 using System.Collections.Generic;
 using TMPro;
@@ -83,7 +84,7 @@ namespace CommNetConstellation.UI
             }
 
             frequencyRowLayout = new DialogGUIVerticalLayout(10, 100, 0, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, rows);
-            listComponments.Add(new DialogGUIScrollList(new Vector2(240,100), false, true, frequencyRowLayout));
+            listComponments.Add(new CustomDialogGUIScrollList(new Vector2(240, 100), false, true, frequencyRowLayout));
 
             DialogGUIButton updateButton = new DialogGUIButton("Update", updateAction, false);
             DialogGUIButton cancelButton = new DialogGUIButton("Cancel", delegate { this.dismiss(); }, false);

@@ -25,19 +25,21 @@ namespace CommNetConstellation.UI.VesselMgtTools
         {
             List<DialogGUIBase> layout = new List<DialogGUIBase>();
 
-            DialogGUILabel msgLbl = new DialogGUILabel("Change the frequency of each antenna.", 100, 32);
+            DialogGUILabel msgLbl = new DialogGUILabel("Change the frequency of each antenna.", 100, 16);
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { msgLbl }));
 
-            DialogGUIVerticalLayout rows = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
-
             freqInputArray = new DialogGUITextInput[antennas.Count];
+
+            DialogGUIVerticalLayout nameColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
+            DialogGUIVerticalLayout useColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
+            DialogGUIVerticalLayout freqColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
+            DialogGUIVerticalLayout freqInputColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
+            DialogGUIVerticalLayout updateColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
 
             for (int i = 0; i < antennas.Count; i++)
             {
                 int index = i;//convert to solid-reference variable for delegate block
                 CNCAntennaPartInfo antennaInfo = antennas[i];
-
-                DialogGUIHorizontalLayout rowLayout = new DialogGUIHorizontalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
 
                 DialogGUILabel nameLabel = new DialogGUILabel(string.Format("Name: {0}",antennaInfo.name), style); nameLabel.size = new Vector2(200, 32);
                 DialogGUILabel usageLabel = new DialogGUILabel("In Use: " + (antennaInfo.inUse ? "<color=green>Yes</color>" : "<color=red>No</color>"), style); usageLabel.size = new Vector2(75, 32);
@@ -45,18 +47,18 @@ namespace CommNetConstellation.UI.VesselMgtTools
                 freqInputArray[i] = new DialogGUITextInput(antennaInfo.frequency.ToString(), false, CNCSettings.MaxDigits, setAntennaFreq, 65, 25);
                 DialogGUIButton updateButton = new DialogGUIButton("Update", delegate { updateAntennaFreq(antennaInfo, freqInputArray[index].uiItem.GetComponent<TMP_InputField>().text); }, 70, 25, false);
 
-                rowLayout.AddChild(nameLabel);
-                rowLayout.AddChild(new DialogGUISpace(10));
-                rowLayout.AddChild(usageLabel);
-                rowLayout.AddChild(new DialogGUISpace(5));
-                rowLayout.AddChild(freqLabel);
-                rowLayout.AddChild(freqInputArray[index]);
-                rowLayout.AddChild(new DialogGUISpace(5));
-                rowLayout.AddChild(updateButton);
-                rows.AddChild(rowLayout);
+                nameColumn.AddChild(nameLabel);
+                useColumn.AddChild(usageLabel);
+                freqColumn.AddChild(freqLabel);
+                freqInputColumn.AddChild(new DialogGUISpace(3));
+                freqInputColumn.AddChild(freqInputArray[index]);
+                freqInputColumn.AddChild(new DialogGUISpace(4));
+                updateColumn.AddChild(new DialogGUISpace(3));
+                updateColumn.AddChild(updateButton);
+                updateColumn.AddChild(new DialogGUISpace(4));
             }
 
-            layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { rows }));
+            layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { nameColumn, useColumn, freqColumn, freqInputColumn, updateColumn }));
 
             return layout;
         }
