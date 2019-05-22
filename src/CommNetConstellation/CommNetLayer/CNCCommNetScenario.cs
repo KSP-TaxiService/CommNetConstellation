@@ -346,17 +346,25 @@ namespace CommNetConstellation.CommNetLayer
             CNCLog.Verbose("CommNetVessel cache - {0} entries deleted", this.commVessels.Count);
             this.commVessels.Clear();
 
-            List<Vessel> allVessels = FlightGlobals.fetch.vessels;
-            for (int i = 0; i < allVessels.Count; i++)
+            try
             {
-                if (allVessels[i].connection != null && (allVessels[i].connection as CNCCommNetVessel).IsCommandable && allVessels[i].vesselType != VesselType.Unknown)// && allVessels[i].vesselType != VesselType.Debris) // debris could be spent stage with functional probes and antennas
+                List<Vessel> allVessels = FlightGlobals.fetch.vessels;
+                for (int i = 0; i < allVessels.Count; i++)
                 {
-                    CNCLog.Debug("Caching CommNetVessel '{0}'", allVessels[i].vesselName);
-                    this.commVessels.Add(allVessels[i].connection as CNCCommNetVessel);
+                    if (allVessels[i].connection != null && (allVessels[i].connection as CNCCommNetVessel).IsCommandable && allVessels[i].vesselType != VesselType.Unknown)// && allVessels[i].vesselType != VesselType.Debris) // debris could be spent stage with functional probes and antennas
+                    {
+                        CNCLog.Debug("Caching CommNetVessel '{0}'", allVessels[i].vesselName);
+                        this.commVessels.Add(allVessels[i].connection as CNCCommNetVessel);
+                    }
                 }
-            }
 
-            CNCLog.Verbose("CommNetVessel cache - {0} entries added", this.commVessels.Count);
+                CNCLog.Verbose("CommNetVessel cache - {0} entries added", this.commVessels.Count);
+            }
+            catch(NullReferenceException e)
+            {
+                //Singleton CommNetVessel class in KSP
+                CNCLog.Error("CNCCommNetScenario - Conflict with third-party CommNet mod(s)! Please remove this or other mod(s)");
+            }
 
             this.dirtyCommNetVesselList = false;
         }
