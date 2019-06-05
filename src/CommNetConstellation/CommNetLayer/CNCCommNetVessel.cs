@@ -2,6 +2,7 @@
 using CommNetConstellation.UI;
 using System;
 using System.Collections.Generic;
+using Expansions.Serenity.DeployedScience.Runtime;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -13,7 +14,7 @@ namespace CommNetConstellation.CommNetLayer
     {
         [KSPEvent(guiActive = true, guiActiveEditor = false, guiActiveUnfocused = true, guiName = "CNC: Communication", active = true)]
         public void KSPEventVesselSetup()
-        {             
+        {
             new VesselSetupDialog("Vessel - <color=#00ff00>Communication</color>", this.vessel, null).launch();
         }
     }
@@ -101,7 +102,17 @@ namespace CommNetConstellation.CommNetLayer
             {
                 validateAndUpgrade(this.Vessel);
 
-                if (readCommandData().Count <= 0) //no probe core/command module to "process" signal
+                if(this.Vessel.vesselType == VesselType.DeployedScienceController)
+                {
+                    this.IsCommandable = true;
+                    this.vesselAntennas = this.readAntennaData();
+                    this.FrequencyDict = buildFrequencyList(this.vesselAntennas);
+                    this.strongestFreq = computeStrongestFrequency(this.FrequencyDict);
+                    GameEvents.onGroundSciencePartEnabledStateChanged.Add(this.groundSciencePartStateChange);
+                    GameEvents.onGroundScienceClusterUpdated.Add(this.groundScienceClusterUpdated);
+                    return;
+                }
+                else if (readCommandData().Count <= 0) //no probe core/command module to "process" signal
                 {
                     this.IsCommandable = false;
                     throw new Exception();
@@ -141,6 +152,12 @@ namespace CommNetConstellation.CommNetLayer
             GameEvents.onStageActivate.Remove(stageActivate);
             GameEvents.onVesselWasModified.Remove(vesselModified);
             removeListenerToAntennaDeployment(this.vesselAntennas);
+
+            if (this.Vessel.vesselType == VesselType.DeployedScienceController)
+            {
+                GameEvents.onGroundSciencePartEnabledStateChanged.Remove(this.groundSciencePartStateChange);
+                GameEvents.onGroundScienceClusterUpdated.Remove(this.groundScienceClusterUpdated);
+            }
         }
 
         /// <summary>
@@ -148,7 +165,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         private void stageActivate(int stageIndex)
         {
-            if(this.Vessel.isActiveVessel)
+            if (this.Vessel.isActiveVessel)
             {
                 this.stageActivated = true;
             }
@@ -822,6 +839,41 @@ namespace CommNetConstellation.CommNetLayer
             }
 
             GameUtils.Quicksort(sorted_frequency_array, 0, sorted_frequency_array.Length - 1);
+        }
+
+        /// <summary>
+        /// GameEvent of any deployed science part changed in state
+        /// </summary>
+        protected void groundSciencePartStateChange(ModuleGroundSciencePart sciencePart)
+        {
+            if (sciencePart is ModuleGroundExpControl)
+            {
+                //toggle antenna module based on part enabled toggling
+                Part controlStation = sciencePart.part;
+                CNConstellationAntennaModule antennaMod = controlStation.FindModuleImplementing<CNConstellationAntennaModule>();
+                if(antennaMod != null)
+                {
+                    antennaMod.InUse = sciencePart.Enabled;
+                    //Comment: Control Station has CanComm=false at this point -> require player action
+                }
+
+                this.rebuildFreqList(true);
+            }
+            else if (sciencePart is ModuleGroundCommsPart)
+            {
+                this.rebuildFreqList(true);
+            }
+        }
+
+        /// <summary>
+        /// GameEvent of deployed science cluster updated; only call when in physical range/active vessel
+        /// </summary>
+        protected void groundScienceClusterUpdated(ModuleGroundExpControl controller, DeployedScienceCluster cluster)
+        {
+            if (controller.vessel.id == this.vessel.id)
+            {
+                //atm do nothing
+            }
         }
     }
 }
