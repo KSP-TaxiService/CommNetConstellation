@@ -379,7 +379,7 @@ namespace CommNetConstellation.CommNetLayer
         {
             if (v.vesselType == VesselType.Base || v.vesselType == VesselType.Lander || v.vesselType == VesselType.Plane ||
                v.vesselType == VesselType.Probe || v.vesselType == VesselType.Relay || v.vesselType == VesselType.Rover ||
-               v.vesselType == VesselType.Ship || v.vesselType == VesselType.Station)
+               v.vesselType == VesselType.Ship || v.vesselType == VesselType.Station || v.vesselType == VesselType.DeployedScienceController)
             {
                 CNCLog.Debug("Change in the vessel list detected. Cache refresh required.");
                 this.dirtyCommNetVesselList = true;

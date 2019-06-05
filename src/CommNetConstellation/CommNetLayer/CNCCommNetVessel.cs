@@ -109,7 +109,6 @@ namespace CommNetConstellation.CommNetLayer
                     this.FrequencyDict = buildFrequencyList(this.vesselAntennas);
                     this.strongestFreq = computeStrongestFrequency(this.FrequencyDict);
                     GameEvents.onGroundSciencePartEnabledStateChanged.Add(this.groundSciencePartStateChange);
-                    GameEvents.onGroundScienceClusterUpdated.Add(this.groundScienceClusterUpdated);
                     return;
                 }
                 else if (readCommandData().Count <= 0) //no probe core/command module to "process" signal
@@ -156,7 +155,6 @@ namespace CommNetConstellation.CommNetLayer
             if (this.Vessel.vesselType == VesselType.DeployedScienceController)
             {
                 GameEvents.onGroundSciencePartEnabledStateChanged.Remove(this.groundSciencePartStateChange);
-                GameEvents.onGroundScienceClusterUpdated.Remove(this.groundScienceClusterUpdated);
             }
         }
 
@@ -862,17 +860,6 @@ namespace CommNetConstellation.CommNetLayer
             else if (sciencePart is ModuleGroundCommsPart)
             {
                 this.rebuildFreqList(true);
-            }
-        }
-
-        /// <summary>
-        /// GameEvent of deployed science cluster updated; only call when in physical range/active vessel
-        /// </summary>
-        protected void groundScienceClusterUpdated(ModuleGroundExpControl controller, DeployedScienceCluster cluster)
-        {
-            if (controller.vessel.id == this.vessel.id)
-            {
-                //atm do nothing
             }
         }
     }
