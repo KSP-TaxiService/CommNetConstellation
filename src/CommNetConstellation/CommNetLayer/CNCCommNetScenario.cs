@@ -45,6 +45,14 @@ namespace CommNetConstellation.CommNetLayer
 
             CNCLog.Verbose("CommNet Scenario loading ...");
 
+            //Issue #13: Commnet behaves like vanilla when joining a DMP server for the second time.
+            //if stock CommNet logic somehow runs (such as the order of CNCCommNetScenario and CommNetScenario in persisten.sfs)
+            if (CommNetScenario.Instance != null)
+            {
+                UnityEngine.Object.DestroyImmediate(CommNetScenario.Instance);
+                CNCCommNetScenario.Instance = this;
+            }
+
             //Replace the CommNet user interface
             CommNetUI ui = FindObjectOfType<CommNetUI>(); // the order of the three lines is important
             CustomCommNetUI = gameObject.AddComponent<CNCCommNetUI>(); // gameObject.AddComponent<>() is "new" keyword for Monohebaviour class
