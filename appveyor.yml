@@ -101,7 +101,7 @@
     - cmd: del %ASSEMBLY_FOLDER%\Assembly-CSharp.dll
     - cmd: del %ASSEMBLY_FOLDER%\Assembly-CSharp-firstpass.dll
     - cmd: del %ASSEMBLY_FOLDER%\UnityEngine.dll
-    - cmd: del %ASSEMBLY_FOLDER%\UnityEngine.UI.dll
+    - cmd: del %ASSEMBLY_FOLDER%\UnityEngine.*.dll
     - cmd: cd %ASSEMBLY_FOLDER% & dir
     - cmd: echo done!
 
@@ -301,7 +301,7 @@
     - cmd: del %ASSEMBLY_FOLDER%\Assembly-CSharp.dll
     - cmd: del %ASSEMBLY_FOLDER%\Assembly-CSharp-firstpass.dll
     - cmd: del %ASSEMBLY_FOLDER%\UnityEngine.dll
-    - cmd: del %ASSEMBLY_FOLDER%\UnityEngine.UI.dll
+    - cmd: del %ASSEMBLY_FOLDER%\UnityEngine.*.dll
     - cmd: cd %ASSEMBLY_FOLDER% & dir
     - cmd: echo done!
 
