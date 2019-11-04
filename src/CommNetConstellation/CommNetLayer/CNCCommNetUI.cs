@@ -322,9 +322,33 @@ namespace CommNetConstellation.CommNetLayer
                     }
                     else
                     {
-                        net.GetLinkPoints(this.points);
-                        numLinks = net.Links.Count;
+                        //net.GetLinkPoints(this.points);
+                        //numLinks = net.Links.Count;
+                        //KSP 1.8: Likely shader changes led to stackup of 2 or more lines illustrating overall brighter line
+                        //Workaround: collect unqiue lines as path
+                        path = new CommPath();
+                        path.Capacity = net.Links.Count;
 
+                        for(int i=0; i<net.Links.Count; i++)
+                        {
+                            pathLinkExist = false;
+                            for (int overallpathIndex = 0; overallpathIndex < path.Count; overallpathIndex++)//check if path has this link already
+                            {
+                                if (CNCCommNetwork.AreSame(path[overallpathIndex].a, net.Links[i].a) &&
+                                    CNCCommNetwork.AreSame(path[overallpathIndex].b, net.Links[i].b))
+                                {
+                                    pathLinkExist = true;
+                                    break;
+                                }
+                            }
+                            if (!pathLinkExist)
+                            {
+                                path.Add(net.Links[i]);
+                            }
+                        }
+
+                        path.GetPoints(this.points, true);
+                        numLinks = path.Count;
                     }
                     break;
 
@@ -440,12 +464,19 @@ namespace CommNetConstellation.CommNetLayer
                 }
                 case CNCCommNetUI.CustomDisplayMode.Network:
                 {
+                        //for (int i = numLinks - 1; i >= 0; i--)
+                        //{
+                        //    this.line.SetColor(colorBlending(getConstellationColor(net.Links[i].a, net.Links[i].b),
+                        //                                     this.colorLow,
+                        //                                     Mathf.Pow((float) net.Links[i].GetBestSignal(), this.colorLerpPower)),
+                        //                                     i);
+                        //}
                         for (int i = numLinks - 1; i >= 0; i--)
                         {
-                            this.line.SetColor(colorBlending(getConstellationColor(net.Links[i].a, net.Links[i].b),
-                                                             this.colorLow,
-                                                             Mathf.Pow((float) net.Links[i].GetBestSignal(), this.colorLerpPower)),
-                                                             i);
+                            this.line.SetColor(colorBlending(getConstellationColor(path[i].a, path[i].b),
+                                                                this.colorLow,
+                                                                Mathf.Pow((float)path[i].GetBestSignal(), this.colorLerpPower)),
+                                                                i);
                         }
                         break;
                 }
