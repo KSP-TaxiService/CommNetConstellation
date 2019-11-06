@@ -362,33 +362,25 @@ namespace CommNetConstellation.CommNetLayer
                         path = new CommPath();
                         path.Capacity = net.Links.Count;
 
-                        var vessels = CNCCommNetScenario.Instance.getCommNetVessels();
-                        for(int i=0; i<vessels.Count; i++)
+                        for(int i = 0; i < net.Count; i++)
                         {
-                            vessels[i].computeUnloadedUpdate();//network update is done only once for unloaded vessels so need to manually re-trigger every time
-
-                            //is vessel real/alive?
-                            if (!(vessels[i].ControlState == VesselControlState.Probe || vessels[i].ControlState == VesselControlState.Kerbal ||
-                                vessels[i].ControlPath == null || vessels[i].ControlPath.Count == 0))
+                            var thisPath = new CommPath();
+                            net.FindClosestControlSource(net[i], thisPath);
+                            for (int controlpathIndex = 0; controlpathIndex < thisPath.Count; controlpathIndex++)
                             {
-                                //add each link in control path to overall path
-                                for (int controlpathIndex=0; controlpathIndex< vessels[i].ControlPath.Count; controlpathIndex++)
+                                pathLinkExist = false;
+                                for (int overallpathIndex = 0; overallpathIndex < path.Count; overallpathIndex++)//check if overall path has this link already
                                 {
-                                    pathLinkExist = false;
-                                    for (int overallpathIndex = 0; overallpathIndex < path.Count; overallpathIndex++)//check if overall path has this link already
+                                    if (CNCCommNetwork.AreSame(path[overallpathIndex].a, thisPath[controlpathIndex].a) &&
+                                        CNCCommNetwork.AreSame(path[overallpathIndex].b, thisPath[controlpathIndex].b))
                                     {
-                                        if(CNCCommNetwork.AreSame(path[overallpathIndex].a,vessels[i].ControlPath[controlpathIndex].a) && 
-                                            CNCCommNetwork.AreSame(path[overallpathIndex].b, vessels[i].ControlPath[controlpathIndex].b))
-                                        {
-                                            pathLinkExist = true;
-                                            break;
-                                        }
+                                        pathLinkExist = true;
+                                        break;
                                     }
-                                    if(!pathLinkExist)
-                                    {
-                                        path.Add(vessels[i].ControlPath[controlpathIndex]); //laziness wins
-                                        //KSP techincally does not care if path is consisted of non-continuous links or not
-                                    }
+                                }
+                                if (!pathLinkExist)
+                                {
+                                    path.Add(thisPath[controlpathIndex]);
                                 }
                             }
                         }
