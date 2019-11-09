@@ -130,7 +130,10 @@ namespace CommNetConstellation.CommNetLayer
             if (CNCCommNetScenario.Instance != null)
             {
                 if (this.CustomCommNetUI != null)
+                {
+                    this.CustomCommNetUI.Hide(); //KSP 1.8 - CommNetScenario is destroyed first before CommNetUI is destroyed
                     UnityEngine.Object.Destroy(this.CustomCommNetUI);
+                }
 
                 if (this.CustomCommNetNetwork != null)
                     UnityEngine.Object.Destroy(this.CustomCommNetNetwork);

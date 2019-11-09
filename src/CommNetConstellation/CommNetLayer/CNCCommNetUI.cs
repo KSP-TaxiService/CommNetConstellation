@@ -84,6 +84,9 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected void registerMapNodeIconCallbacks()
         {
+            if (CNCCommNetScenario.Instance == null)
+                return;
+
             List<CNCCommNetVessel> commnetVessels = CNCCommNetScenario.Instance.getCommNetVessels();
 
             for (int i = 0; i < commnetVessels.Count; i++)
@@ -100,6 +103,9 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected void deregisterMapNodeIconCallbacks()
         {
+            if (CNCCommNetScenario.Instance == null)
+                return;
+
             List<CNCCommNetVessel> commnetVessels = CNCCommNetScenario.Instance.getCommNetVessels();
 
             for (int i = 0; i < commnetVessels.Count; i++)
