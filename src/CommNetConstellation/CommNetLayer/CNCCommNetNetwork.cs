@@ -8,9 +8,9 @@ namespace CommNetConstellation.CommNetLayer
     /// </summary>
     public class CNCCommNetNetwork : CommNetNetwork
     {
-        //Part of inactive network optimisation in CNCCommNetNetwork.Update()
-        //private float nextUpdateTime = 0.0f;
-        //private const float networkInterval = 0.1f; // in seconds
+        //Part of network optimisation in CNCCommNetNetwork.Update()
+        private float nextUpdateTime = 0.0f;
+        private const float networkInterval = 0.5f; // in seconds
 
         public static new CNCCommNetNetwork Instance
         {
@@ -44,14 +44,14 @@ namespace CommNetConstellation.CommNetLayer
 
         protected override void Update()
         {
-            //Comment: Not recommended to run along with other active optimisation of evaluating
+            //Comment: Not recommended to run along with other optimisation of evaluating
             //subset of connections in CNCCommNetwork.UpdateNetwork()
             //Effect of running both optimisations is unacceptable low rate of connection check per second
-            //if (Time.time >= nextUpdateTime)
-            //{
-            base.Update();
-                //nextUpdateTime += networkInterval;
-            //}
+            if (Time.time >= nextUpdateTime)
+            {
+                base.Update();
+                nextUpdateTime += networkInterval;
+            }
         }
     }
 }
