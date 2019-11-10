@@ -131,7 +131,7 @@ namespace CommNetConstellation.CommNetLayer
             {
                 if (this.CustomCommNetUI != null)
                 {
-                    this.CustomCommNetUI.Hide(); //KSP 1.8 - CommNetScenario is destroyed first before CommNetUI is destroyed
+                    this.CustomCommNetUI.Destroy(); //CommNetScenario is destroyed first before CommNetUI is destroyed so need to manually trigger CommNetUI's custom destroy logic first
                     UnityEngine.Object.Destroy(this.CustomCommNetUI);
                 }
 

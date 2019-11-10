@@ -116,6 +116,14 @@ namespace CommNetConstellation.CommNetLayer
         }
 
         /// <summary>
+        /// Explicit call first before OnDestroy is called
+        /// </summary>
+        public void Destroy()
+        {
+            deregisterMapNodeIconCallbacks();
+        }
+
+        /// <summary>
         /// Update the MapNode object of each CommNet vessel
         /// </summary>
         private void OnMapNodeUpdateVisible(MapNode node, MapNode.IconData iconData)
