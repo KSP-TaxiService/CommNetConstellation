@@ -3,6 +3,7 @@ using CommNetConstellation.UI;
 using KSP.UI.Screens.Flight;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -111,6 +112,12 @@ namespace CommNetConstellation.CommNetLayer
                 customBody.copyOf(bodies[i]);
                 UnityEngine.Object.Destroy(bodies[i]);
             }
+
+            //Imitate stock CommNetScenario.Instance in order to run certain stock functionalities
+            //Comment: Vessel.GetControlLevel() has the check on CommNetScenario.Instance != null before calling vessel.connection.GetControlLevel()
+            PropertyInfo property = typeof(CommNetScenario).GetProperty("Instance");
+            property.DeclaringType.GetProperty("Instance");
+            property.SetValue(CommNetScenario.Instance, this, BindingFlags.NonPublic | BindingFlags.Instance, null, null, null);
 
             CNCLog.Verbose("CommNet Scenario loading done!");
         }
