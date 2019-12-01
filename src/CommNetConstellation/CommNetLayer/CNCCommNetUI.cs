@@ -378,8 +378,13 @@ namespace CommNetConstellation.CommNetLayer
 
                         for(int i = 0; i < net.Count; i++)
                         {
+                            if (net[i].isControlSource) //is it ground station/remote-control pilot?
+                            {
+                                continue;
+                            }
+
                             var thisPath = new CommPath();
-                            net.FindClosestControlSource(net[i], thisPath);
+                            net.FindHome(net[i], thisPath);
                             for (int controlpathIndex = 0; controlpathIndex < thisPath.Count; controlpathIndex++)
                             {
                                 pathLinkExist = false;
