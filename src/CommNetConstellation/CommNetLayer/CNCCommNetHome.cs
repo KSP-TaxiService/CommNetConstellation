@@ -20,7 +20,10 @@ namespace CommNetConstellation.CommNetLayer
         [Persistent] public string ID;
         [Persistent] public Color Color = Color.red;
         [Persistent] protected string OptionalName = "";
-        [Persistent(collectionIndex = "Frequency")] protected List<short> Frequencies = new List<short>(new short[] { CNCSettings.Instance.PublicRadioFrequency });
+        [Persistent(collectionIndex = "Frequency")] protected List<short> Frequencies = 
+            (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER) ? 
+            new List<short>() { CNCSettings.Instance.PublicRadioFrequency } : 
+            new List<short>();
 
         //for low-gc operations
         protected short[] sorted_frequency_array;
@@ -34,6 +37,11 @@ namespace CommNetConstellation.CommNetLayer
             get { return (this.OptionalName.Length == 0)? this.displaynodeName : this.OptionalName; }
             set { this.OptionalName = value; }
         }
+
+        /// <summary>
+        /// Empty constructor for ConfigNode.LoadObjectFromConfig()
+        /// </summary>
+        public CNCCommNetHome() { }
 
         public void copyOf(CommNetHome stockHome)
         {

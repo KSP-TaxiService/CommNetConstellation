@@ -224,7 +224,7 @@ namespace CommNetConstellation.CommNetLayer
                     if (stationNodes.Length < 1) // missing ground-station list
                     {
                         CNCLog.Error("The 'GroundStations' node is malformed! Reverted to the default list of ground stations.");
-                        //do nothing since KSP provides this default list
+                        persistentGroundStations = CNCSettings.Instance.GroundStations;
                     }
                     else
                     {
@@ -244,7 +244,7 @@ namespace CommNetConstellation.CommNetLayer
                 else
                 {
                     CNCLog.Verbose("The 'GroundStations' node is not found. The default list of ground stations is loaded from KSP's data.");
-                    //do nothing since KSP provides this default list
+                    persistentGroundStations = CNCSettings.Instance.GroundStations;
                 }
             }
             catch (Exception e)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CommNetConstellation.CommNetLayer;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace CommNetConstellation
@@ -44,7 +45,8 @@ namespace CommNetConstellation
         [Persistent] public string DefaultPublicName;
         [Persistent] public Color DefaultPublicColor;
         [Persistent] public float DistanceToHideGroundStations;
-        [Persistent(collectionIndex = "Constellations")] public List<Constellation> Constellations;
+        [Persistent(collectionIndex = "Constellation")] public List<Constellation> Constellations;
+        [Persistent(collectionIndex = "GroundStation")] public List<CNCCommNetHome> GroundStations;
         //-----
 
         public static Settings Load()
@@ -74,6 +76,17 @@ namespace CommNetConstellation
                 if (cfgs[i].url.Equals(startingSettingCFGUrl))
                 {
                     defaultSuccess = ConfigNode.LoadObjectFromConfig(settings, cfgs[i].config);
+                    
+                    //Workaround due to LoadObjectFromConfig not auto-populating ground stations for unknown reason
+                    settings.GroundStations = new List<CNCCommNetHome>();
+                    ConfigNode[] stationNodes = cfgs[i].config.GetNode("GroundStations").GetNodes();
+                    for (int j = 0; j < stationNodes.Length; j++)
+                    {
+                        CNCCommNetHome dummyGroundStation = new CNCCommNetHome();
+                        ConfigNode.LoadObjectFromConfig(dummyGroundStation, stationNodes[j]);
+                        settings.GroundStations.Add(dummyGroundStation);
+                    }
+
                     CNCLog.Verbose("Load starting settings into object with {0}: LOADED {1}", cfgs[i].config, defaultSuccess ? "OK" : "FAIL");
                     break;
                 }
