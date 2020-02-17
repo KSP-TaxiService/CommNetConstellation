@@ -4,6 +4,7 @@ using CommNetConstellation.UI.DialogGUI;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using KSP.Localization;
 
 namespace CommNetConstellation.UI.VesselMgtTools
 {
@@ -83,7 +84,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         {
             List<DialogGUIBase> layout = new List<DialogGUIBase>();
 
-            layout.Add(new DialogGUILabel("<b>Management tools</b>", false, false));
+            layout.Add(new DialogGUILabel("<b>" + Localizer.Format("#CNC_getContentCompon_ManagementTools") + "</b>", false, false));//Management tools
             DialogGUIBase[] buttons = new DialogGUIBase[this.tools.Count];
             for (int i = 0; i < this.tools.Count; i++)
             {

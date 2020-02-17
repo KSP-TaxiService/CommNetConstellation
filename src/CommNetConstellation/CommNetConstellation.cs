@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using CommNetConstellation.UI;
 using KSP.UI.Screens;
+using KSP.Localization;
 
 namespace CommNetConstellation
 {
@@ -19,7 +20,7 @@ namespace CommNetConstellation
         {
             if (this.controlDialog == null)
             {
-                this.controlDialog = new ConstellationControlDialog("CommNet Constellation - <color=#00ff00>Control Panel</color>");
+                this.controlDialog = new ConstellationControlDialog(Localizer.Format("#CNC_CommNetConstellation_title"));//"CommNet Constellation - <color=#00ff00>Control Panel</color>"
             }
             this.controlDialog.launch();
         }
@@ -49,7 +50,7 @@ namespace CommNetConstellation
         {
             if (this.controlDialog == null)
             {
-                this.controlDialog = new ConstellationControlDialog("CommNet Constellation - <color=#00ff00>Control Panel</color>");
+                this.controlDialog = new ConstellationControlDialog(Localizer.Format("#CNC_CommNetConstellation_title"));//"CommNet Constellation - <color=#00ff00>Control Panel</color>"
             }
             this.controlDialog.launch();
         }

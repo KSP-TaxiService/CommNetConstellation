@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using TMPro;
+using KSP.Localization;
 
 namespace CommNetConstellation.UI
 {
@@ -14,7 +15,7 @@ namespace CommNetConstellation.UI
     {
         private CNConstellationAntennaModule antennaModule;
         private Vessel hostVessel; // could be null (in editor)
-        private string description = "Something";
+        private string description = Localizer.Format("#CNC_AntennaSetup_DescText1");//"Something"
 
         private DialogGUITextInput frequencyInput;
         private DialogGUITextInput nameInput;
@@ -32,7 +33,7 @@ namespace CommNetConstellation.UI
         {
             this.hostVessel = vessel;
             this.antennaModule = antennaPart.FindModuleImplementing<CNConstellationAntennaModule>();
-            this.description = string.Format("You are configuring this antenna '{0}'.", antennaPart.partInfo.title);
+            this.description = Localizer.Format("#CNC_AntennaSetup_DescText2", antennaPart.partInfo.title);//string.Format("You are configuring this antenna '{0}'.", )
 
             this.GetInputLocks();
         }
@@ -48,15 +49,15 @@ namespace CommNetConstellation.UI
 
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description+"\n\n", false, false) }));
 
-            DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 40, 12);
+            DialogGUILabel nameLabel = new DialogGUILabel("<b>"+Localizer.Format("#CNC_AntennaSetup_NameLabel") +"</b>", 40, 12);//Name
             nameInput = new DialogGUITextInput(antennaModule.Name, false, CNCSettings.MaxLengthName, setNameInput, 145, 25);
-            DialogGUIButton defaultButton = new DialogGUIButton("Reset", defaultNameClick, 45, 25, false);
+            DialogGUIButton defaultButton = new DialogGUIButton(Localizer.Format("#CNC_AntennaSetup_ResetButton"), defaultNameClick, 45, 25, false);//"Reset"
             DialogGUIHorizontalLayout nameGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { nameLabel, nameInput, defaultButton });
             listComponments.Add(nameGroup);
 
-            DialogGUILabel freqLabel = new DialogGUILabel("<b>Frequency</b>", 52, 12);
+            DialogGUILabel freqLabel = new DialogGUILabel("<b>"+Localizer.Format("#CNC_Generic_FrequencyLabel") +"</b>", 52, 12);//Frequency
             frequencyInput = new DialogGUITextInput(antennaModule.Frequency.ToString(), false, CNCSettings.MaxDigits, setConstellFreq, 45, 25);
-            DialogGUIButton publicButton = new DialogGUIButton("Revert to public", defaultFreqClick, 100, 25, false);
+            DialogGUIButton publicButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_PublicButton"), defaultFreqClick, 100, 25, false);//"Revert to public"
             DialogGUIHorizontalLayout freqGRoup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { freqLabel, frequencyInput, publicButton });
             listComponments.Add(freqGRoup);
 
@@ -65,8 +66,8 @@ namespace CommNetConstellation.UI
             DialogGUIHorizontalLayout constellationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(5, 25, 5, 5), TextAnchor.MiddleCenter, new DialogGUIBase[] { constellationColorImage, constNameLabel });
             listComponments.Add(new DialogGUIScrollList(new Vector2(200, 40), false, false, constellationGroup));
 
-            DialogGUIButton updateButton = new DialogGUIButton("Update", updateAction, false);
-            DialogGUIButton cancelButton = new DialogGUIButton("Cancel", delegate { this.dismiss(); }, false);
+            DialogGUIButton updateButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_UpdateButton"), updateAction, false);//"Update"
+            DialogGUIButton cancelButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_CancelButton"), delegate { this.dismiss(); }, false);//"Cancel"
             DialogGUIHorizontalLayout actionGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), updateButton, cancelButton, new DialogGUIFlexibleSpace() });
             listComponments.Add(actionGroup);
 
@@ -97,7 +98,7 @@ namespace CommNetConstellation.UI
             else
             {
                 constellationColorImage.uiItem.GetComponent<RawImage>().color = Color.clear;
-                return "This frequency is unrecognised.";
+                return Localizer.Format("#CNC_getConstellationName_FreqUnrecognised");//"This frequency is unrecognised."
             }
         }
 
@@ -117,28 +118,28 @@ namespace CommNetConstellation.UI
                     //Check name
                     if (inputName.Length <= 0)
                     {
-                        throw new Exception("Name cannot be empty");
+                        throw new Exception(Localizer.Format("#CNC_CheckName_Empty"));//"Name cannot be empty"
                     }
 
                     //Check frequency
                     if (inputFreq < 0)
                     {
-                        throw new Exception("Frequency cannot be negative");
+                        throw new Exception(Localizer.Format("#CNC_CheckFrequency_negative"));//"Frequency cannot be negative"
                     }
                     else if (!GameUtils.NonLinqAny(CNCCommNetScenario.Instance.constellations, inputFreq))
                     {
-                        throw new Exception("Please choose an existing constellation");
+                        throw new Exception(Localizer.Format("#CNC_CheckFrequency_Exist"));//"Please choose an existing constellation"
                     }
                     else if (!Constellation.isFrequencyValid(inputFreq))
                     {
-                        throw new Exception("Frequency must be between 0 and " + short.MaxValue);
+                        throw new Exception(Localizer.Format("#CNC_CheckFrequency_Valid", short.MaxValue));//"Frequency must be between 0 and " + 
                     }
 
                     //ALL OK
                     if (this.antennaModule.Frequency != inputFreq) // different frequency
                     {
                         this.antennaModule.Frequency = inputFreq;
-                        ScreenMessage msg = new ScreenMessage(string.Format("Frequency is updated to {0}", inputFreq), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessage msg = new ScreenMessage(Localizer.Format("#CNC_ScreenMsg_FreqUpdate", inputFreq), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);//string.Format("Frequency is updated to {0}", )
                         ScreenMessages.PostScreenMessage(msg);
                         changesCommitted = true;
                     }
@@ -146,7 +147,7 @@ namespace CommNetConstellation.UI
                     if (!this.antennaModule.Name.Equals(inputName)) // different name
                     {
                         this.antennaModule.Name = inputName;
-                        ScreenMessage msg = new ScreenMessage(string.Format("Antenna is renamed to '{0}'", this.antennaModule.Name), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessage msg = new ScreenMessage(Localizer.Format("#CNC_ScreenMsg_NameUpdate", this.antennaModule.Name), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);//string.Format("Antenna is renamed to '{0}'", )
                         ScreenMessages.PostScreenMessage(msg);
                         changesCommitted = true;
                     }
@@ -166,11 +167,11 @@ namespace CommNetConstellation.UI
                 }
                 catch (FormatException e)
                 {
-                    throw new FormatException("Frequency must be numeric only");
+                    throw new FormatException(Localizer.Format("#CNC_CheckFrequency_Format"));//"Frequency must be numeric only"
                 }
                 catch (OverflowException e)
                 {
-                    throw new OverflowException(string.Format("Frequency must be equal to or less than {0}", short.MaxValue));
+                    throw new OverflowException(Localizer.Format("#CNC_CheckFrequency_Overflow", short.MaxValue));//string.Format("Frequency must be equal to or less than {0}", )
                 }
             }
             catch (Exception e)

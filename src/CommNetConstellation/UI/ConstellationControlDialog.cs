@@ -42,13 +42,13 @@ namespace CommNetConstellation.UI
         {
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
-            listComponments.Add(new DialogGUILabel("Manage communication networks of ground, air and space vessels.", false, false));
+            listComponments.Add(new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_listComponments"), false, false));//"Manage communication networks of ground, air and space vessels."
 
             float btnWidth = (600-50)/3;
             float btnHeight = 32;
-            DialogGUIButton constellationBtn = new DialogGUIButton("Constellations", delegate { displayContentLayout(ContentType.CONSTELLATIONS); }, btnWidth, btnHeight, false);
-            DialogGUIButton groundstationBtn = new DialogGUIButton("Ground Stations", delegate { displayContentLayout(ContentType.GROUNDSTATIONS); }, btnWidth, btnHeight, false);
-            DialogGUIButton vesselBtn = new DialogGUIButton("CommNet Vessels", delegate { displayContentLayout(ContentType.VESSELS); }, btnWidth, btnHeight, false);
+            DialogGUIButton constellationBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_ConstellationBtn"), delegate { displayContentLayout(ContentType.CONSTELLATIONS); }, btnWidth, btnHeight, false);//"Constellations"
+            DialogGUIButton groundstationBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_GroundstationBtn"), delegate { displayContentLayout(ContentType.GROUNDSTATIONS); }, btnWidth, btnHeight, false);//"Ground Stations"
+            DialogGUIButton vesselBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_VesselBtn"), delegate { displayContentLayout(ContentType.VESSELS); }, btnWidth, btnHeight, false);//"CommNet Vessels"
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { constellationBtn, groundstationBtn, vesselBtn}));
 
             contentLayout = new DialogGUIVerticalLayout(true, false, 4, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, new DialogGUIBase[] { new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true) });
@@ -106,7 +106,7 @@ namespace CommNetConstellation.UI
         {
             List<DialogGUIBase> constellationComponments = new List<DialogGUIBase>();
 
-            DialogGUIButton createButton = new DialogGUIButton("New constellation", newConstellationClick, false);
+            DialogGUIButton createButton = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_createButton"), newConstellationClick, false);//"New constellation"
             DialogGUIHorizontalLayout creationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), createButton, new DialogGUIFlexibleSpace() });
             constellationComponments.Add(creationGroup);
 
@@ -122,16 +122,16 @@ namespace CommNetConstellation.UI
 
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.zero, thisConstellation.color, colorTexture);
             DialogGUILabel constNameLabel = new DialogGUILabel(thisConstellation.name, 170, 12);
-            DialogGUILabel freqLabel = new DialogGUILabel(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(color), thisConstellation.frequency), 100, 12);
-            DialogGUILabel numSatsLabel = new DialogGUILabel(string.Format("{0} vessels", Constellation.countVessels(thisConstellation)), 75, 12);
-            DialogGUIButton updateButton = new DialogGUIButton("Edit", delegate { editConstellationClick(thisConstellation); }, 50, 32, false);
-            DialogGUIToggleButton toggleButton = new DialogGUIToggleButton(thisConstellation.visibility, "Map", delegate { toggleConstellationVisibility(thisConstellation); }, 45, 32);
+            DialogGUILabel freqLabel = new DialogGUILabel(Localizer.Format("#CNC_Generic_FrequencyLabel") + string.Format(": <color={0}>{1}</color>", UIUtils.colorToHex(color), thisConstellation.frequency), 100, 12);//Frequency
+            DialogGUILabel numSatsLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_numSatsLabel", Constellation.countVessels(thisConstellation)), 75, 12);//string.Format("{0} vessels", )
+            DialogGUIButton updateButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Editbutton"), delegate { editConstellationClick(thisConstellation); }, 50, 32, false);//"Edit"
+            DialogGUIToggleButton toggleButton = new DialogGUIToggleButton(thisConstellation.visibility, Localizer.Format("#CNC_Generic_Mapbutton"), delegate { toggleConstellationVisibility(thisConstellation); }, 45, 32);//"Map"
 
             DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, constNameLabel, freqLabel, numSatsLabel, toggleButton, updateButton, null };
             if (thisConstellation.frequency == CNCSettings.Instance.PublicRadioFrequency)
-                rowGUIBase[rowGUIBase.Length - 1] = new DialogGUIButton("Reset", resetPublicConstClick, 60, 32, false);
+                rowGUIBase[rowGUIBase.Length - 1] = new DialogGUIButton(Localizer.Format("#CNC_Generic_Resetbutton"), resetPublicConstClick, 60, 32, false);//"Reset"
             else
-                rowGUIBase[rowGUIBase.Length - 1] = new DialogGUIButton("Delete", delegate { deleteConstellationClick(thisConstellation); }, 60, 32, false);
+                rowGUIBase[rowGUIBase.Length - 1] = new DialogGUIButton(Localizer.Format("#CNC_Generic_DeleteButton"), delegate { deleteConstellationClick(thisConstellation); }, 60, 32, false);//"Delete"
 
             DialogGUIHorizontalLayout constellationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, rowGUIBase);
             constellationGroup.SetOptionText(thisConstellation.frequency.ToString()); //for quick identification
@@ -186,8 +186,8 @@ namespace CommNetConstellation.UI
                     Constellation updatedConstellation = CNCCommNetScenario.Instance.constellations.Find(x => x.frequency == updatedfrequency);
                     colorImage.uiItem.GetComponent<RawImage>().color = updatedConstellation.color;
                     nameLabel.SetOptionText(updatedConstellation.name);
-                    freqLabel.SetOptionText(string.Format("Frequency: <color={0}>{1}</color>", UIUtils.colorToHex(updatedConstellation.color), updatedConstellation.frequency));
-                    vesselLabel.SetOptionText(Constellation.countVessels(updatedConstellation) + " vessels");
+                    freqLabel.SetOptionText(Localizer.Format("#CNC_Generic_FrequencyLabel") + string.Format(": <color={0}>{1}</color>", UIUtils.colorToHex(updatedConstellation.color), updatedConstellation.frequency));//Frequency
+                    vesselLabel.SetOptionText(Localizer.Format("#CNC_ConstellationControl_numSatsLabel", Constellation.countVessels(updatedConstellation)));// + " vessels"
 
                     thisRow.SetOptionText(updatedConstellation.frequency.ToString());
                     break;
@@ -197,11 +197,11 @@ namespace CommNetConstellation.UI
 
         private void resetPublicConstClick()
         {
-            string message = string.Format("Revert to the default name '{0}' and color {1}?", CNCSettings.Instance.DefaultPublicName, UIUtils.colorToHex(CNCSettings.Instance.DefaultPublicColor));
-            MultiOptionDialog warningDialog = new MultiOptionDialog("cncResetConstWindow", message, "Constellation", HighLogic.UISkin, new DialogGUIBase[]
+            string message = Localizer.Format("#CNC_ConstellationControl_resetPublicMsg", CNCSettings.Instance.DefaultPublicName, UIUtils.colorToHex(CNCSettings.Instance.DefaultPublicColor));//string.Format("Revert to the default name '{0}' and color {1}?", 
+            MultiOptionDialog warningDialog = new MultiOptionDialog("cncResetConstWindow", message, Localizer.Format("#CNC_ConstellationControl_Dialog_title"), HighLogic.UISkin, new DialogGUIBase[]//"Constellation"
             {
-                new DialogGUIButton("Reset", resetPublicConstellation, true),
-                new DialogGUIButton("Cancel", delegate { }, true)
+                new DialogGUIButton(Localizer.Format("#CNC_Generic_Resetbutton"), resetPublicConstellation, true),//"Reset"
+                new DialogGUIButton(Localizer.Format("#CNC_Generic_CancelButton"), delegate { }, true)//"Cancel"
             });
 
             PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), warningDialog, false, HighLogic.UISkin, true, string.Empty);
@@ -209,13 +209,13 @@ namespace CommNetConstellation.UI
 
         private void deleteConstellationClick(Constellation thisConstellation)
         {
-            string title = string.Format("Deleting '{0}'?", thisConstellation.name);
-            string message = string.Format("All the vessels of Constellation '{0}' will be reintegrated into the public constellation.", thisConstellation.name);
+            string title = Localizer.Format("#CNC_ConstellationControl_DeleteDialog_title", thisConstellation.name);//string.Format("Deleting '{0}'?", )
+            string message = Localizer.Format("#CNC_ConstellationControl_DeleteDialog_msg", thisConstellation.name);//string.Format("All the vessels of Constellation '{0}' will be reintegrated into the public constellation.", )
 
             MultiOptionDialog warningDialog = new MultiOptionDialog("cncDeleteConstWindow", message, title, HighLogic.UISkin, new DialogGUIBase[]
             {
-                new DialogGUIButton("Delete", delegate { deleteConstellation(thisConstellation); }, true),
-                new DialogGUIButton("Cancel", delegate { }, true)
+                new DialogGUIButton(Localizer.Format("#CNC_Generic_DeleteButton"), delegate { deleteConstellation(thisConstellation); }, true),//"Delete"
+                new DialogGUIButton(Localizer.Format("#CNC_Generic_CancelButton"), delegate { }, true)//"Cancel"
             });
 
             PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), warningDialog, false, HighLogic.UISkin, true);
@@ -223,12 +223,12 @@ namespace CommNetConstellation.UI
 
         private void newConstellationClick()
         {
-            new ConstellationEditDialog("Constellation - <color=#00ff00>New</color>", null, createNewConstellation, null).launch();
+            new ConstellationEditDialog(Localizer.Format("#CNC_ConstellationControl_NewConstellation_title"), null, createNewConstellation, null).launch();//"Constellation - <color=#00ff00>New</color>"
         }
 
         private void editConstellationClick(Constellation thisConstellation)
         {
-            new ConstellationEditDialog("Constellation - <color=#00ff00>Edit</color>", thisConstellation, null, updateConstellation).launch();
+            new ConstellationEditDialog(Localizer.Format("#CNC_ConstellationControl_EditConstellation_title"), thisConstellation, null, updateConstellation).launch();//"Constellation - <color=#00ff00>Edit</color>"
         }
 
         /////////////////////
@@ -321,11 +321,11 @@ namespace CommNetConstellation.UI
             float btnWidth = 100;
             float btnHeight = 28;
 
-            DialogGUILabel sortLabel = new DialogGUILabel("Sort by", 35, 12);
-            DialogGUIButton launchSortBtn = new DialogGUIButton("Launch time", delegate { currentVesselSort = VesselListSort.LAUNCHDATE; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);
-            DialogGUIButton freqSortBtn = new DialogGUIButton("Strongest frequency", delegate { currentVesselSort = VesselListSort.RADIOFREQ; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth+40, btnHeight, false);
-            DialogGUIButton nameSortBtn = new DialogGUIButton("Vessel name", delegate { currentVesselSort = VesselListSort.VESSELNAME; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);
-            DialogGUIButton bodySortBtn = new DialogGUIButton("Celestial body", delegate { currentVesselSort = VesselListSort.CBODY; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);
+            DialogGUILabel sortLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_sortLabel"), 35, 12);//"Sort by"
+            DialogGUIButton launchSortBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_launchSortBtn"), delegate { currentVesselSort = VesselListSort.LAUNCHDATE; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);//"Launch time"
+            DialogGUIButton freqSortBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_freqSortBtn"), delegate { currentVesselSort = VesselListSort.RADIOFREQ; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth+40, btnHeight, false);//"Strongest frequency"
+            DialogGUIButton nameSortBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_nameSortBtn"), delegate { currentVesselSort = VesselListSort.VESSELNAME; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);//"Vessel name"
+            DialogGUIButton bodySortBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_bodySortBtn"), delegate { currentVesselSort = VesselListSort.CBODY; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);//"Celestial body"
 
             return new DialogGUIBase[] { sortLabel, launchSortBtn, freqSortBtn, nameSortBtn, bodySortBtn };
         }
@@ -339,8 +339,8 @@ namespace CommNetConstellation.UI
 
             DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.GetDisplayName(), 160, 12);
             DialogGUILabel freqLabel = new DialogGUILabel(getFreqString(thisVessel.getFrequencyList(), thisVessel.getStrongestFrequency()), 160, 12);
-            DialogGUILabel locationLabel = new DialogGUILabel(Localizer.Format("Orbiting: <<1>>", thisVessel.Vessel.mainBody.GetDisplayName()), 100, 12);
-            DialogGUIButton setupButton = new DialogGUIButton("Setup", delegate { vesselSetupClick(thisVessel.Vessel); }, 70, 32, false);
+            DialogGUILabel locationLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_locationLabel", thisVessel.Vessel.mainBody.GetDisplayName()), 100, 12);//Orbiting: <<1>>
+            DialogGUIButton setupButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Setupbutton"), delegate { vesselSetupClick(thisVessel.Vessel); }, 70, 32, false);//"Setup"
 
             DialogGUIHorizontalLayout vesselGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { focusButton, vesselLabel, freqLabel, locationLabel, setupButton });
             vesselGroup.SetOptionText(thisVessel.Vessel.id.ToString());
@@ -369,7 +369,7 @@ namespace CommNetConstellation.UI
 
         private void vesselSetupClick(Vessel thisVessel)
         {
-            new VesselSetupDialog("Vessel - <color=#00ff00>Setup</color>", thisVessel, updateVesselGUIRow).launch();
+            new VesselSetupDialog(Localizer.Format("#CNC_ConstellationControl_vesselSetup_title"), thisVessel, updateVesselGUIRow).launch();//"Vessel - <color=#00ff00>Setup</color>"
         }
 
         private void vesselFocusClick(Vessel thisVessel)
@@ -445,7 +445,7 @@ namespace CommNetConstellation.UI
             List<DialogGUIBase> stationComponments = new List<DialogGUIBase>();
 
             //toggle button for ground station markers
-            DialogGUIToggleButton toggleStationButton = new DialogGUIToggleButton(CNCCommNetScenario.Instance.hideGroundStations, "Hide all station markers", delegate (bool b) { CNCCommNetScenario.Instance.hideGroundStations = !CNCCommNetScenario.Instance.hideGroundStations; }, 60, 25);
+            DialogGUIToggleButton toggleStationButton = new DialogGUIToggleButton(CNCCommNetScenario.Instance.hideGroundStations, Localizer.Format("#CNC_ConstellationControl_toggleStationButton"), delegate (bool b) { CNCCommNetScenario.Instance.hideGroundStations = !CNCCommNetScenario.Instance.hideGroundStations; }, 60, 25);//"Hide all station markers"
             DialogGUIHorizontalLayout toggleStationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), toggleStationButton, new DialogGUIFlexibleSpace() });
             stationComponments.Add(toggleStationGroup);
 
@@ -482,9 +482,9 @@ namespace CommNetConstellation.UI
         {
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(16, 16), Vector2.one, thisStation.Color, groundstationTexture);
             DialogGUILabel stationNameLabel = new DialogGUILabel(thisStation.stationName, 170, 12);
-            DialogGUILabel locationLabel = new DialogGUILabel(string.Format("LAT: {0:0.0}\nLON: {1:0.0}", thisStation.latitude, thisStation.longitude), 100, 24);
+            DialogGUILabel locationLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_LatitudeAndLongitude", string.Format("{0:0.0}",thisStation.latitude), string.Format("{0:0.0}", thisStation.longitude)), 100, 24);//string.Format("LAT: \nLON: ", , )
             DialogGUILabel freqsLabel = new DialogGUILabel(getFreqString(thisStation.getFrequencyList()), 210, 12);
-            DialogGUIButton updateButton = new DialogGUIButton("Edit", delegate { groundstationEditClick(thisStation); }, 50, 32, false);
+            DialogGUIButton updateButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Editbutton"), delegate { groundstationEditClick(thisStation); }, 50, 32, false);//"Edit"
 
             DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, stationNameLabel, locationLabel, freqsLabel, updateButton };
             DialogGUIHorizontalLayout groundStationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, rowGUIBase);
@@ -495,15 +495,15 @@ namespace CommNetConstellation.UI
         private string getFreqString(List<short> frequencies, short strongestFreq = -1)
         {
             frequencies.Sort();
-            string freqString = "Frequencies: ";
+            string freqString = Localizer.Format("#CNC_ConstellationControl_getFreqString") + " ";//"Frequencies: "
 
             if (frequencies.Count == 0) // nothing
-                return "No frequency assigned";
+                return Localizer.Format("#CNC_ConstellationControl_getFreqString_nothing");//"No frequency assigned"
 
             for (int i = 0; i < frequencies.Count; i++)
             {
                 Color color = Constellation.getColor(frequencies[i]);
-                freqString += string.Format("<color={0}>{1}</color>", UIUtils.colorToHex(color), (strongestFreq == frequencies[i])? "<b>"+ frequencies[i]+"</b>": frequencies[i] + "");
+                freqString += string.Format("<color={0}>{1}</color>", UIUtils.colorToHex(color), (strongestFreq == frequencies[i])? "<b>"+ frequencies[i]+"</b>": frequencies[i] + "");//
                 if (i <= frequencies.Count - 2)
                     freqString += ", ";
             }
@@ -540,7 +540,7 @@ namespace CommNetConstellation.UI
         // Actions
         private void groundstationEditClick(CNCCommNetHome thisStation)
         {
-            new GroundStationEditDialog("Ground station - <color=#00ff00>Edit</color>", thisStation, updateGroundStationGUIRow).launch();
+            new GroundStationEditDialog(Localizer.Format("#CNC_ConstellationControl_GroundStationEdit_title"), thisStation, updateGroundStationGUIRow).launch();//"Ground station - <color=#00ff00>Edit</color>"
         }
     }
 }

@@ -2,6 +2,7 @@
 using CommNet;
 using UnityEngine;
 using static CommNetConstellation.CommNetLayer.CNCCommNetVessel;
+using KSP.Localization;
 
 namespace CommNetConstellation.UI.VesselMgtTools
 {
@@ -9,7 +10,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
     {
         private UIStyle style;
 
-        public UpdateListTool(CommNetVessel thisVessel) : base(thisVessel, "updatelist", "Update List")
+        public UpdateListTool(CommNetVessel thisVessel) : base(thisVessel, "updatelist", Localizer.Format("#CNC_ToolsNames_UpdateList"))//"Update List"
         {
             this.style = new UIStyle();
             this.style.alignment = TextAnchor.MiddleLeft;
@@ -22,7 +23,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         {
             List<DialogGUIBase> layout = new List<DialogGUIBase>();
 
-            DialogGUILabel msgLbl = new DialogGUILabel("Decide how the vessel's frequency list should be updated whenever one antenna is changed (eg extended/retracted or frequency change).", 100, 32);
+            DialogGUILabel msgLbl = new DialogGUILabel(Localizer.Format("#CNC_getContentCompon_msgLabel3"), 100, 32);//"Decide how the vessel's frequency list should be updated whenever one antenna is changed (eg extended/retracted or frequency change)."
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { msgLbl }));
 
             DialogGUIToggleGroup toggleGrp = new DialogGUIToggleGroup();
@@ -30,15 +31,15 @@ namespace CommNetConstellation.UI.VesselMgtTools
             DialogGUIVerticalLayout descriptionColumn = new DialogGUIVerticalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft);
 
             DialogGUIToggle toggleBtn1 = new DialogGUIToggle((cncVessel.FreqListOperation == FrequencyListOperation.AutoBuild) ? true : false, "", delegate (bool b) { ListOperationSelected(b, FrequencyListOperation.AutoBuild); }, 20, 32);
-            DialogGUILabel nameLabel1 = new DialogGUILabel("Auto Build", style); nameLabel1.size = new Vector2(80, 32);
-            DialogGUILabel descriptionLabel1 = new DialogGUILabel("Rebuild the list from all antennas automatically", style); descriptionLabel1.size = new Vector2(350, 32);
+            DialogGUILabel nameLabel1 = new DialogGUILabel(Localizer.Format("#CNC_getContentCompon_AutoBuild"), style); nameLabel1.size = new Vector2(80, 32);//"Auto Build"
+            DialogGUILabel descriptionLabel1 = new DialogGUILabel(Localizer.Format("#CNC_getContentCompon_descriptionLabel1"), style); descriptionLabel1.size = new Vector2(350, 32);//"Rebuild the list from all antennas automatically"
             toggleGrp.AddChild(toggleBtn1);
             nameColumn.AddChild(nameLabel1);
             descriptionColumn.AddChild(descriptionLabel1);
 
             DialogGUIToggle toggleBtn2 = new DialogGUIToggle((cncVessel.FreqListOperation == FrequencyListOperation.LockList) ? true : false, "", delegate (bool b) { ListOperationSelected(b, FrequencyListOperation.LockList); }, 20, 32);
-            DialogGUILabel nameLabel2 = new DialogGUILabel("Lock List", style); nameLabel2.size = new Vector2(80, 32);
-            DialogGUILabel descriptionLabel2 = new DialogGUILabel("Disallow any change in the current list (except for staging)", style); descriptionLabel2.size = new Vector2(350, 32);
+            DialogGUILabel nameLabel2 = new DialogGUILabel(Localizer.Format("#CNC_getContentCompon_LockList"), style); nameLabel2.size = new Vector2(80, 32);//"Lock List"
+            DialogGUILabel descriptionLabel2 = new DialogGUILabel(Localizer.Format("#CNC_getContentCompon_descriptionLabel2"), style); descriptionLabel2.size = new Vector2(350, 32);//"Disallow any change in the current list (except for staging)"
             toggleGrp.AddChild(toggleBtn2);
             nameColumn.AddChild(nameLabel2);
             descriptionColumn.AddChild(descriptionLabel2);

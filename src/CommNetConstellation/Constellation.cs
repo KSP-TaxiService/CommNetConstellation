@@ -3,6 +3,7 @@ using CommNetConstellation.UI;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using KSP.Localization;
 
 namespace CommNetConstellation
 {
@@ -51,7 +52,7 @@ namespace CommNetConstellation
         {
             Constellation possibleMatch = find(givenFreq);
             if (possibleMatch == null)
-                return "Not-Found"; // fallback name
+                return Localizer.Format("#CNC_Constellation_getName"); //"Not-Found" //fallback name
             else
                 return possibleMatch.name;
         }

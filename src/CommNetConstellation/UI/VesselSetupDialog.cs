@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using CommNetConstellation.UI.VesselMgtTools;
 using CommNetConstellation.UI.DialogGUI;
+using KSP.Localization;
 
 namespace CommNetConstellation.UI
 {
@@ -13,9 +14,9 @@ namespace CommNetConstellation.UI
     public class VesselSetupDialog : AbstractDialog
     {
         private Vessel hostVessel; // could be null (in editor)
-        private string description = "Something";
+        private string description = Localizer.Format("#CNC_AntennaSetup_DescText1");// "Something"
 
-        private const string nofreqMessage = "No active frequency to broadcast!";
+        private const string nofreqMessage = "#CNC_VesselSetup_nofreqMessage";//"No active frequency to broadcast!"
         private UIStyle nofreqMessageStyle;
 
         private Callback<Vessel> updateCallback;
@@ -34,7 +35,7 @@ namespace CommNetConstellation.UI
         {
             this.hostVessel = vessel;
             this.updateCallback = updateCallback;
-            this.description = string.Format("Active frequencies allow this vessel '{0}' to talk with other vessels, which share one or more of these frequencies.", this.hostVessel.GetDisplayName());
+            this.description = Localizer.Format("#CNC_VesselSetup_desc", this.hostVessel.GetDisplayName());//string.Format("Active frequencies allow this vessel '{0}' to talk with other vessels, which share one or more of these frequencies.", )
 
             this.toolMgt = new ToolContentManagement(500, 100);
             UpdateListTool updateTool = new UpdateListTool(this.hostVessel.connection);
@@ -71,13 +72,13 @@ namespace CommNetConstellation.UI
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description + "\n\n", false, false) }));
 
             //frequency list
-            listComponments.Add(new DialogGUILabel("<b>Active frequencies</b>", false, false));
+            listComponments.Add(new DialogGUILabel("<b>" + Localizer.Format("#CNC_VesselSetup_ActiveFrequencies") + "</b>", false, false));//Active frequencies
             DialogGUIBase[] frequencyRows;
             if (vesselFrequencyList.Count == 0)
             {
                 frequencyRows = new DialogGUIBase[2];
                 frequencyRows[0] = new DialogGUIContentSizer(ContentSizeFitter.FitMode.Unconstrained, ContentSizeFitter.FitMode.PreferredSize, true);
-                frequencyRows[1] = new DialogGUILabel(nofreqMessage, nofreqMessageStyle, true, false);
+                frequencyRows[1] = new DialogGUILabel(Localizer.Format(nofreqMessage), nofreqMessageStyle, true, false);
             }
             else
             {
@@ -107,7 +108,7 @@ namespace CommNetConstellation.UI
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, color, colorTexture);
             DialogGUILabel nameLabel = new DialogGUILabel(name, 170, 12);
             DialogGUILabel eachFreqLabel = new DialogGUILabel(string.Format("(<color={0}>{1}</color>)", UIUtils.colorToHex(color), freq), 70, 12);
-            DialogGUILabel freqPowerLabel = new DialogGUILabel(string.Format("Combined Comm Power: {0}", UIUtils.RoundToNearestMetricFactor(cncVessel.getMaxComPower(freq), 2)), 220, 12);
+            DialogGUILabel freqPowerLabel = new DialogGUILabel( Localizer.Format("#CNC_VesselSetup_CombinedCommPower") + string.Format(": {0}", UIUtils.RoundToNearestMetricFactor(cncVessel.getMaxComPower(freq), 2)), 220, 12);//Combined Comm Power
             return new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { colorImage, new DialogGUISpace(20), nameLabel, eachFreqLabel, freqPowerLabel });
         }
 
@@ -126,7 +127,7 @@ namespace CommNetConstellation.UI
 
             if (vesselFrequencyList.Count == 0)
             {
-                frequencyRowLayout.AddChild(new DialogGUILabel(nofreqMessage, nofreqMessageStyle, true, false));
+                frequencyRowLayout.AddChild(new DialogGUILabel(Localizer.Format(nofreqMessage), nofreqMessageStyle, true, false));
             }
 
             registerLayoutComponents(frequencyRowLayout);

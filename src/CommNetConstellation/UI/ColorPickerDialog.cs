@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 using TMPro;
+using KSP.Localization;
 
 namespace CommNetConstellation.UI
 {
@@ -40,7 +41,7 @@ namespace CommNetConstellation.UI
                                                                                                 dialogHeight, //height
                                                                                                 new DialogOptions[] { DialogOptions.NonDraggable })
         {
-            this.dismissButtonText = "Apply";
+            this.dismissButtonText = Localizer.Format("#CNC_Generic_Apply");//"Apply"
             this.currentColor = userColor;
             this.chosenColor = userColor;
             this.callbackForChosenColor = callbackForChosenColor;
@@ -90,9 +91,9 @@ namespace CommNetConstellation.UI
         {
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
-            DialogGUILabel newColorLabel = new DialogGUILabel("<b>  New</b>", 40, 12);
-            newColorImage = new DialogGUIImage(new Vector2(30, 24), Vector2.zero, chosenColor, UIUtils.createAndColorize(30, 24, Color.white)); 
-            DialogGUILabel currentColorLabel = new DialogGUILabel("<b>Current  </b>", 45, 12);
+            DialogGUILabel newColorLabel = new DialogGUILabel("<b>  " + Localizer.Format("#CNC_ColorPicker_newColorLabel") + "</b>", 40, 12);//New
+            newColorImage = new DialogGUIImage(new Vector2(30, 24), Vector2.zero, chosenColor, UIUtils.createAndColorize(30, 24, Color.white));
+            DialogGUILabel currentColorLabel = new DialogGUILabel("<b>" + Localizer.Format("#CNC_ColorPicker_CurrentColorLabel") + "  </b>", 45, 12);//Current
             DialogGUIImage currentColorImage = new DialogGUIImage(new Vector2(30, 24), Vector2.zero, currentColor, UIUtils.createAndColorize(30, 24, Color.white));
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUISpace(40), newColorImage, newColorLabel, new DialogGUISpace(dialogWidth - 80 - 145), currentColorLabel, currentColorImage, new DialogGUISpace(40) }));
 
@@ -101,9 +102,9 @@ namespace CommNetConstellation.UI
             DialogGUISlider hueSlider = new DialogGUISlider(() => hueValue, 0f, 1f, false, displayTextureWidth, sliderHeight, setHueValue);
             listComponments.Add(new DialogGUIVerticalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { colorPickerImage, new DialogGUISpace(5f), hueSliderImage, hueSlider }));
 
-            DialogGUILabel hexColorLabel = new DialogGUILabel("<b>Or hex color <size=15>#</size></b>", true, false);
+            DialogGUILabel hexColorLabel = new DialogGUILabel("<b>"+Localizer.Format("#CNC_ColorPicker_HexColorLabel") +" <size=15>#</size></b>", true, false);//Or hex color
             colorHexInput = new DialogGUITextInput("", false, 6, setColorHexString, 75, 24);
-            DialogGUIButton hexGoButton = new DialogGUIButton("Parse", delegate { this.readColorHexString(); }, 40, 24, false);
+            DialogGUIButton hexGoButton = new DialogGUIButton(Localizer.Format("#CNC_ColorPicker_HexGoButton"), delegate { this.readColorHexString(); }, 40, 24, false);//"Parse"
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(0,0,0,5), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUISpace(5), hexColorLabel, colorHexInput, new DialogGUISpace(3), hexGoButton, new DialogGUISpace(5) }));
 
             return listComponments;

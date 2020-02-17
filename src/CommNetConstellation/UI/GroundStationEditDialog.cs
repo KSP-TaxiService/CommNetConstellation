@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using KSP.Localization;
 
 namespace CommNetConstellation.UI
 {
@@ -14,7 +15,7 @@ namespace CommNetConstellation.UI
     public class GroundStationEditDialog : AbstractDialog
     {
         private CNCCommNetHome hostStation;
-        private string description = "Something";
+        private string description = Localizer.Format("#CNC_AntennaSetup_DescText1");//"Something"
 
         private List<short> freqListShown = new List<short>();
         private Color constellColor = Color.white;
@@ -38,7 +39,7 @@ namespace CommNetConstellation.UI
         {
             this.hostStation = thisStation;
             this.updateCallback = updateCallback;
-            this.description = string.Format("You are editing the ground station '{0}'.", thisStation.stationName);
+            this.description = Localizer.Format("#CNC_GroundStationEdit_desc", thisStation.stationName);//string.Format("You are editing the ground station '{0}'.", )
             this.freqListShown.AddRange(thisStation.getFrequencyList());
             this.freqListShown.Sort();
             this.constellColor = thisStation.Color;
@@ -58,15 +59,15 @@ namespace CommNetConstellation.UI
 
             listComponments.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.UpperCenter, new DialogGUIBase[] { new DialogGUILabel(this.description + "\n\n", false, false) }));
 
-            DialogGUILabel nameLabel = new DialogGUILabel("<b>Name</b>", 30, 12);
+            DialogGUILabel nameLabel = new DialogGUILabel("<b>" + Localizer.Format("#CNC_Generic_nameLabel") + "</b>", 30, 12);//Name
             nameInput = new DialogGUITextInput(this.hostStation.stationName, false, CNCSettings.MaxLengthName, setNameInput, 145, 25);
-            DialogGUIButton defaultButton = new DialogGUIButton("Reset", defaultNameClick, 40, 25, false);
+            DialogGUIButton defaultButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Resetbutton"), defaultNameClick, 40, 25, false);//"Reset"
             DialogGUIHorizontalLayout nameGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { nameLabel, nameInput, new DialogGUIFlexibleSpace(), defaultButton });
             listComponments.Add(nameGroup);
 
-            DialogGUILabel freqLabel = new DialogGUILabel("<b>New frequency</b>", 85, 12);
+            DialogGUILabel freqLabel = new DialogGUILabel("<b>" + Localizer.Format("#CNC_GroundStationEdit_freqLabel") + "</b>", 85, 12);//New frequency
             frequencyInput = new DialogGUITextInput("", false, CNCSettings.MaxDigits, setFreqInput, 60, 25);
-            DialogGUIButton addButton = new DialogGUIButton("Add", addClick, 40, 25, false);
+            DialogGUIButton addButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Addbutton"), addClick, 40, 25, false);//"Add"
 
             stationColorImage = new DialogGUIImage(new Vector2(16f, 16f), Vector2.zero, this.hostStation.Color, groundstationTexture);
             DialogGUIHorizontalLayout imageBtnLayout = new DialogGUIHorizontalLayout(true, true, 0f, new RectOffset(5, 5, 5, 5), TextAnchor.MiddleCenter, new DialogGUIBase[] { stationColorImage });
@@ -86,8 +87,8 @@ namespace CommNetConstellation.UI
             frequencyRowLayout = new DialogGUIVerticalLayout(10, 100, 0, new RectOffset(5, 25, 5, 5), TextAnchor.UpperLeft, rows);
             listComponments.Add(new CustomDialogGUIScrollList(new Vector2(240, 100), false, true, frequencyRowLayout));
 
-            DialogGUIButton updateButton = new DialogGUIButton("Update", updateAction, false);
-            DialogGUIButton cancelButton = new DialogGUIButton("Cancel", delegate { this.dismiss(); }, false);
+            DialogGUIButton updateButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_UpdateButton"), updateAction, false);//"Update"
+            DialogGUIButton cancelButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_CancelButton"), delegate { this.dismiss(); }, false);//"Cancel"
             DialogGUIHorizontalLayout actionGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), updateButton, cancelButton, new DialogGUIFlexibleSpace() });
             listComponments.Add(actionGroup);
 
@@ -102,7 +103,7 @@ namespace CommNetConstellation.UI
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, color, colorTexture);
             DialogGUILabel nameLabel = new DialogGUILabel(name, 140, 12);
             DialogGUILabel eachFreqLabel = new DialogGUILabel(string.Format("(<color={0}>{1}</color>)", UIUtils.colorToHex(color), freq), 40, 12);
-            DialogGUIButton removeButton = new DialogGUIButton("Drop", delegate { deleteFreqClick(freq); }, 40, 25, false);
+            DialogGUIButton removeButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_DropButton"), delegate { deleteFreqClick(freq); }, 40, 25, false);//"Drop"
             return new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { colorImage, nameLabel, eachFreqLabel, removeButton });
         }
 
@@ -145,19 +146,19 @@ namespace CommNetConstellation.UI
 
                     if (newFreq < 0)
                     {
-                        throw new Exception("Frequency cannot be negative");
+                        throw new Exception(Localizer.Format("#CNC_CheckFrequency_negative"));//"Frequency cannot be negative"
                     }
                     else if (this.freqListShown.Contains(newFreq))
                     {
-                        throw new Exception("Ground station has this frequency already");
+                        throw new Exception(Localizer.Format("#CNC_CheckFrequency_Contained"));//"Ground station has this frequency already"
                     }
                     else if (!GameUtils.NonLinqAny(CNCCommNetScenario.Instance.constellations, newFreq))
                     {
-                        throw new Exception("Please choose an existing constellation");
+                        throw new Exception(Localizer.Format("#CNC_CheckFrequency_Exist"));//"Please choose an existing constellation"
                     }
                     else if (!Constellation.isFrequencyValid(newFreq))
                     {
-                        throw new Exception("Frequency must be between 0 and " + short.MaxValue);
+                        throw new Exception(Localizer.Format("#CNC_CheckFrequency_Valid", short.MaxValue));//"Frequency must be between 0 and " + 
                     }
 
                     //ALL OK
@@ -168,11 +169,11 @@ namespace CommNetConstellation.UI
                 }
                 catch (FormatException e)
                 {
-                    throw new FormatException("Frequency must be numeric only");
+                    throw new FormatException(Localizer.Format("#CNC_CheckFrequency_Format"));//"Frequency must be numeric only"
                 }
                 catch (OverflowException e)
                 {
-                    throw new OverflowException(string.Format("Frequency must be equal to or less than {0}", short.MaxValue));
+                    throw new OverflowException(Localizer.Format("#CNC_CheckFrequency_Overflow", short.MaxValue));//string.Format("Frequency must be equal to or less than {0}", )
                 }
             }
             catch (Exception e)
@@ -259,7 +260,7 @@ namespace CommNetConstellation.UI
                 else
                     this.hostStation.stationName = newName;
 
-                ScreenMessage msg = new ScreenMessage(string.Format("Ground station is renamed to '{0}'", this.hostStation.stationName), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessage msg = new ScreenMessage(Localizer.Format("#CNC_ScreenMsg_GroundStationNameUpdate", this.hostStation.stationName), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);//string.Format("Ground station is renamed to '{0}'", )
                 ScreenMessages.PostScreenMessage(msg);
                 changesCommitted = true;
             }
@@ -267,7 +268,7 @@ namespace CommNetConstellation.UI
             if(this.hostStation.Color != this.constellColor)
             {
                 this.hostStation.Color = this.constellColor;
-                ScreenMessage msg = new ScreenMessage(string.Format("Ground station is '{0}' now", UIUtils.colorToHex(this.hostStation.Color)), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessage msg = new ScreenMessage(Localizer.Format("#CNC_ScreenMsg_GroundStationColorUpdate", UIUtils.colorToHex(this.hostStation.Color)), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);//string.Format("Ground station is '{0}' now", )
                 ScreenMessages.PostScreenMessage(msg);
                 changesCommitted = true;
             }
@@ -276,7 +277,7 @@ namespace CommNetConstellation.UI
             if (!(commonFreq == this.hostStation.getFrequencyList().Count && commonFreq == this.freqListShown.Count))
             {
                 this.hostStation.replaceFrequencies(this.freqListShown);
-                ScreenMessage msg = new ScreenMessage("Ground station's frequency list is updated", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessage msg = new ScreenMessage(Localizer.Format("#CNC_ScreenMsg_GroundStationFreqUpdate"), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);//"Ground station's frequency list is updated"
                 ScreenMessages.PostScreenMessage(msg);
                 changesCommitted = true;
             }

@@ -3,6 +3,7 @@ using CommNetConstellation.UI;
 using System;
 using System.Collections.Generic;
 using Expansions.Serenity.DeployedScience.Runtime;
+using KSP.Localization;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -12,10 +13,10 @@ namespace CommNetConstellation.CommNetLayer
     //This class is coupled with the MM patch (cnc_module_MM.cfg) that inserts CNConstellationModule into every command part
     public class CNConstellationModule : PartModule
     {
-        [KSPEvent(guiActive = true, guiActiveEditor = false, guiActiveUnfocused = true, guiName = "CNC: Communication", active = true)]
+        [KSPEvent(guiActive = true, guiActiveEditor = false, guiActiveUnfocused = true, guiName = "#CNC_GUIName_Communication", active = true)]//CNC: Communication
         public void KSPEventVesselSetup()
         {
-            new VesselSetupDialog("Vessel - <color=#00ff00>Communication</color>", this.vessel, null).launch();
+            new VesselSetupDialog(Localizer.Format("#CNC_GUIName_VesselSetupDialog_title"), this.vessel, null).launch();//"Vessel - <color=#00ff00>Communication</color>"
         }
     }
 
@@ -38,10 +39,10 @@ namespace CommNetConstellation.CommNetLayer
             set { this.OptionalName = value; }
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = true, guiName = "CNC: Antenna Setup", active = true)]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiActiveUnfocused = true, guiName = "#CNC_GUIName_AntennaSetup", active = true)]//CNC: Antenna Setup
         public void KSPEventAntennaConfig()
         {
-            new AntennaSetupDialog("Antenna - <color=#00ff00>Setup</color>", this.vessel, this.part).launch();
+            new AntennaSetupDialog(Localizer.Format("#CNC_GUIName_AntennaSetupDialog_title"), this.vessel, this.part).launch();//"Antenna - <color=#00ff00>Setup</color>"
         }
     }
 
@@ -535,7 +536,7 @@ namespace CommNetConstellation.CommNetLayer
                 return true;
             }
 
-            ScreenMessage msg = new ScreenMessage(string.Format("Frequency list of Vessel '{0}' is locked.", this.vessel.GetDisplayName()), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
+            ScreenMessage msg = new ScreenMessage(Localizer.Format("#CNC_ScreenMsg_isFreqListEditable", this.vessel.GetDisplayName()), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);//string.Format("Frequency list of Vessel '{0}' is locked.", )
             ScreenMessages.PostScreenMessage(msg);
             CNCLog.Verbose("CommNet Vessel '{0}''s freq list is locked", this.Vessel.GetName());
             return false;
@@ -684,7 +685,7 @@ namespace CommNetConstellation.CommNetLayer
         {
             if(!partInfo.canComm) // antenna is not deployed
             {
-                ScreenMessage msg = new ScreenMessage(string.Format("Antenna '{0}' is not deployed.", partInfo.name), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessage msg = new ScreenMessage(Localizer.Format("#CNC_ScreenMsg_toggleAntenna", partInfo.name), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);//string.Format("Antenna '{0}' is not deployed.", )
                 ScreenMessages.PostScreenMessage(msg);
                 CNCLog.Verbose("Cannot set the non-deployed antenna '{0}' of CommNet vessel '{1}' to {2}", partInfo.name, this.Vessel.GetName(), inUse);
                 return;

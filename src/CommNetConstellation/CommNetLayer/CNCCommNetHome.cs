@@ -184,13 +184,13 @@ namespace CommNetConstellation.CommNetLayer
                 GUI.Label(headlineRect, this.stationName, CNCCommNetHome.groundStationHeadline);
 
                 //frequency list
-                string freqStr = "No frequency assigned";
+                string freqStr = Localizer.Format("#CNC_ConstellationControl_getFreqString_nothing");//"No frequency assigned"
 
                 if (Frequencies.Count > 0)
                 {
-                    freqStr = "Broadcasting in";
+                    freqStr = Localizer.Format("#CNC_CNCCommNetHome_freqlist");//"Broadcasting in"
                     for (int i = 0; i < Frequencies.Count; i++)
-                        freqStr += "\n~ frequency " + Frequencies[i];
+                        freqStr += "\n" + Localizer.Format("#CNC_CNCCommNetHome_frequency") + " " + Frequencies[i];//"~ frequency"
                 }
 
                 headlineRect = groundStationRect;
