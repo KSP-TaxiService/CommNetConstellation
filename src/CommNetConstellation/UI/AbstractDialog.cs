@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using KSP.Localization;
 
 /* References
  * http://forum.kerbalspaceprogram.com/index.php?/topic/149324-popupdialog-and-the-dialoggui-classes/
@@ -29,7 +30,7 @@ namespace CommNetConstellation.UI
         protected float normalizedCenterX; //0.0f to 1.0f
         protected float normalizedCenterY; //0.0f to 1.0f
 
-        protected string dismissButtonText = "Close";
+        protected string dismissButtonText = Localizer.Format("#CNC_Generic_Close");//"Close"
         protected bool showCloseButton = true;
         protected bool showVersion = false;
         protected bool blockBackgroundInputs = true;

@@ -4,6 +4,7 @@ using UnityEngine;
 using CommNetConstellation.CommNetLayer;
 using System;
 using TMPro;
+using KSP.Localization;
 
 namespace CommNetConstellation.UI.VesselMgtTools
 {
@@ -12,7 +13,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         private UIStyle style;
         private DialogGUITextInput[] freqInputArray;
 
-        public IndepAntennaFreqTool(CommNetVessel thisVessel, Callback updateFreqRowsCallback) : base(thisVessel, "antenna2", "Antenna Configs", new List<Callback>() { updateFreqRowsCallback })
+        public IndepAntennaFreqTool(CommNetVessel thisVessel, Callback updateFreqRowsCallback) : base(thisVessel, "antenna2", Localizer.Format("#CNC_ToolsNames_AntennaConfigs"), new List<Callback>() { updateFreqRowsCallback })//"Antenna Configs"
         {
             this.style = new UIStyle();
             this.style.alignment = TextAnchor.MiddleLeft;
@@ -25,7 +26,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         {
             List<DialogGUIBase> layout = new List<DialogGUIBase>();
 
-            DialogGUILabel msgLbl = new DialogGUILabel("Change the frequency of each antenna.", 100, 16);
+            DialogGUILabel msgLbl = new DialogGUILabel(Localizer.Format("#CNC_getContentCompon_msgLabel2"), 100, 16);//"Change the frequency of each antenna."
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { msgLbl }));
 
             freqInputArray = new DialogGUITextInput[antennas.Count];
@@ -41,11 +42,11 @@ namespace CommNetConstellation.UI.VesselMgtTools
                 int index = i;//convert to solid-reference variable for delegate block
                 CNCAntennaPartInfo antennaInfo = antennas[i];
 
-                DialogGUILabel nameLabel = new DialogGUILabel(string.Format("Name: {0}",antennaInfo.name), style); nameLabel.size = new Vector2(200, 32);
-                DialogGUILabel usageLabel = new DialogGUILabel("In Use: " + (antennaInfo.inUse ? "<color=green>Yes</color>" : "<color=red>No</color>"), style); usageLabel.size = new Vector2(75, 32);
-                DialogGUILabel freqLabel = new DialogGUILabel("Frequency", style); freqLabel.size = new Vector2(65, 32);
+                DialogGUILabel nameLabel = new DialogGUILabel(Localizer.Format("#CNC_getContentCompon_nameLabel", antennaInfo.name), style); nameLabel.size = new Vector2(200, 32);//string.Format("Name: {0}",)
+                DialogGUILabel usageLabel = new DialogGUILabel(Localizer.Format("#CNC_getContentCompon_usageLabel") + ": " + (antennaInfo.inUse ? "<color=green>"+Localizer.Format("#CNC_Generic_Yes") +"</color>" : "<color=red>"+Localizer.Format("#CNC_Generic_No") +"</color>"), style); usageLabel.size = new Vector2(75, 32);//In UseYesNo
+                DialogGUILabel freqLabel = new DialogGUILabel(Localizer.Format("#CNC_Generic_FrequencyLabel"), style); freqLabel.size = new Vector2(65, 32);//"Frequency"
                 freqInputArray[i] = new DialogGUITextInput(antennaInfo.frequency.ToString(), false, CNCSettings.MaxDigits, setAntennaFreq, 65, 25);
-                DialogGUIButton updateButton = new DialogGUIButton("Update", delegate { updateAntennaFreq(antennaInfo, freqInputArray[index].uiItem.GetComponent<TMP_InputField>().text); }, 70, 25, false);
+                DialogGUIButton updateButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_UpdateButton"), delegate { updateAntennaFreq(antennaInfo, freqInputArray[index].uiItem.GetComponent<TMP_InputField>().text); }, 70, 25, false);//"Update"
 
                 nameColumn.AddChild(nameLabel);
                 useColumn.AddChild(usageLabel);
@@ -80,15 +81,15 @@ namespace CommNetConstellation.UI.VesselMgtTools
                     //Check frequency
                     if (inputFreq < 0)
                     {
-                        throw new Exception("Frequency cannot be negative");
+                        throw new Exception(Localizer.Format("#CNC_CheckFrequency_negative"));//"Frequency cannot be negative"
                     }
                     else if (!GameUtils.NonLinqAny(CNCCommNetScenario.Instance.constellations, inputFreq))
                     {
-                        throw new Exception("Please choose an existing constellation");
+                        throw new Exception(Localizer.Format("#CNC_CheckFrequency_Exist"));//"Please choose an existing constellation"
                     }
                     else if (!Constellation.isFrequencyValid(inputFreq))
                     {
-                        throw new Exception("Frequency must be between 0 and " + short.MaxValue);
+                        throw new Exception(Localizer.Format("#CNC_CheckFrequency_Valid", short.MaxValue));//"Frequency must be between 0 and " + 
                     }
 
                     if (base.cncVessel != null && antennaInfo != null && inputFreq >= 0)
@@ -101,11 +102,11 @@ namespace CommNetConstellation.UI.VesselMgtTools
                 }
                 catch (FormatException e)
                 {
-                    throw new FormatException("Frequency must be numeric only");
+                    throw new FormatException(Localizer.Format("#CNC_CheckFrequency_Format"));//"Frequency must be numeric only"
                 }
                 catch (OverflowException e)
                 {
-                    throw new OverflowException(string.Format("Frequency must be equal to or less than {0}", short.MaxValue));
+                    throw new OverflowException(Localizer.Format("#CNC_CheckFrequency_Overflow", short.MaxValue));//string.Format("Frequency must be equal to or less than {0}", )
                 }
             }
             catch (Exception e)
