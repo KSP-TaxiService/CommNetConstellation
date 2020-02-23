@@ -217,7 +217,7 @@ namespace CommNetConstellation.UI
                 footer = new DialogGUIBase[]
                     {
                     new DialogGUIFlexibleSpace(),
-                    new DialogGUILabel(string.Format("v{0}.{1}", CNCSettings.Instance.MajorVersion, CNCSettings.Instance.MinorVersion), false, false)
+                    new DialogGUILabel(GameUtils.Version, false, false)
                     };
                 dialogComponentList.Add(new DialogGUIHorizontalLayout(footer));
             }
@@ -228,7 +228,7 @@ namespace CommNetConstellation.UI
                     new DialogGUIFlexibleSpace(),
                     new DialogGUIButton(dismissButtonText, dismiss),
                     new DialogGUIFlexibleSpace(),
-                    new DialogGUILabel(string.Format("v{0}.{1}", CNCSettings.Instance.MajorVersion, CNCSettings.Instance.MinorVersion), false, false)
+                    new DialogGUILabel(GameUtils.Version, false, false)
                     };
                 dialogComponentList.Add(new DialogGUIHorizontalLayout(footer));
             }

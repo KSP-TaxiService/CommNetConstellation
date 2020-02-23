@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace CommNetConstellation.UI
 {
@@ -134,6 +136,18 @@ namespace CommNetConstellation.UI
                     max = list[i];
             }
             return max;
+        }
+
+        /// <summary>
+        /// Returns the current AssemplyFileVersion from AssemblyInfos.cs
+        /// </summary>
+        public static string Version
+        {
+            get
+            {
+                Assembly executableAssembly = Assembly.GetExecutingAssembly();
+                return "v" + FileVersionInfo.GetVersionInfo(executableAssembly.Location).ProductVersion;
+            }
         }
     }
 }
