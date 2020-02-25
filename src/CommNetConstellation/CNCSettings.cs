@@ -45,7 +45,7 @@ namespace CommNetConstellation
         [Persistent] public string DefaultPublicName;
         [Persistent] public Color DefaultPublicColor;
         [Persistent] public float DistanceToHideGroundStations;
-        [Persistent] public bool LegacyOrbitLineColor = false;
+        [Persistent] public bool LegacyOrbitLineColor;
         [Persistent(collectionIndex = "Constellation")] public List<Constellation> Constellations;
         [Persistent(collectionIndex = "GroundStation")] public List<CNCCommNetHome> GroundStations;
         //-----

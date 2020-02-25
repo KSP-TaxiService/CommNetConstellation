@@ -136,14 +136,17 @@ namespace CommNetConstellation.CommNetLayer
                 {
                     iconData.color = Color.grey;
                 }
-                else if (CNCSettings.Instance.LegacyOrbitLineColor)
-                {
-                    iconData.color = Constellation.getColor(thisVessel.getStrongestFrequency());
-                    thisVessel.Vessel.orbitRenderer.orbitColor = Constellation.getColor(thisVessel.getStrongestFrequency()).linear;
-                }
                 else
                 {
                     iconData.color = Constellation.getColor(thisVessel.getStrongestFrequency());
+                    if (CNCSettings.Instance.LegacyOrbitLineColor)
+                    {
+                        thisVessel.Vessel.orbitRenderer.orbitColor = iconData.color.linear;
+                    }
+                    else
+                    {
+                        thisVessel.Vessel.orbitRenderer.orbitColor = new Color(0.355f, 0.355f, 0.355f, 1f); //stock color
+                    }
                 }
             }
         }
