@@ -107,8 +107,11 @@ namespace CommNetConstellation.UI
             List<DialogGUIBase> constellationComponments = new List<DialogGUIBase>();
 
             DialogGUIButton createButton = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_createButton"), newConstellationClick, false);//"New constellation"
+            DialogGUIToggleButton toggleOrbitButton = new DialogGUIToggleButton(CNCSettings.Instance.LegacyOrbitLineColor, Localizer.Format("#CNC_ConstellationControl_toggleOrbitButton"), delegate (bool b) { CNCSettings.Instance.LegacyOrbitLineColor = !CNCSettings.Instance.LegacyOrbitLineColor; }, 35, 25);//"Toggle colorized orbits"
             DialogGUIHorizontalLayout creationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), createButton, new DialogGUIFlexibleSpace() });
+            DialogGUIHorizontalLayout toggleGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), toggleOrbitButton, new DialogGUIFlexibleSpace() });
             constellationComponments.Add(creationGroup);
+            constellationComponments.Add(toggleGroup);
 
             for (int i = 0; i < CNCCommNetScenario.Instance.constellations.Count; i++)
                 constellationComponments.Add(createConstellationRow(CNCCommNetScenario.Instance.constellations[i]));

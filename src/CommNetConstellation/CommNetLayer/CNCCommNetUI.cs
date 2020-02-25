@@ -133,9 +133,21 @@ namespace CommNetConstellation.CommNetLayer
             if(thisVessel != null && node.mapObject.type == MapObject.ObjectType.Vessel)
             {
                 if (thisVessel.getStrongestFrequency() < 0) // blind vessel
+                {
                     iconData.color = Color.grey;
+                }
                 else
+                {
                     iconData.color = Constellation.getColor(thisVessel.getStrongestFrequency());
+                    if (CNCSettings.Instance.LegacyOrbitLineColor)
+                    {
+                        thisVessel.Vessel.orbitRenderer.orbitColor = iconData.color.linear;
+                    }
+                    else
+                    {
+                        thisVessel.Vessel.orbitRenderer.orbitColor = new Color(0.355f, 0.355f, 0.355f, 1f); //stock color
+                    }
+                }
             }
         }
 

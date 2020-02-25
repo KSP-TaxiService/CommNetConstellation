@@ -182,6 +182,9 @@ namespace CommNetConstellation.CommNetLayer
                         case "HideGroundStations":
                             this.hideGroundStations = Boolean.Parse(value.value);
                             break;
+                        case "LegacyOrbitLineColor":
+                            CNCSettings.Instance.LegacyOrbitLineColor = Boolean.Parse(value.value);
+                            break;
                     }
                 }
 
@@ -261,6 +264,7 @@ namespace CommNetConstellation.CommNetLayer
                 gameNode.AddValue("DisplayModeTracking", CNCCommNetUI.CustomModeTrackingStation);
                 gameNode.AddValue("DisplayModeFlight", CNCCommNetUI.CustomModeFlightMap);
                 gameNode.AddValue("HideGroundStations", this.hideGroundStations);
+                gameNode.AddValue("LegacyOrbitLineColor", CNCSettings.Instance.LegacyOrbitLineColor);
 
                 //Constellations
                 if (gameNode.HasNode("Constellations"))
