@@ -10,7 +10,7 @@ namespace CommNetConstellation.CommNetLayer
     /// <summary>
     /// This class is the key that allows to break into and customise KSP's CommNet. This is possibly the secondary model in the Model–view–controller sense
     /// </summary>
-    [KSPScenario(ScenarioCreationOptions.AddToAllGames, new GameScenes[] {GameScenes.FLIGHT, GameScenes.TRACKSTATION, GameScenes.EDITOR })]
+    [KSPScenario(ScenarioCreationOptions.AddToAllGames, new GameScenes[] {GameScenes.FLIGHT, GameScenes.TRACKSTATION, GameScenes.EDITOR, GameScenes.SPACECENTER })]
     public class CNCCommNetScenario : CommNetScenario
     {
         /* Note:
