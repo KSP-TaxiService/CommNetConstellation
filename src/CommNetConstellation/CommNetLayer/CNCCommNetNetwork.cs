@@ -12,12 +12,6 @@ namespace CommNetConstellation.CommNetLayer
         private float nextUpdateTime = 0.0f;
         private const float networkInterval = 0.5f; // in seconds
 
-        public static new CNCCommNetNetwork Instance
-        {
-            get;
-            protected set;
-        }
-
         protected override void Awake()
         {
             CNCLog.Verbose("CommNet Network booting");

@@ -63,7 +63,6 @@ namespace CommNetConstellation.CommNetLayer
             CommNetNetwork net = FindObjectOfType<CommNetNetwork>();
             CustomCommNetNetwork = gameObject.AddComponent<CNCCommNetNetwork>();
             UnityEngine.Object.Destroy(net);
-            //CommNetNetwork.Instance.GetType().GetMethod("set_Instance").Invoke(CustomCommNetNetwork, null); // reflection to bypass Instance's protected set // don't seem to work
 
             //Replace the TelemetryUpdate
             TelemetryUpdate tel = TelemetryUpdate.Instance; //only appear in flight
@@ -118,6 +117,14 @@ namespace CommNetConstellation.CommNetLayer
             PropertyInfo property = typeof(CommNetScenario).GetProperty("Instance");
             property.DeclaringType.GetProperty("Instance");
             property.SetValue(CommNetScenario.Instance, this, BindingFlags.NonPublic | BindingFlags.Instance, null, null, null);
+
+            //Imitate stock CommNetNetwork.Instance
+            if (CustomCommNetNetwork != null)
+            {
+                PropertyInfo property2 = typeof(CommNetNetwork).GetProperty("Instance");
+                property2.DeclaringType.GetProperty("Instance");
+                property2.SetValue(CommNetNetwork.Instance, CustomCommNetNetwork, BindingFlags.NonPublic | BindingFlags.Instance, null, null, null);
+            }
 
             CNCLog.Verbose("CommNet Scenario loading done!");
         }
