@@ -481,6 +481,25 @@ namespace CommNetConstellation.CommNetLayer
         {
             base.UpdateComm();
 
+            //Preventative measure on null antenna range curve due to 3rd-party mods
+            //Effect: cause commNode.antennaRelay.rangeCurve.Evaluate(normalizedRange) to fail *without* throwing exception
+            if (this.comm.antennaRelay.rangeCurve == null || this.comm.antennaTransmit.rangeCurve == null)
+            {
+                if (this.comm.antennaRelay.rangeCurve == null && this.comm.antennaTransmit.rangeCurve != null)
+                {
+                    this.comm.antennaRelay.rangeCurve = this.comm.antennaTransmit.rangeCurve;
+                }
+                else if (this.comm.antennaRelay.rangeCurve != null && this.comm.antennaTransmit.rangeCurve == null)
+                {
+                    this.comm.antennaTransmit.rangeCurve = this.comm.antennaRelay.rangeCurve;
+                }
+                else //failsafe
+                {
+                    CNCLog.Error("CommNetVessel '{0}' has no range curve for both relay and transmit AntennaInfo! Fall back to a simple curve.", this.Vessel.GetName());
+                    this.comm.antennaTransmit.rangeCurve = this.comm.antennaRelay.rangeCurve = new DoubleCurve(new DoubleKeyframe[] { new DoubleKeyframe(0.0, 0.0), new DoubleKeyframe(1.0, 1.0) });
+                }
+            }
+
             this.comm.antennaTransmit.power = getMaxComPower(this.strongestFreq);
             //commented as range multiplier is applied by the mod
             //this.comm.antennaTransmit.power *= (double)HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().rangeModifier;
