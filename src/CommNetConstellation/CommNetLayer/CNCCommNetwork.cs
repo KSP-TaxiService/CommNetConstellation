@@ -41,6 +41,11 @@ namespace CommNetConstellation.CommNetLayer
                 {
                     this.Disconnect(a, b, true);
                 }
+                // disconnect connection between "itself"
+                else if (AreSame(a, b))
+                {
+                    this.Disconnect(a, b, true);
+                }
                 else
                 {
                     //each CommNode has at least some frequencies?

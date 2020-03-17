@@ -93,7 +93,7 @@ namespace CommNetConstellation.CommNetLayer
         public bool IsCommandable = true;
 
         /// <summary>
-        /// Retrieve the CNC data from the vessel
+        /// Retrieve the CNC data from the vessel, in addition of stock network joining
         /// </summary>
         protected override void OnNetworkInitialized()
         {
@@ -138,6 +138,26 @@ namespace CommNetConstellation.CommNetLayer
             {
                 CNCLog.Verbose("Vessel '{0}' doesn't have any CommNet capability due to no probe core/command part or a kerbin on EVA", this.Vessel.GetName());
             }
+        }
+
+        protected override void OnAwake()
+        {
+            base.OnAwake();
+        }
+
+        protected override void OnStart()
+        {
+            if (this.vessel != null)
+            {
+                //if this connection is stock, replace it with this custom connection
+                if (this.vessel.connection != null && this.vessel.connection is CommNetVessel && CommNetNetwork.Initialized)
+                {
+                    CommNetNetwork.Remove(this.vessel.connection.Comm); //delete stock node from commnet network
+                    //UnityEngine.Object.DestroyObject(this.vessel.connection); // don't do this. there are still action-call leftovers of stock CommNetVessel
+                    this.vessel.connection = this;
+                }
+            }
+            base.OnStart();
         }
 
         protected override void OnDestroy()
