@@ -26,7 +26,6 @@ namespace CommNetConstellation.UI
         private DialogGUIImage stationColorImage;
         private DialogGUIVerticalLayout frequencyRowLayout;
 
-        private static readonly Texture2D groundstationTexture = UIUtils.loadImage("groundStationMark");
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
 
         public GroundStationEditDialog(string title, CNCCommNetHome thisStation, Callback<string> updateCallback) : base("gsEdit",
@@ -69,7 +68,7 @@ namespace CommNetConstellation.UI
             frequencyInput = new DialogGUITextInput("", false, CNCSettings.MaxDigits, setFreqInput, 60, 25);
             DialogGUIButton addButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Addbutton"), addClick, 40, 25, false);//"Add"
 
-            stationColorImage = new DialogGUIImage(new Vector2(16f, 16f), Vector2.zero, this.hostStation.Color, groundstationTexture);
+            stationColorImage = new DialogGUIImage(new Vector2(16f, 16f), Vector2.zero, this.hostStation.Color, CNCCommNetHome.getGroundStationTexture(this.hostStation.TechLevel));
             DialogGUIHorizontalLayout imageBtnLayout = new DialogGUIHorizontalLayout(true, true, 0f, new RectOffset(5, 5, 5, 5), TextAnchor.MiddleCenter, new DialogGUIBase[] { stationColorImage });
             DialogGUIButton colorButton = new DialogGUIButton("", colorEditClick, 26, 26, false, new DialogGUIBase[] { imageBtnLayout });
 

@@ -19,7 +19,6 @@ namespace CommNetConstellation.UI
 
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
         private static readonly Texture2D focusTexture = UIUtils.loadImage("focusEye");
-        private static readonly Texture2D groundstationTexture = UIUtils.loadImage("groundStationMark");
 
         private ContentType currentContentType;
         private DialogGUIVerticalLayout contentLayout;
@@ -483,7 +482,7 @@ namespace CommNetConstellation.UI
 
         private DialogGUIHorizontalLayout createGroundStationRow(CNCCommNetHome thisStation)
         {
-            DialogGUIImage colorImage = new DialogGUIImage(new Vector2(16, 16), Vector2.one, thisStation.Color, groundstationTexture);
+            DialogGUIImage colorImage = new DialogGUIImage(new Vector2(16, 16), Vector2.one, thisStation.Color, CNCCommNetHome.getGroundStationTexture(thisStation.TechLevel));
             DialogGUILabel stationNameLabel = new DialogGUILabel(thisStation.stationName, 170, 12);
             DialogGUILabel locationLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_LatitudeAndLongitude", string.Format("{0:0.0}",thisStation.latitude), string.Format("{0:0.0}", thisStation.longitude)), 100, 24);//string.Format("LAT: \nLON: ", , )
             DialogGUILabel freqsLabel = new DialogGUILabel(getFreqString(thisStation.getFrequencyList()), 210, 12);

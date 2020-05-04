@@ -19,8 +19,6 @@ namespace CommNetConstellation.CommNetLayer
          * 3) GameScenes.SPACECENTER is recommended so that the constellation data can be verified and error-corrected in advance
          */
 
-        //TODO: investigate to add extra ground stations to the group of existing stations
-
         private CNCCommNetUI CustomCommNetUI = null;
         private CNCCommNetNetwork CustomCommNetNetwork = null;
         private CNCTelemetryUpdate CustomCommNetTelemetry = null;
@@ -94,12 +92,23 @@ namespace CommNetConstellation.CommNetLayer
             groundStations.Sort();
 
             //Apply the ground-station changes from persistent.sfs
-            for (int i=0; i<persistentGroundStations.Count;i++)
+            for (int i = 0; i < persistentGroundStations.Count; i++)
             {
-                if(groundStations.Exists(x => x.ID.Equals(persistentGroundStations[i].ID)))
+                if (!groundStations.Exists(x => x.ID.Equals(persistentGroundStations[i].ID))) //need to create ground stations
                 {
-                    groundStations.Find(x => x.ID.Equals(persistentGroundStations[i].ID)).applySavedChanges(persistentGroundStations[i]);
+                    var stockStation = groundStations.Find(x => x.ID.Equals("Kerbin: Crater Rim")); //not recommended to use KSC as it has additional properties like SurfaceObject (camera)
+                    //var additionalHome = ksc.gameObject.AddComponent<RemoteTechCommNetHome>(); //fail
+                    //var additionalHome = ksc.gameObject.AddComponent(typeof(RemoteTechCommNetHome)) as RemoteTechCommNetHome; //fail
+                    //var additionalHome = gameObject.AddComponent<RemoteTechCommNetHome>(); //working but transform reference reused
+                    var additionalStation = UnityEngine.Object.Instantiate<CNCCommNetHome>(stockStation); //working
+                    additionalStation.ID = additionalStation.nodeName = additionalStation.displaynodeName = persistentGroundStations[i].ID;
+                    additionalStation.isKSC = false;
+                    groundStations.Add(additionalStation);
+
+                    CNCLog.Verbose("Custom CommNet Home '{0}' added", persistentGroundStations[i].nodeName);
                 }
+
+                groundStations.Find(x => x.ID.Equals(persistentGroundStations[i].ID)).applySavedChanges(persistentGroundStations[i]);
             }
             persistentGroundStations.Clear();//dont need anymore
 

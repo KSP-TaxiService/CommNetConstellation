@@ -1,4 +1,5 @@
 ﻿using CommNetConstellation.CommNetLayer;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -48,7 +49,45 @@ namespace CommNetConstellation
         [Persistent] public bool LegacyOrbitLineColor;
         [Persistent(collectionIndex = "Constellation")] public List<Constellation> Constellations;
         [Persistent(collectionIndex = "GroundStation")] public List<CNCCommNetHome> GroundStations;
+        [Persistent] private string UpgradeableGroundStationCosts = String.Empty;
+        [Persistent] private string UpgradeableGroundStationPowers = String.Empty;
+        [Persistent] private string KSCMissionControlPowers = String.Empty;
         //-----
+
+        public int[] GroundStationUpgradeableCosts;
+        public double[] GroundStationUpgradeablePowers;
+        public double[] KSCStationPowers;
+
+        public void postprocess()
+        {
+            if (UpgradeableGroundStationCosts != String.Empty)
+            {
+                var tokens = UpgradeableGroundStationCosts.Split(';');
+                GroundStationUpgradeableCosts = new int[tokens.Length];
+                for (int i = 0; i < tokens.Length; i++)
+                {
+                    int.TryParse(tokens[i], out GroundStationUpgradeableCosts[i]);
+                }
+            }
+            if (UpgradeableGroundStationPowers != String.Empty)
+            {
+                var tokens = UpgradeableGroundStationPowers.Split(';');
+                GroundStationUpgradeablePowers = new double[tokens.Length];
+                for (int i = 0; i < tokens.Length; i++)
+                {
+                    double.TryParse(tokens[i], out GroundStationUpgradeablePowers[i]);
+                }
+            }
+            if (KSCMissionControlPowers != String.Empty)
+            {
+                var tokens = KSCMissionControlPowers.Split(';');
+                KSCStationPowers = new double[tokens.Length];
+                for (int i = 0; i < tokens.Length; i++)
+                {
+                    double.TryParse(tokens[i], out KSCStationPowers[i]);
+                }
+            }
+        }
 
         public static Settings Load()
         {
@@ -101,6 +140,7 @@ namespace CommNetConstellation
             }
 
             settings.SettingsLoaded = true;
+            settings.postprocess();
             return settings;
         }
     }
