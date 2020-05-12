@@ -408,6 +408,9 @@ namespace CommNetConstellation.CommNetLayer
             this.comm.precisePosition = this.body.GetWorldSurfacePosition(this.latitude, this.longitude, this.altitude);
         }
 
+        /// <summary>
+        /// Get ground station texture based on tech level
+        /// </summary>
         public static Texture2D getGroundStationTexture(int techLevel)
         {
             switch (techLevel)

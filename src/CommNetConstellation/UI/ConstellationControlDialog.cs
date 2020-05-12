@@ -483,12 +483,15 @@ namespace CommNetConstellation.UI
         private DialogGUIHorizontalLayout createGroundStationRow(CNCCommNetHome thisStation)
         {
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(16, 16), Vector2.one, thisStation.Color, CNCCommNetHome.getGroundStationTexture(thisStation.TechLevel));
-            DialogGUILabel stationNameLabel = new DialogGUILabel(thisStation.stationName, 170, 12);
-            DialogGUILabel locationLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_LatitudeAndLongitude", string.Format("{0:0.0}",thisStation.latitude), string.Format("{0:0.0}", thisStation.longitude)), 100, 24);//string.Format("LAT: \nLON: ", , )
-            DialogGUILabel freqsLabel = new DialogGUILabel(getFreqString(thisStation.getFrequencyList()), 210, 12);
+            DialogGUILabel stationNameLabel = new DialogGUILabel(thisStation.stationName, 160, 12);
+            DialogGUILabel locationLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_LatitudeAndLongitude", string.Format("{0:0.0}",thisStation.latitude), string.Format("{0:0.0}", thisStation.longitude)), 80, 24);//string.Format("LAT: \nLON: ", , )
+            DialogGUILabel freqsLabel = new DialogGUILabel(getFreqString(thisStation.getFrequencyList()), 160, 12);
+            DialogGUIButton buildButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Upgradebutton"), delegate { groundstationBuildClick(thisStation); }, 70, 32, false);//"Upgrade"
+            buildButton.OptionInteractableCondition = () => (thisStation.isKSC)? false : (thisStation.TechLevel < 3) ? true : false;
             DialogGUIButton updateButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Editbutton"), delegate { groundstationEditClick(thisStation); }, 50, 32, false);//"Edit"
+            updateButton.OptionInteractableCondition = () => (thisStation.TechLevel > 0) ? true : false;
 
-            DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, stationNameLabel, locationLabel, freqsLabel, updateButton };
+            DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, stationNameLabel, locationLabel, freqsLabel, buildButton, updateButton };
             DialogGUIHorizontalLayout groundStationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, rowGUIBase);
             groundStationGroup.SetOptionText(thisStation.ID); //for quick identification
             return groundStationGroup;
@@ -530,6 +533,7 @@ namespace CommNetConstellation.UI
                     DialogGUILabel freqsLabel = thisRow.children[3] as DialogGUILabel;
                     CNCCommNetHome station = CNCCommNetScenario.Instance.groundStations.Find(x => x.ID.Equals(stationID));
                     colorImage.uiItem.GetComponent<RawImage>().color = station.Color;
+                    colorImage.uiItem.GetComponent<RawImage>().texture = CNCCommNetHome.getGroundStationTexture(station.TechLevel);
                     nameLabel.SetOptionText(station.stationName);
                     freqsLabel.SetOptionText(getFreqString(station.getFrequencyList()));
 
@@ -543,6 +547,11 @@ namespace CommNetConstellation.UI
         private void groundstationEditClick(CNCCommNetHome thisStation)
         {
             new GroundStationEditDialog(Localizer.Format("#CNC_ConstellationControl_GroundStationEdit_title"), thisStation, updateGroundStationGUIRow).launch();//"Ground station - <color=#00ff00>Edit</color>"
+        }
+
+        private void groundstationBuildClick(CNCCommNetHome thisStation)
+        {
+            new GroundStationBuildDialog(Localizer.Format("#CNC_ConstellationControl_GroundStationBuild_title"), thisStation, updateGroundStationGUIRow).launch();//"Ground station - <color=#00ff00>Upgrade</color>"
         }
     }
 }

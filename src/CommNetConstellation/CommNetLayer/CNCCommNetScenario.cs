@@ -105,7 +105,7 @@ namespace CommNetConstellation.CommNetLayer
                     additionalStation.isKSC = false;
                     groundStations.Add(additionalStation);
 
-                    CNCLog.Verbose("Custom CommNet Home '{0}' added", persistentGroundStations[i].nodeName);
+                    CNCLog.Verbose("Custom CommNet Home '{0}' added", persistentGroundStations[i].ID);
                 }
 
                 groundStations.Find(x => x.ID.Equals(persistentGroundStations[i].ID)).applySavedChanges(persistentGroundStations[i]);
