@@ -31,10 +31,7 @@ namespace CommNetConstellation.CommNetLayer
         [Persistent] public double CustomLongitude = 0.0;
         [Persistent] public double CustomAltitude = 0.0;
         [Persistent] public string CustomCelestialBody = "";
-        [Persistent(collectionIndex = "Frequency")] protected List<short> Frequencies = 
-            (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER) ? 
-            new List<short>() { CNCSettings.Instance.PublicRadioFrequency } : 
-            new List<short>();
+        [Persistent(collectionIndex = "Frequency")] protected List<short> Frequencies = new List<short>();
 
         //for low-gc operations
         protected short[] sorted_frequency_array;
