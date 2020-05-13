@@ -216,6 +216,16 @@ namespace CommNetConstellation.CommNetLayer
 
             this.body = (this.CustomCelestialBody.Length > 0) ? FlightGlobals.Bodies.Find(x => x.name.Equals(this.CustomCelestialBody)) : base.GetComponentInParent<CelestialBody>();
 
+            if(this.body == null)//one root cause is 3rd-party mod Making Less History, which disables 2 ground stations in Making History expansion
+            {
+                //self-destruct
+                CNCLog.Error("CommNet Home '{0}' self-destructed due to missing info", this.ID);
+                CNCCommNetScenario.Instance.groundStations.Remove(this);
+                this.OnDestroy();
+                UnityEngine.Object.Destroy(this);
+                return;
+            }
+
             if (this.nodeTransform == null)
             {
                 this.nodeTransform = base.nodeTransform;
