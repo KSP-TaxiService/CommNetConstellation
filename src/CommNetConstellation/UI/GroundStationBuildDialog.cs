@@ -69,10 +69,10 @@ namespace CommNetConstellation.UI
                                     new DialogGUIHorizontalLayout(TextAnchor.MiddleCenter, new DialogGUIBase[] { currentLevelGroup, arrowTexture, nextLevelGroup })));
 
             //Requirements
-            DialogGUILabel reqLabel = new DialogGUILabel("<b>" + Localizer.Format("#CNC_GroundStationBuild_reqLabel") + "</b>");//Requirements
             DialogGUILabel costLabel = new DialogGUILabel(costFunc);
-            listComponments.Add(new DialogGUIHorizontalLayout(TextAnchor.MiddleCenter, new DialogGUIBase[] { reqLabel }));
+            DialogGUILabel availableLabel = new DialogGUILabel(availableFunc);
             listComponments.Add(new DialogGUIHorizontalLayout(TextAnchor.MiddleCenter, new DialogGUIBase[] { costLabel }));
+            listComponments.Add(new DialogGUIHorizontalLayout(TextAnchor.MiddleCenter, new DialogGUIBase[] { availableLabel }));
             listComponments.Add(new DialogGUISpace(10));
 
             DialogGUIButton upgradeButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Upgradebutton"), onClickUpgrade, false);//Upgrade
@@ -108,12 +108,27 @@ namespace CommNetConstellation.UI
         {
             if(this.hostStation.TechLevel >= 3)
             {
-                return Localizer.Format("#CNC_GroundStationBuild_FundsNil");//Funds: Nil
+                return Localizer.Format("#CNC_GroundStationBuild_InvoiceNil");//Invoice: Nil
             }
             else
             {
-                return Localizer.Format("#CNC_GroundStationBuild_Funds") + string.Format(" {0:n0}", CNCSettings.Instance.GroundStationUpgradeableCosts[this.hostStation.TechLevel]);//Funds: {0:n}
+                return Localizer.Format("#CNC_GroundStationBuild_Invoice") + string.Format(" {0:n0}", CNCSettings.Instance.GroundStationUpgradeableCosts[this.hostStation.TechLevel]);//Invoice: {0:n0}
             }
+        }
+
+        private string availableFunc()
+        {
+            string color = "green";
+            if (this.hostStation.TechLevel < 3)
+            {
+                int cost = CNCSettings.Instance.GroundStationUpgradeableCosts[this.hostStation.TechLevel];
+                if (Funding.Instance.Funds < cost)
+                {
+                    color = "red";
+                }
+            }
+
+            return Localizer.Format("#CNC_GroundStationBuild_FundsAvailable") + string.Format(" <color={1}>{0:n0}</color>", Funding.Instance.Funds, color);//Available Funds: {0:n0}
         }
 
         private void onClickUpgrade()
@@ -121,7 +136,7 @@ namespace CommNetConstellation.UI
             int cost = CNCSettings.Instance.GroundStationUpgradeableCosts[this.hostStation.TechLevel];
             if (Funding.Instance.Funds < cost)
             {
-                ScreenMessage msg = new ScreenMessage("<color=red>" + Localizer.Format("#CNC_GroundStationBuild_costError") + string.Format(" {0:n0}</color>", Funding.Instance.Funds), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);//Insufficient Funds of
+                ScreenMessage msg = new ScreenMessage("<color=red>" + Localizer.Format("#CNC_GroundStationBuild_costError") + "</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);//Insufficient Funds
                 ScreenMessages.PostScreenMessage(msg);
             }
             else
