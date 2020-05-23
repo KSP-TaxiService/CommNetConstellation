@@ -484,14 +484,15 @@ namespace CommNetConstellation.UI
         {
             DialogGUIImage colorImage = new DialogGUIImage(new Vector2(16, 16), Vector2.one, thisStation.Color, CNCCommNetHome.getGroundStationTexture(thisStation.TechLevel));
             DialogGUILabel stationNameLabel = new DialogGUILabel(thisStation.stationName, 160, 12);
-            DialogGUILabel locationLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_LatitudeAndLongitude", string.Format("{0:0.0}",thisStation.latitude), string.Format("{0:0.0}", thisStation.longitude)), 80, 24);//string.Format("LAT: \nLON: ", , )
+            DialogGUILabel locationLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_LatitudeAndLongitude", string.Format("{0:0.0}", thisStation.latitude), string.Format("{0:0.0}", thisStation.longitude)), 80, 24);//string.Format("LAT: \nLON: ", , )
             DialogGUILabel freqsLabel = new DialogGUILabel(getFreqString(thisStation.getFrequencyList()), 160, 12);
             DialogGUIButton buildButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Upgradebutton"), delegate { groundstationBuildClick(thisStation); }, 70, 32, false);//"Upgrade"
-            buildButton.OptionInteractableCondition = () => (thisStation.isKSC)? false : (thisStation.TechLevel < 3) ? true : false;
+            buildButton.OptionInteractableCondition = () => (thisStation.isKSC) ? false : (thisStation.TechLevel < 3) ? true : false;
             DialogGUIButton updateButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Editbutton"), delegate { groundstationEditClick(thisStation); }, 50, 32, false);//"Edit"
-            updateButton.OptionInteractableCondition = () => (thisStation.TechLevel > 0) ? true : false;
 
             DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, stationNameLabel, locationLabel, freqsLabel, buildButton, updateButton };
+            if (thisStation.isKSC) { rowGUIBase[4] = new DialogGUISpace(70); } //hide upgrade button
+
             DialogGUIHorizontalLayout groundStationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, rowGUIBase);
             groundStationGroup.SetOptionText(thisStation.ID); //for quick identification
             return groundStationGroup;
