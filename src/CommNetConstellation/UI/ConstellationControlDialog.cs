@@ -421,7 +421,7 @@ namespace CommNetConstellation.UI
                     allVessels.Sort((x, y) => x.Vessel.mainBody.name.CompareTo(y.Vessel.mainBody.name));
                     break;
                 default:
-                    allVessels.Sort((x, y) => x.Vessel.launchTime.CompareTo(y.Vessel.launchTime));
+                    allVessels.Sort((x, y) => y.Vessel.launchTime.CompareTo(x.Vessel.launchTime));
                     break;
             }
 
