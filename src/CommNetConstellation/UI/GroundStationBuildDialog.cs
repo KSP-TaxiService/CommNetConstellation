@@ -69,10 +69,13 @@ namespace CommNetConstellation.UI
                                     new DialogGUIHorizontalLayout(TextAnchor.MiddleCenter, new DialogGUIBase[] { currentLevelGroup, arrowTexture, nextLevelGroup })));
 
             //Requirements
-            DialogGUILabel costLabel = new DialogGUILabel(costFunc);
-            DialogGUILabel availableLabel = new DialogGUILabel(availableFunc);
-            listComponments.Add(new DialogGUIHorizontalLayout(TextAnchor.MiddleCenter, new DialogGUIBase[] { costLabel }));
-            listComponments.Add(new DialogGUIHorizontalLayout(TextAnchor.MiddleCenter, new DialogGUIBase[] { availableLabel }));
+            if (Funding.Instance != null) //only available in Career mode
+            {
+                DialogGUILabel costLabel = new DialogGUILabel(costFunc);
+                DialogGUILabel availableLabel = new DialogGUILabel(availableFunc);
+                listComponments.Add(new DialogGUIHorizontalLayout(TextAnchor.MiddleCenter, new DialogGUIBase[] { costLabel }));
+                listComponments.Add(new DialogGUIHorizontalLayout(TextAnchor.MiddleCenter, new DialogGUIBase[] { availableLabel }));
+            }
             listComponments.Add(new DialogGUISpace(10));
 
             DialogGUIButton upgradeButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Upgradebutton"), onClickUpgrade, false);//Upgrade
@@ -118,6 +121,11 @@ namespace CommNetConstellation.UI
 
         private string availableFunc()
         {
+            if(Funding.Instance == null)
+            {
+                return ""; //failsafe
+            }
+
             string color = "green";
             if (this.hostStation.TechLevel < 3)
             {
@@ -134,7 +142,7 @@ namespace CommNetConstellation.UI
         private void onClickUpgrade()
         {
             int cost = CNCSettings.Instance.GroundStationUpgradeableCosts[this.hostStation.TechLevel];
-            if (Funding.Instance.Funds < cost)
+            if (Funding.Instance != null && Funding.Instance.Funds < cost)
             {
                 ScreenMessage msg = new ScreenMessage("<color=red>" + Localizer.Format("#CNC_GroundStationBuild_costError") + "</color>", CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);//Insufficient Funds
                 ScreenMessages.PostScreenMessage(msg);
@@ -143,7 +151,11 @@ namespace CommNetConstellation.UI
             {
                 this.hostStation.incrementTechLevel();
                 updateCallback.Invoke(this.hostStation.ID);
-                Funding.Instance.AddFunds(-1.0 * cost, TransactionReasons.StructureConstruction);
+
+                if (Funding.Instance != null)
+                {
+                    Funding.Instance.AddFunds(-1.0 * cost, TransactionReasons.StructureConstruction);
+                }
 
                 currentTexture.uiItem.GetComponent<RawImage>().texture = getLevelTexture(this.hostStation.TechLevel);
                 nextTexture.uiItem.GetComponent<RawImage>().texture = getLevelTexture((short)(this.hostStation.TechLevel < 3? (this.hostStation.TechLevel + 1) : this.hostStation.TechLevel));
