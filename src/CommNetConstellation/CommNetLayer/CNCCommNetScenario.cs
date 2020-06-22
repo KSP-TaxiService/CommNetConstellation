@@ -96,7 +96,7 @@ namespace CommNetConstellation.CommNetLayer
             {
                 if (!groundStations.Exists(x => x.ID.Equals(persistentGroundStations[i].ID))) //need to create ground stations
                 {
-                    var stockStation = groundStations.Find(x => x.ID.Equals("Kerbin: Crater Rim")); //not recommended to use KSC as it has additional properties like SurfaceObject (camera)
+                    var stockStation = groundStations.Find(x => x.ID.Equals("Kerbin: Baikerbanur")); //not recommended to use KSC as it has additional properties like SurfaceObject (camera)
                     //var additionalHome = ksc.gameObject.AddComponent<RemoteTechCommNetHome>(); //fail
                     //var additionalHome = ksc.gameObject.AddComponent(typeof(RemoteTechCommNetHome)) as RemoteTechCommNetHome; //fail
                     //var additionalHome = gameObject.AddComponent<RemoteTechCommNetHome>(); //working but transform reference reused
