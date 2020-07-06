@@ -412,7 +412,21 @@ namespace CommNetConstellation.CommNetLayer
             stationTexture = CNCCommNetHome.getGroundStationTexture(this.TechLevel);
 
             // Update position on celestial body
-            this.comm.precisePosition = this.body.GetWorldSurfacePosition(this.latitude, this.longitude, this.altitude);
+            if (this.comm != null)
+            {
+                if (this.body != null)
+                {
+                    this.comm.precisePosition = this.body.GetWorldSurfacePosition(this.latitude, this.longitude, this.altitude);
+                }
+                else
+                {
+                    CNCLog.Verbose("Body of CommNetHome is null");
+                }
+            }
+            else
+            {
+                CNCLog.Verbose("CommNode of CommNetHome is null, likely due to a third-party CommNet mod");
+            }
         }
 
         /// <summary>
