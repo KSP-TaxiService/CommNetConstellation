@@ -389,6 +389,19 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected void refresh()
         {
+            if (this.comm == null)
+            {
+                if (!HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().enableGroundStations)
+                {
+                    CNCLog.Verbose("Ground station '{0}': CommNet option of enabling ground stations is disabled", this.ID);
+                }
+                else
+                {
+                    CNCLog.Verbose("Ground station '{0}': Null CommNode, likely due to a third-party CommNet mod", this.ID);
+                }
+                return;
+            }
+
             // Obtain Tech Level of Tracking Station in KCS
             if (this.isKSC)
             {
@@ -396,10 +409,7 @@ namespace CommNetConstellation.CommNetLayer
             }
 
             // Update power of ground station
-            if (this.comm != null)
-            {
-                this.comm.antennaRelay.Update(GetDSNRange(this.TechLevel), GameVariables.Instance.GetDSNRangeCurve(), false);
-            }
+            this.comm.antennaRelay.Update(GetDSNRange(this.TechLevel), GameVariables.Instance.GetDSNRangeCurve(), false);
 
             // Generate ground station information
             stationInfoString = (this.TechLevel == 0) ? "Build a ground station" :
@@ -412,21 +422,7 @@ namespace CommNetConstellation.CommNetLayer
             stationTexture = CNCCommNetHome.getGroundStationTexture(this.TechLevel);
 
             // Update position on celestial body
-            if (this.comm != null)
-            {
-                if (this.body != null)
-                {
-                    this.comm.precisePosition = this.body.GetWorldSurfacePosition(this.latitude, this.longitude, this.altitude);
-                }
-                else
-                {
-                    CNCLog.Verbose("Body of CommNetHome is null");
-                }
-            }
-            else
-            {
-                CNCLog.Verbose("CommNode of CommNetHome is null, likely due to a third-party CommNet mod");
-            }
+            this.comm.precisePosition = this.body.GetWorldSurfacePosition(this.latitude, this.longitude, this.altitude);
         }
 
         /// <summary>
