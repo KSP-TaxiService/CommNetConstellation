@@ -475,12 +475,16 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected override void Update()
         {
-            if (this.comm != null)
+            if (this.comm != null && this.body != null)
             {
                 this.comm.precisePosition = this.body.GetWorldSurfacePosition(this.lat, this.lon, this.alt);
                 //this.comm.position has no setter
                 this.comm.transform.position = this.comm.precisePosition;
-                this.nodeTransform.position = this.comm.precisePosition;
+
+                if (this.nodeTransform != null)
+                {
+                    this.nodeTransform.position = this.comm.precisePosition;
+                }
             }
         }
 
