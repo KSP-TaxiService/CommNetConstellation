@@ -2,13 +2,55 @@
 using CommNetConstellation.CommNetLayer;
 using CommNetConstellation.UI.DialogGUI;
 using KSP.Localization;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using static MapViewFiltering;
 
 namespace CommNetConstellation.UI
 {
+    /// <summary>
+    /// Tree structure class for data
+    /// </summary>
+    #region TreeEntry class region
+    public class TreeEntry
+    {
+        public String Text { get; set; }
+        public Guid Guid { get; set; }
+        public Color Color;
+        public List<TreeEntry> SubEntries { get; private set; }
+        public bool Expanded { get; set; }
+        public int Depth { get; set; }
+
+        public TreeEntry()
+        {
+            SubEntries = new List<TreeEntry>();
+            Expanded = true;
+            Text = "Root";
+        }
+
+        public void Clear()
+        {
+            for (int i = 0; i < SubEntries.Count; i++)
+            {
+                SubEntries[i].Clear();
+            }
+            SubEntries.Clear();
+            Expanded = true;
+            Depth = 0;
+        }
+
+        public void ComputeDepth(int d = 0)
+        {
+            Depth = d++;
+            for (int i = 0; i < SubEntries.Count; i++)
+            {
+                SubEntries[i].ComputeDepth(d);
+            }
+        }
+    }
+    #endregion
+
     /// <summary>
     /// Interact with constellations or vessels (Controller)
     /// </summary>
@@ -16,6 +58,10 @@ namespace CommNetConstellation.UI
     {
         public enum VesselListSort {LAUNCHDATE, RADIOFREQ, VESSELNAME, CBODY };
         private enum ContentType { CONSTELLATIONS, GROUNDSTATIONS, VESSELS };
+
+        private readonly short depthWidth = 40;
+        private readonly short colorWidth = 300;
+        private readonly short headerWidth = 560;
 
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
         private static readonly Texture2D focusTexture = UIUtils.loadImage("focusEye");
@@ -26,6 +72,11 @@ namespace CommNetConstellation.UI
         private DialogGUIHorizontalLayout sortVesselBtnLayout;
         private CustomDialogGUIScrollList scrollArea;
 
+        private TreeEntry celestialBodyTree = new TreeEntry();
+        private Dictionary<CelestialBody, TreeEntry> celestialBodyDict = new Dictionary<CelestialBody, TreeEntry>();
+        private TreeEntry constellationTree = new TreeEntry();
+        private Dictionary<short, TreeEntry> constellationDict = new Dictionary<short, TreeEntry>();
+
         public ConstellationControlDialog(string title) : base("CNCControl",
                                                             title, 
                                                             0.8f, //x
@@ -34,7 +85,6 @@ namespace CommNetConstellation.UI
                                                             450, //height
                                                             new DialogOptions[] { DialogOptions.ShowVersion, DialogOptions.HideCloseButton, DialogOptions.AllowBgInputs }) //arguments
         {
-            
         }
 
         protected override List<DialogGUIBase> drawContentComponents()
@@ -98,6 +148,7 @@ namespace CommNetConstellation.UI
         /////////////////////
         // CONSTELLATIONS
         /////////////////////
+        #region CONSTELLATIONS region
 
         /////////////////////
         // GUI
@@ -297,58 +348,401 @@ namespace CommNetConstellation.UI
         {
             updateConstellationGUIRow(updatedConstellation.frequency, previousFrequency);
         }
+        #endregion
 
         /////////////////////
         // VESSELS
         /////////////////////
+        #region VESSELS region
 
         /////////////////////
-        // GUI
+        // Main GUI
+        #region Main GUI region
+        /// <summary>
+        /// Main component of vessel interface
+        /// </summary>
         private List<DialogGUIBase> getVesselContentLayout()
         {
-            currentVesselSort = VesselListSort.LAUNCHDATE;
-
-            List<DialogGUIBase> vesselComponments = new List<DialogGUIBase>();
-            List<DialogGUIHorizontalLayout> rows = populateVesselRows(MapViewFiltering.vesselTypeFilter);
-            for (int i = 0; i < rows.Count; i++)
+            if(constellationDict.Keys.Count <= 0)
             {
-                vesselComponments.Add(rows[i]);
+                constellationTree.Clear();
+                constellationDict.Clear();
+
+                AddConstellations(constellationTree, constellationDict);
+                AddVessels(constellationTree, constellationDict);
             }
 
+            if (celestialBodyDict.Keys.Count <= 0)
+            {
+                celestialBodyTree.Clear();
+                celestialBodyDict.Clear();
+
+                AddCelestialBodies(celestialBodyTree, celestialBodyDict);
+                AddVessels(celestialBodyTree, celestialBodyDict);
+
+                celestialBodyTree.ComputeDepth();
+            }
+
+            List<DialogGUIBase> vesselComponments = new List<DialogGUIBase>();
+            vesselComponments.AddRange(getVesselContentRows(VesselListSort.CBODY));
             return vesselComponments;
         }
 
+        /// <summary>
+        /// Bottom component of vessel interface
+        /// </summary>
         private DialogGUIBase[] getVesselSortLayout()
         {
             float btnWidth = 100;
             float btnHeight = 28;
+            UIStyle style = new UIStyle();
+            style.fontStyle = FontStyle.Normal;
+            style.fontSize = 12;
+            style.alignment = TextAnchor.MiddleCenter;
+            style.normal = new UIStyleState();
+            style.normal.textColor = Color.white;
 
-            DialogGUILabel sortLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_sortLabel"), 35, 12);//"Sort by"
+            DialogGUILabel sortLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_sortLabel"), style);//"Sort by"
             DialogGUIButton launchSortBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_launchSortBtn"), delegate { currentVesselSort = VesselListSort.LAUNCHDATE; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);//"Launch time"
             DialogGUIButton freqSortBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_freqSortBtn"), delegate { currentVesselSort = VesselListSort.RADIOFREQ; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth+40, btnHeight, false);//"Strongest frequency"
-            DialogGUIButton nameSortBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_nameSortBtn"), delegate { currentVesselSort = VesselListSort.VESSELNAME; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);//"Vessel name"
+            //DialogGUIButton nameSortBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_nameSortBtn"), delegate { currentVesselSort = VesselListSort.VESSELNAME; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);//"Vessel name"
             DialogGUIButton bodySortBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_bodySortBtn"), delegate { currentVesselSort = VesselListSort.CBODY; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);//"Celestial body"
 
-            return new DialogGUIBase[] { sortLabel, launchSortBtn, freqSortBtn, nameSortBtn, bodySortBtn };
+            return new DialogGUIBase[] { sortLabel, launchSortBtn, freqSortBtn, bodySortBtn };
         }
 
-        private DialogGUIHorizontalLayout createVesselRow(CNCCommNetVessel thisVessel)
+        /// <summary>
+        /// Content for vessel interface
+        /// </summary>
+        private List<DialogGUIHorizontalLayout> getVesselContentRows(VesselListSort sorting)
+        {
+            currentVesselSort = sorting;
+            switch (sorting)
+            {
+                case VesselListSort.CBODY:
+                    return populateCBodyVesselRows();
+                case VesselListSort.LAUNCHDATE:
+                    return populateLaunchVesselRows();
+                case VesselListSort.RADIOFREQ:
+                    return populateFreqVesselRows();
+                case VesselListSort.VESSELNAME:
+                    CNCLog.Verbose("VesselListSort.VESSELNAME not in use");
+                    return new List<DialogGUIHorizontalLayout>();
+                default:
+                    CNCLog.Verbose("Unknown VesselListSort");
+                    return new List<DialogGUIHorizontalLayout>();
+            }
+        }
+
+        /// <summary>
+        /// Common content row for vessel
+        /// </summary>
+        private DialogGUIHorizontalLayout createVesselRow(CNCCommNetVessel vessel, int depth = 0)
         {
             //answer is from FlagBrowserGUIButton
             DialogGUIImage focusImage = new DialogGUIImage(new Vector2(32f, 32f), Vector2.zero, Color.white, focusTexture);
-            DialogGUIHorizontalLayout imageBtnLayout = new DialogGUIHorizontalLayout(true, true, 0f, new RectOffset(1, 1, 1, 1), TextAnchor.MiddleCenter, new DialogGUIBase[]{ focusImage });
-            DialogGUIButton focusButton= new DialogGUIButton("", delegate { vesselFocusClick(thisVessel.Vessel); }, 34, 34, false, new DialogGUIBase[] { imageBtnLayout });
+            DialogGUIHorizontalLayout imageBtnLayout = new DialogGUIHorizontalLayout(TextAnchor.MiddleCenter, new DialogGUIBase[] { focusImage });
+            DialogGUIButton focusButton = new DialogGUIButton("", delegate { vesselFocusClick(vessel.Vessel); }, 32, 32, false, new DialogGUIBase[] { imageBtnLayout });
 
-            DialogGUILabel vesselLabel = new DialogGUILabel(thisVessel.Vessel.GetDisplayName(), 160, 12);
-            DialogGUILabel freqLabel = new DialogGUILabel(getFreqString(thisVessel.getFrequencyList(), thisVessel.getStrongestFrequency()), 160, 12);
-            DialogGUILabel locationLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_locationLabel", thisVessel.Vessel.mainBody.GetDisplayName()), 100, 12);//Orbiting: <<1>>
-            DialogGUIButton setupButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Setupbutton"), delegate { vesselSetupClick(thisVessel.Vessel); }, 70, 32, false);//"Setup"
+            DialogGUILabel vesselLabel = new DialogGUILabel(vessel.Vessel.GetDisplayName(), 160, 12);
+            DialogGUILabel freqLabel = new DialogGUILabel(getFreqString(vessel.getFrequencyList(), vessel.getStrongestFrequency()), 160, 12);
+            DialogGUIButton setupButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Setupbutton"), delegate { vesselSetupClick(vessel.Vessel); }, 70, 32, false);//"Setup"
 
-            DialogGUIHorizontalLayout vesselGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { focusButton, vesselLabel, freqLabel, locationLabel, setupButton });
-            vesselGroup.SetOptionText(thisVessel.Vessel.id.ToString());
+            DialogGUIHorizontalLayout vesselGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUISpace(depth * depthWidth), focusButton, vesselLabel, freqLabel, setupButton, new DialogGUIFlexibleSpace() });
+            vesselGroup.SetOptionText(vessel.Vessel.id.ToString());
             return vesselGroup;
         }
+        #endregion
 
+        /////////////////////
+        // Sub GUI - vessels sorted by planets
+        #region Sub GUI - vessels sorted by planets region
+        private List<DialogGUIHorizontalLayout> populateCBodyVesselRows()
+        {
+            List<DialogGUIHorizontalLayout> newRows = new List<DialogGUIHorizontalLayout>();
+            List<CNCCommNetVessel> allVessels = CNCCommNetScenario.Instance.getCommNetVessels();
+            allVessels.Sort((x, y) => x.Vessel.GetName().CompareTo(y.Vessel.GetName()));
+
+            // Depth-first tree traversal.
+            Stack<TreeEntry> dfs = new Stack<TreeEntry>();
+            for (int i = 0; i < celestialBodyTree.SubEntries.Count; i++)
+            {
+                var child = celestialBodyTree.SubEntries[i];
+                dfs.Push(child);
+            }
+
+            while (dfs.Count > 0)
+            {
+                var current = dfs.Pop();
+
+                // draw child
+                var body = FlightGlobals.Bodies.Find(x => x.bodyName.Equals(current.Text));
+                if (body != null)
+                {
+                    newRows.Add(createBodyHeaderRow(current.Depth - 1 , current.Expanded, current.Color, body));
+                }
+                else
+                {
+                    var vessel = allVessels.Find(x => x.Vessel.id == current.Guid);
+                    if (vessel != null && MapViewFiltering.CheckAgainstFilter(vessel.Vessel))
+                    {
+                        newRows.Add(createVesselRow(vessel, current.Depth - 1));
+                    }
+                }
+
+                // draw child's grandchilden if expanded
+                if (current.Expanded)
+                {
+                    for (int j = 0; j < current.SubEntries.Count; j++)
+                    {
+                        var child2 = current.SubEntries[j];
+                        dfs.Push(child2);
+                    }
+                }
+            }
+
+            return newRows;
+        }
+
+        private DialogGUIHorizontalLayout createBodyHeaderRow(int depth, bool expanded, Color color, CelestialBody body)
+        {
+            Texture2D texture = UIUtils.createAndColorize(20, 10, color);
+
+            UIStyle style = new UIStyle();
+            style.fontStyle = FontStyle.Normal;
+            style.fontSize = 14;
+            style.alignment = TextAnchor.MiddleLeft;
+            style.normal = new UIStyleState();
+            style.normal.textColor = Color.white;
+            DialogGUILabel bodyLabel = new DialogGUILabel((expanded ? ">" : "<"), style);
+            DialogGUILabel nameLabel = new DialogGUILabel(body.bodyName, style);
+            
+            DialogGUIImage bodyImage = new DialogGUIImage(new Vector2(colorWidth + 50 - depth * depthWidth, 10f), Vector2.zero, Color.white, texture);
+            DialogGUIHorizontalLayout imageBtnLayout = new DialogGUIHorizontalLayout(TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUISpace(10), bodyLabel, new DialogGUISpace(10), nameLabel, new DialogGUIFlexibleSpace(), bodyImage, new DialogGUISpace(10) });
+            DialogGUIButton expandButton = new DialogGUIButton("", delegate { toggleCBodyButton(body); mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, headerWidth - depth * depthWidth, 24, false, new DialogGUIBase[] { imageBtnLayout });
+            DialogGUIHorizontalLayout bodyGroup = new DialogGUIHorizontalLayout(false, false, 0, new RectOffset(0, 0, 2, 2), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUISpace(depth * depthWidth), expandButton, new DialogGUIFlexibleSpace() });
+            bodyGroup.SetOptionText(body.bodyName);
+            return bodyGroup;
+        }
+
+        private void toggleCBodyButton(CelestialBody body)
+        {
+            if(celestialBodyDict.ContainsKey(body))
+            {
+                var treeEntry = celestialBodyDict[body];
+                treeEntry.Expanded = !treeEntry.Expanded;
+            }
+        }
+
+        private void AddCelestialBodies(TreeEntry tree, Dictionary<CelestialBody, TreeEntry> dict)
+        {
+            for (int i = 0; i < FlightGlobals.Bodies.Count; i++)
+            {
+                var cb = FlightGlobals.Bodies[i];
+                if (!dict.ContainsKey(cb))
+                {
+                    dict[cb] = new TreeEntry();
+                }
+
+                var current = dict[cb];
+                current.Text = cb.bodyName;
+                //current.Guid = cb.Guid();
+                current.Color = cb.GetOrbitDriver() != null ? cb.GetOrbitDriver().Renderer.nodeColor : Color.yellow;
+                current.Color.a = 1.0f;
+
+                // have moons?
+                if (cb.referenceBody != cb)
+                {
+                    CelestialBody parent = cb.referenceBody;
+                    if (!dict.ContainsKey(parent))
+                    {
+                        dict[parent] = new TreeEntry();
+                    }
+                    dict[parent].SubEntries.Add(current);
+                }
+                else
+                {
+                    tree.SubEntries.Add(current);
+                }
+            }
+
+            // Sort the lists based on semi-major axis. In reverse because of how we render it.
+            for (int i = 0; i < FlightGlobals.Bodies.Count; i++)
+            {
+                var cb = FlightGlobals.Bodies[i];
+                dict[cb].SubEntries.Sort((b, a) =>
+                {
+                    return FlightGlobals.Bodies.Find(x => x.bodyName.Equals(a.Text)).orbit.semiMajorAxis.CompareTo(
+                        FlightGlobals.Bodies.Find(x => x.bodyName.Equals(b.Text)).orbit.semiMajorAxis);
+                });
+            }
+            tree.SubEntries.Reverse();
+        }
+
+        private void AddVessels(TreeEntry tree, Dictionary<CelestialBody, TreeEntry> dict)
+        {
+            List<CNCCommNetVessel> allVessels = CNCCommNetScenario.Instance.getCommNetVessels();
+
+            for (int i = 0; i < allVessels.Count; i++)
+            {
+                var thisVessel = allVessels[i];
+                TreeEntry current = new TreeEntry()
+                {
+                    Text = thisVessel.Vessel.vesselName,
+                    Guid = thisVessel.Vessel.id,
+                    Color = Color.white,
+                };
+                dict[thisVessel.Vessel.mainBody].SubEntries.Add(current);
+            }
+        }
+        #endregion
+
+        /////////////////////
+        // Sub GUI - vessels sorted by frequencies
+        #region Sub GUI - vessels sorted by frequencies region
+        private List<DialogGUIHorizontalLayout> populateFreqVesselRows()
+        {
+            List<DialogGUIHorizontalLayout> newRows = new List<DialogGUIHorizontalLayout>();
+            List<CNCCommNetVessel> allVessels = CNCCommNetScenario.Instance.getCommNetVessels();
+            allVessels.Sort((x, y) => x.Vessel.GetName().CompareTo(y.Vessel.GetName()));
+
+            // Depth-first tree traversal.
+            Stack<TreeEntry> dfs = new Stack<TreeEntry>();
+            for (int i = 0; i < constellationTree.SubEntries.Count; i++)
+            {
+                var child = constellationTree.SubEntries[i];
+                dfs.Push(child);
+            }
+
+            while (dfs.Count > 0)
+            {
+                var current = dfs.Pop();
+
+                // draw child
+                var constellation = CNCCommNetScenario.Instance.constellations.Find(x => x.name.Equals(current.Text));
+                if (constellation != null)
+                {
+                    newRows.Add(createFreqHeaderRow(current.Expanded, current.Color, constellation));
+                }
+                else
+                {
+                    var vessel = allVessels.Find(x => x.Vessel.id == current.Guid);
+                    if (vessel != null && MapViewFiltering.CheckAgainstFilter(vessel.Vessel))
+                    {
+                        newRows.Add(createVesselRow(vessel));
+                    }
+                }
+
+                // draw child's grandchilden if expanded
+                if (current.Expanded)
+                {
+                    for (int j = 0; j < current.SubEntries.Count; j++)
+                    {
+                        var child2 = current.SubEntries[j];
+                        dfs.Push(child2);
+                    }
+                }
+            }
+
+            return newRows;
+        }
+
+        private void AddConstellations(TreeEntry tree, Dictionary<short, TreeEntry> dict)
+        {
+            List<Constellation> allConstellations = CNCCommNetScenario.Instance.constellations;
+            allConstellations.Sort((x, y) => y.frequency - x.frequency);
+
+            for (int i = 0; i < allConstellations.Count; i++)
+            {
+                var con = allConstellations[i];
+                if (!dict.ContainsKey(con.frequency))
+                {
+                    dict[con.frequency] = new TreeEntry();
+                }
+
+                var current = dict[con.frequency];
+                current.Text = con.name;
+                //current.Guid = cb.Guid();
+                current.Color = con.color;
+                current.Color.a = 1.0f;
+
+                tree.SubEntries.Add(current);
+            }
+        }
+
+        private void AddVessels(TreeEntry tree, Dictionary<short, TreeEntry> dict)
+        {
+            List<CNCCommNetVessel> allVessels = CNCCommNetScenario.Instance.getCommNetVessels();
+
+            for (int i = 0; i < allVessels.Count; i++)
+            {
+                var thisVessel = allVessels[i];
+                TreeEntry current = new TreeEntry()
+                {
+                    Text = thisVessel.Vessel.vesselName,
+                    Guid = thisVessel.Vessel.id,
+                    Color = Color.white,
+                };
+                dict[thisVessel.getStrongestFrequency()].SubEntries.Add(current);
+            }
+        }
+
+        private DialogGUIHorizontalLayout createFreqHeaderRow(bool expanded, Color color, Constellation constellation)
+        {
+            Texture2D texture = UIUtils.createAndColorize(20, 10, color);
+
+            UIStyle style = new UIStyle();
+            style.fontStyle = FontStyle.Normal;
+            style.fontSize = 14;
+            style.alignment = TextAnchor.MiddleLeft;
+            style.normal = new UIStyleState();
+            style.normal.textColor = Color.white;
+            DialogGUILabel bodyLabel = new DialogGUILabel((expanded ? ">" : "<"), style);
+            DialogGUILabel nameLabel = new DialogGUILabel(String.Format("{0} {2} - {1}", Localizer.Format("#CNC_Generic_FrequencyLabel"), constellation.name, constellation.frequency), style);
+
+            DialogGUIImage bodyImage = new DialogGUIImage(new Vector2(colorWidth - 50, 10f), Vector2.zero, Color.white, texture);
+            DialogGUIHorizontalLayout imageBtnLayout = new DialogGUIHorizontalLayout(TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUISpace(10), bodyLabel, new DialogGUISpace(10), nameLabel, new DialogGUIFlexibleSpace(), bodyImage, new DialogGUISpace(10) });
+            DialogGUIButton expandButton = new DialogGUIButton("", delegate { toggleConstellationButton(constellation); mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, headerWidth, 24, false, new DialogGUIBase[] { imageBtnLayout });
+            DialogGUIHorizontalLayout bodyGroup = new DialogGUIHorizontalLayout(false, false, 0, new RectOffset(0, 0, 2, 2), TextAnchor.MiddleLeft, new DialogGUIBase[] { expandButton, new DialogGUIFlexibleSpace() });
+            bodyGroup.SetOptionText(constellation.frequency + "");
+            return bodyGroup;
+        }
+
+        private void toggleConstellationButton(Constellation constellation)
+        {
+            if (constellationDict.ContainsKey(constellation.frequency))
+            {
+                var treeEntry = constellationDict[constellation.frequency];
+                treeEntry.Expanded = !treeEntry.Expanded;
+            }
+        }
+        #endregion
+
+        /////////////////////
+        // Sub GUI - vessels sorted by launch time
+        #region Sub GUI - vessels sorted by launch time region
+        private List<DialogGUIHorizontalLayout> populateLaunchVesselRows()
+        {
+            List<DialogGUIHorizontalLayout> newRows = new List<DialogGUIHorizontalLayout>();
+            List<CNCCommNetVessel> allVessels = CNCCommNetScenario.Instance.getCommNetVessels();
+            allVessels.Sort((x, y) => y.Vessel.launchTime.CompareTo(x.Vessel.launchTime));
+
+            for (int i = 0; i < allVessels.Count; i++)
+            {
+                var vessel = allVessels[i];
+                if (vessel != null && MapViewFiltering.CheckAgainstFilter(vessel.Vessel))
+                {
+                    newRows.Add(createVesselRow(vessel));
+                }
+            }
+
+            return newRows;
+        }
+        #endregion
+
+        /////////////////////
+        // Actions
+        #region Actions region
         private void updateVesselGUIRow(Vessel updatedVessel)
         {
             if (this.currentContentType != ContentType.VESSELS)
@@ -362,7 +756,7 @@ namespace CommNetConstellation.UI
                 DialogGUIBase thisRow = rows[i];
                 if (thisRow.OptionText.Equals(updatedVessel.id.ToString()))
                 {
-                    DialogGUILabel freqLabel = thisRow.children[2] as DialogGUILabel;
+                    DialogGUILabel freqLabel = thisRow.children[3] as DialogGUILabel;
                     freqLabel.SetOptionText(getFreqString(thisVessel.getFrequencyList(), thisVessel.getStrongestFrequency()));
                     return;
                 }
@@ -385,16 +779,17 @@ namespace CommNetConstellation.UI
             if (this.currentContentType != ContentType.VESSELS)
                 return;
 
-            //clear vessel rows
+            //clear content rows
             List<DialogGUIBase> rows = contentLayout.children;
-            for (int i = rows.Count-1; i >= 1 ; i--)
+            for (int i = rows.Count - 1; i >= 1; i--)
             {
                 DialogGUIBase thisRow = rows[i];
                 rows.RemoveAt(i);
                 thisRow.uiItem.gameObject.DestroyGameObjectImmediate(); // necessary to free memory up
             }
-            
-            List<DialogGUIHorizontalLayout> newRows = populateVesselRows(filter);
+
+            //generate content rows
+            List<DialogGUIHorizontalLayout> newRows = getVesselContentRows(currentVesselSort);
             Stack<Transform> stack = new Stack<Transform>(); // some data on hierarchy of GUI components
             stack.Push(contentLayout.uiItem.gameObject.transform); // need the reference point of the parent GUI component for position and size
             for (int i = 0; i < newRows.Count; i++)
@@ -403,43 +798,15 @@ namespace CommNetConstellation.UI
                 rows.Add(newRows[i]);
             }
         }
+        #endregion
 
-        private List<DialogGUIHorizontalLayout> populateVesselRows(VesselTypeFilter filter)
-        {
-            List<DialogGUIHorizontalLayout> newRows = new List<DialogGUIHorizontalLayout>();
-            List<CNCCommNetVessel> allVessels = CNCCommNetScenario.Instance.getCommNetVessels();
-
-            switch (currentVesselSort)
-            {
-                case VesselListSort.RADIOFREQ:
-                    allVessels.Sort((x, y) => x.getStrongestFrequency()-y.getStrongestFrequency());
-                    break;
-                case VesselListSort.VESSELNAME:
-                    allVessels.Sort((x, y) => x.Vessel.GetName().CompareTo(y.Vessel.GetName()));
-                    break;
-                case VesselListSort.CBODY:
-                    allVessels.Sort((x, y) => x.Vessel.mainBody.name.CompareTo(y.Vessel.mainBody.name));
-                    break;
-                default:
-                    allVessels.Sort((x, y) => y.Vessel.launchTime.CompareTo(x.Vessel.launchTime));
-                    break;
-            }
-
-            var itr = allVessels.GetEnumerator();
-            while(itr.MoveNext())
-            {
-                CNCCommNetVessel thisVessel = itr.Current;
-                if (MapViewFiltering.CheckAgainstFilter(thisVessel.Vessel))
-                    newRows.Add(createVesselRow(thisVessel));
-            }
-
-            return newRows;
-        }
+        #endregion
 
         /////////////////////
         // GROUND STATIONS
         /////////////////////
 
+        #region GROUND STATIONS region
         /////////////////////
         // GUI
         private List<DialogGUIBase> getGroundstationContentLayout()
@@ -554,5 +921,6 @@ namespace CommNetConstellation.UI
         {
             new GroundStationBuildDialog(Localizer.Format("#CNC_ConstellationControl_GroundStationBuild_title"), thisStation, updateGroundStationGUIRow).launch();//"Ground station - <color=#00ff00>Upgrade</color>"
         }
+        #endregion
     }
 }
