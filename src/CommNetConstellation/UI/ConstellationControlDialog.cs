@@ -25,6 +25,7 @@ namespace CommNetConstellation.UI
         public TreeEntry()
         {
             SubEntries = new List<TreeEntry>();
+            Guid = Guid.Empty;
             Expanded = true;
             Text = "Root";
         }
@@ -56,7 +57,7 @@ namespace CommNetConstellation.UI
     /// </summary>
     public class ConstellationControlDialog : AbstractDialog
     {
-        public enum VesselListSort {LAUNCHDATE, RADIOFREQ, VESSELNAME, CBODY };
+        public enum VesselListSort {LAUNCHDATE_ASC, LAUNCHDATE_DESC, RADIOFREQ, VESSELNAME, CBODY };
         private enum ContentType { CONSTELLATIONS, GROUNDSTATIONS, VESSELS };
 
         private readonly short depthWidth = 40;
@@ -403,7 +404,7 @@ namespace CommNetConstellation.UI
             style.normal.textColor = Color.white;
 
             DialogGUILabel sortLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_sortLabel"), style);//"Sort by"
-            DialogGUIButton launchSortBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_launchSortBtn"), delegate { currentVesselSort = VesselListSort.LAUNCHDATE; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);//"Launch time"
+            DialogGUIButton launchSortBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_launchSortBtn"), delegate { currentVesselSort = currentVesselSort == VesselListSort.LAUNCHDATE_DESC? VesselListSort.LAUNCHDATE_ASC : VesselListSort.LAUNCHDATE_DESC; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);//"Launch time"
             DialogGUIButton freqSortBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_freqSortBtn"), delegate { currentVesselSort = VesselListSort.RADIOFREQ; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth+40, btnHeight, false);//"Strongest frequency"
             //DialogGUIButton nameSortBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_nameSortBtn"), delegate { currentVesselSort = VesselListSort.VESSELNAME; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);//"Vessel name"
             DialogGUIButton bodySortBtn = new DialogGUIButton(Localizer.Format("#CNC_ConstellationControl_bodySortBtn"), delegate { currentVesselSort = VesselListSort.CBODY; mapfilterChanged(MapViewFiltering.vesselTypeFilter); }, btnWidth, btnHeight, false);//"Celestial body"
@@ -417,14 +418,16 @@ namespace CommNetConstellation.UI
         private List<DialogGUIHorizontalLayout> getVesselContentRows(VesselListSort sorting)
         {
             currentVesselSort = sorting;
+
             switch (sorting)
             {
                 case VesselListSort.CBODY:
-                    return populateCBodyVesselRows();
-                case VesselListSort.LAUNCHDATE:
-                    return populateLaunchVesselRows();
+                    return populateCBodyVesselRows(sorting);
+                case VesselListSort.LAUNCHDATE_ASC:
+                case VesselListSort.LAUNCHDATE_DESC:
+                    return populateLaunchVesselRows(sorting);
                 case VesselListSort.RADIOFREQ:
-                    return populateFreqVesselRows();
+                    return populateFreqVesselRows(sorting);
                 case VesselListSort.VESSELNAME:
                     CNCLog.Verbose("VesselListSort.VESSELNAME not in use");
                     return new List<DialogGUIHorizontalLayout>();
@@ -457,29 +460,55 @@ namespace CommNetConstellation.UI
         /////////////////////
         // Sub GUI - vessels sorted by planets
         #region Sub GUI - vessels sorted by planets region
-        private List<DialogGUIHorizontalLayout> populateCBodyVesselRows()
+        private List<DialogGUIHorizontalLayout> populateCBodyVesselRows(VesselListSort sorting)
         {
             List<DialogGUIHorizontalLayout> newRows = new List<DialogGUIHorizontalLayout>();
             List<CNCCommNetVessel> allVessels = CNCCommNetScenario.Instance.getCommNetVessels();
             allVessels.Sort((x, y) => x.Vessel.GetName().CompareTo(y.Vessel.GetName()));
 
+            // find paths touched by vessels
+            List<TreeEntry> pathDict = new List<TreeEntry>();
+            List<List<TreeEntry>> paths = new List<List<TreeEntry>>();
+            findAllPaths(celestialBodyTree, new List<TreeEntry>(), paths);
+            for(int i=0; i<paths.Count;i++)
+            {
+                for(int j=0;j<paths[i].Count; j++)
+                {
+                    if (!pathDict.Contains(paths[i][j]))
+                    {
+                        pathDict.Add(paths[i][j]);
+                    }
+                }
+            }
+
             // Depth-first tree traversal.
             Stack<TreeEntry> dfs = new Stack<TreeEntry>();
             for (int i = 0; i < celestialBodyTree.SubEntries.Count; i++)
             {
-                var child = celestialBodyTree.SubEntries[i];
-                dfs.Push(child);
+                dfs.Push(celestialBodyTree.SubEntries[i]);
             }
 
             while (dfs.Count > 0)
             {
                 var current = dfs.Pop();
 
-                // draw child
-                var body = FlightGlobals.Bodies.Find(x => x.bodyName.Equals(current.Text));
-                if (body != null)
+                // push childen if expanded
+                if (current.Expanded)
                 {
-                    newRows.Add(createBodyHeaderRow(current.Depth - 1 , current.Expanded, current.Color, body));
+                    for (int j = 0; j < current.SubEntries.Count; j++)
+                    {
+                        dfs.Push(current.SubEntries[j]);
+                    }
+                }
+
+                // draw node
+                if (current.Guid == Guid.Empty) // planet
+                {
+                    var body = FlightGlobals.Bodies.Find(x => x.bodyName.Equals(current.Text));
+                    if (body != null && pathDict.Contains(current))
+                    {
+                        newRows.Add(createBodyHeaderRow(current.Depth - 1, current.Expanded, current.Color, body));
+                    }
                 }
                 else
                 {
@@ -489,19 +518,32 @@ namespace CommNetConstellation.UI
                         newRows.Add(createVesselRow(vessel, current.Depth - 1));
                     }
                 }
-
-                // draw child's grandchilden if expanded
-                if (current.Expanded)
-                {
-                    for (int j = 0; j < current.SubEntries.Count; j++)
-                    {
-                        var child2 = current.SubEntries[j];
-                        dfs.Push(child2);
-                    }
-                }
             }
 
             return newRows;
+        }
+
+        private void findAllPaths(TreeEntry node, List<TreeEntry> prefixPath, List<List<TreeEntry>> paths)
+        {
+            var planetEndPathAdded = false;
+            List<TreeEntry> nextPath = new List<TreeEntry>(prefixPath);
+            nextPath.Add(node);
+            for (int i = 0; i < node.SubEntries.Count; i++)
+            {
+                if(node.SubEntries[i].Guid != Guid.Empty) //child is vessel
+                {
+                    var vessel = CNCCommNetScenario.Instance.getCommNetVessels().Find(x => x.Vessel.id == node.SubEntries[i].Guid);
+                    if (vessel != null && MapViewFiltering.CheckAgainstFilter(vessel.Vessel) && !planetEndPathAdded)
+                    {
+                        paths.Add(nextPath);
+                        planetEndPathAdded = true; //add once to avoid duplicate planet-end paths for all vessels
+                    }
+                }
+                else
+                {
+                    findAllPaths(node.SubEntries[i], nextPath, paths);
+                }
+            }
         }
 
         private DialogGUIHorizontalLayout createBodyHeaderRow(int depth, bool expanded, Color color, CelestialBody body)
@@ -546,7 +588,7 @@ namespace CommNetConstellation.UI
 
                 var current = dict[cb];
                 current.Text = cb.bodyName;
-                //current.Guid = cb.Guid();
+                current.Guid = Guid.Empty;
                 current.Color = cb.GetOrbitDriver() != null ? cb.GetOrbitDriver().Renderer.nodeColor : Color.yellow;
                 current.Color.a = 1.0f;
 
@@ -600,7 +642,7 @@ namespace CommNetConstellation.UI
         /////////////////////
         // Sub GUI - vessels sorted by frequencies
         #region Sub GUI - vessels sorted by frequencies region
-        private List<DialogGUIHorizontalLayout> populateFreqVesselRows()
+        private List<DialogGUIHorizontalLayout> populateFreqVesselRows(VesselListSort sorting)
         {
             List<DialogGUIHorizontalLayout> newRows = new List<DialogGUIHorizontalLayout>();
             List<CNCCommNetVessel> allVessels = CNCCommNetScenario.Instance.getCommNetVessels();
@@ -610,17 +652,37 @@ namespace CommNetConstellation.UI
             Stack<TreeEntry> dfs = new Stack<TreeEntry>();
             for (int i = 0; i < constellationTree.SubEntries.Count; i++)
             {
-                var child = constellationTree.SubEntries[i];
-                dfs.Push(child);
+                dfs.Push(constellationTree.SubEntries[i]);
             }
 
             while (dfs.Count > 0)
             {
                 var current = dfs.Pop();
+                var hasChildrenPermitted = false;
 
-                // draw child
-                var constellation = CNCCommNetScenario.Instance.constellations.Find(x => x.name.Equals(current.Text));
-                if (constellation != null)
+                // peek children
+                for (int j = 0; j < current.SubEntries.Count; j++)
+                {
+                    var vessel = allVessels.Find(x => x.Vessel.id == current.SubEntries[j].Guid);
+                    if (vessel != null && MapViewFiltering.CheckAgainstFilter(vessel.Vessel))
+                    {
+                        hasChildrenPermitted = true;
+                        break;
+                    }
+                }
+
+                // push children if expanded
+                if (current.Expanded)
+                {
+                    for (int j = 0; j < current.SubEntries.Count; j++)
+                    {
+                        dfs.Push(current.SubEntries[j]);
+                    }
+                }
+
+                // draw node
+                var constellation = CNCCommNetScenario.Instance.constellations.Find(x => ("freq"+x.frequency).Equals(current.Text));
+                if (constellation != null && hasChildrenPermitted)
                 {
                     newRows.Add(createFreqHeaderRow(current.Expanded, current.Color, constellation));
                 }
@@ -630,16 +692,6 @@ namespace CommNetConstellation.UI
                     if (vessel != null && MapViewFiltering.CheckAgainstFilter(vessel.Vessel))
                     {
                         newRows.Add(createVesselRow(vessel));
-                    }
-                }
-
-                // draw child's grandchilden if expanded
-                if (current.Expanded)
-                {
-                    for (int j = 0; j < current.SubEntries.Count; j++)
-                    {
-                        var child2 = current.SubEntries[j];
-                        dfs.Push(child2);
                     }
                 }
             }
@@ -661,8 +713,8 @@ namespace CommNetConstellation.UI
                 }
 
                 var current = dict[con.frequency];
-                current.Text = con.name;
-                //current.Guid = cb.Guid();
+                current.Text = "freq"+con.frequency;
+                current.Guid = Guid.Empty;
                 current.Color = con.color;
                 current.Color.a = 1.0f;
 
@@ -721,11 +773,19 @@ namespace CommNetConstellation.UI
         /////////////////////
         // Sub GUI - vessels sorted by launch time
         #region Sub GUI - vessels sorted by launch time region
-        private List<DialogGUIHorizontalLayout> populateLaunchVesselRows()
+        private List<DialogGUIHorizontalLayout> populateLaunchVesselRows(VesselListSort sorting)
         {
             List<DialogGUIHorizontalLayout> newRows = new List<DialogGUIHorizontalLayout>();
             List<CNCCommNetVessel> allVessels = CNCCommNetScenario.Instance.getCommNetVessels();
-            allVessels.Sort((x, y) => y.Vessel.launchTime.CompareTo(x.Vessel.launchTime));
+
+            if (sorting == VesselListSort.LAUNCHDATE_DESC)
+            {
+                allVessels.Sort((x, y) => y.Vessel.launchTime.CompareTo(x.Vessel.launchTime));
+            }
+            if (sorting == VesselListSort.LAUNCHDATE_ASC)
+            {
+                allVessels.Sort((x, y) => x.Vessel.launchTime.CompareTo(y.Vessel.launchTime));
+            }
 
             for (int i = 0; i < allVessels.Count; i++)
             {
