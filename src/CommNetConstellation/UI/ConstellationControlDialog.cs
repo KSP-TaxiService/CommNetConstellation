@@ -492,12 +492,13 @@ namespace CommNetConstellation.UI
             {
                 var current = dfs.Pop();
 
-                // push childen if expanded
-                if (current.Expanded)
+                // push childen
+                for (int j = 0; j < current.SubEntries.Count; j++)
                 {
-                    for (int j = 0; j < current.SubEntries.Count; j++)
+                    var child = current.SubEntries[j];
+                    if (child.Guid == Guid.Empty || (child.Guid != Guid.Empty && current.Expanded))
                     {
-                        dfs.Push(current.SubEntries[j]);
+                        dfs.Push(current.SubEntries[j]); // add if planet or vessels under expanded planet header
                     }
                 }
 
