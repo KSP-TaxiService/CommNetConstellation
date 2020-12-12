@@ -14,7 +14,6 @@ namespace CommNetConstellation.UI.VesselMgtTools
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
         private DialogGUITextInput frequencyInput;
         private DialogGUIImage constellationColorImage;
-        private bool membershipOption;
 
         public VanillaFreqTool(CommNetVessel thisVessel, Callback updateFreqRowsCallback) : base(thisVessel, "vanilla", Localizer.Format("#CNC_ToolsNames_MasterFrequency"), new List<Callback>() { updateFreqRowsCallback })//"Master frequency"
         {
@@ -27,17 +26,14 @@ namespace CommNetConstellation.UI.VesselMgtTools
             DialogGUILabel msgLbl = new DialogGUILabel(Localizer.Format("#CNC_getContentCompon_msgLabel4"), 100, 32);//"Set up the master frequency in one go. All antennas will be assigned to this frequency, and Comm powers of those deployed antennas will be combined."
             layout.Add(new DialogGUIHorizontalLayout(true, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { msgLbl }));
 
-            DialogGUILabel freqLabel = new DialogGUILabel("<b>" + Localizer.Format("#CNC_Generic_FrequencyLabel") + "</b>", 52, 12);//Frequency
+            DialogGUILabel freqLabel = new DialogGUILabel("<b>" + Localizer.Format("#CNC_Generic_FrequencyLabel") + "</b>", 60, 12);//Frequency
             frequencyInput = new DialogGUITextInput(CNCSettings.Instance.PublicRadioFrequency+"", false, CNCSettings.MaxDigits, setConstellFreq, 45, 25);
-            DialogGUIToggle membershipToggle = new DialogGUIToggle(false, "", membershipFlagToggle);
-            DialogGUILabel membershipLabel = new DialogGUILabel("<b>"+Localizer.Format("#CNC_getContentCompon_membershipLabel") +"</b>", 200, 12);//Talk to constellation members only
-
-            DialogGUIHorizontalLayout constellationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { freqLabel, frequencyInput, new DialogGUISpace(20), membershipToggle, membershipLabel });
-            layout.Add(constellationGroup);
 
             constellationColorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, Color.white, colorTexture);
             DialogGUILabel constNameLabel = new DialogGUILabel(getConstellationName, 200, 12);
-            layout.Add(new DialogGUIHorizontalLayout(false, false, 0, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { constNameLabel, constellationColorImage }));
+
+            DialogGUIHorizontalLayout constellationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { new DialogGUISpace(45), freqLabel, frequencyInput, new DialogGUISpace(45), constNameLabel, constellationColorImage, new DialogGUISpace(45) });
+            layout.Add(constellationGroup);
 
             DialogGUIButton updateButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_UpdateButton"), updateClick, false);//"Update"
             DialogGUIButton publicButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_PublicButton"), defaultClick, false);//"Revert to public"
@@ -45,11 +41,6 @@ namespace CommNetConstellation.UI.VesselMgtTools
             layout.Add(actionGroup);
 
             return layout;
-        }
-
-        private void membershipFlagToggle(bool state)
-        {
-            this.membershipOption = state;
         }
 
         private string setConstellFreq(string freqInput)
@@ -79,6 +70,7 @@ namespace CommNetConstellation.UI.VesselMgtTools
         private void defaultClick()
         {
             frequencyInput.uiItem.GetComponent<TMP_InputField>().text = CNCSettings.Instance.PublicRadioFrequency.ToString();
+            updateClick();
         }
 
         private void updateClick()
@@ -114,13 +106,6 @@ namespace CommNetConstellation.UI.VesselMgtTools
                             this.cncVessel.updateFrequency(thisAntenna, userFreq);
                     }
                     this.cncVessel.rebuildFreqList();
-
-                    //if membership option is not enabled, add public freq of same comm power
-                    if (!membershipOption && userFreq != CNCSettings.Instance.PublicRadioFrequency)
-                    {
-                        double commPower = this.cncVessel.getMaxComPower(userFreq);
-                        this.cncVessel.addToFreqList(CNCSettings.Instance.PublicRadioFrequency, commPower);
-                    }
                     
                     actionCallbacks[0]();
                 }
