@@ -4,13 +4,14 @@ using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using CommNetManagerAPI;
 
 namespace CommNetConstellation.CommNetLayer
 {
     /// <summary>
     /// Customise the home nodes
     /// </summary>
-    public class CNCCommNetHome : CommNetHome, IComparable<CNCCommNetHome>
+    public class CNCCommNetHome : CommNetManagerAPI.CNMHomeComponent, IComparable<CNCCommNetHome>
     {
         public static readonly Texture2D L0MarkTexture = UIUtils.loadImage("GroundStationL0Mark");
         public static readonly Texture2D L1MarkTexture = UIUtils.loadImage("GroundStationL1Mark");
@@ -36,31 +37,27 @@ namespace CommNetConstellation.CommNetLayer
         //for low-gc operations
         protected short[] sorted_frequency_array;
 
-        public double altitude { get { return this.alt; } set { this.alt = value; } }
-        public double latitude { get { return this.lat; } set { this.lat = value; } }
-        public double longitude { get { return this.lon; } set { this.lon = value; } }
-        public CommNode commNode { get { return this.comm; } }
+        public double altitude { get { return ((ICNMHome)this.CommNetHome).Alt; } set { ((ICNMHome)this.CommNetHome).Alt = value; } }
+        public double latitude { get { return ((ICNMHome)this.CommNetHome).Lat; } set { ((ICNMHome)this.CommNetHome).Lat = value; } }
+        public double longitude { get { return ((ICNMHome)this.CommNetHome).Lon; } set { ((ICNMHome)this.CommNetHome).Lon = value; } }
+        public CelestialBody body { get { return ((ICNMHome)this.CommNetHome).Body; } set { ((ICNMHome)this.CommNetHome).Body = value; } }
+        public CommNode comm { get { return ((ICNMHome)this.CommNetHome).Comm; } set { ((ICNMHome)this.CommNetHome).Comm = value; } }
         public string stationName
         {
-            get { return (this.OptionalName.Length == 0)? this.displaynodeName : this.OptionalName; }
+            get { return (this.OptionalName.Length == 0)? this.CommNetHome.displaynodeName : this.OptionalName; }
             set { this.OptionalName = value; }
         }
 
-        /// <summary>
-        /// Empty constructor for ConfigNode.LoadObjectFromConfig()
-        /// </summary>
-        public CNCCommNetHome() { }
-
-        public void copyOf(CommNetHome stockHome)
+        public override void Initialize(CommNetHome stockHome)
         {
+            if (CNCCommNetScenario.Instance == null)
+            {
+                return;
+            }
+
             CNCLog.Verbose("Stock CommNet Home '{0}' added", stockHome.nodeName);
 
             this.ID = stockHome.nodeName;
-            this.nodeName = stockHome.nodeName;
-            this.displaynodeName = Localizer.Format(stockHome.displaynodeName);
-            this.nodeTransform = stockHome.nodeTransform;
-            this.isKSC = stockHome.isKSC;
-            this.body = stockHome.GetComponentInParent<CelestialBody>();
 
             //comm, lat, alt, lon are initialised by CreateNode() later
         }
@@ -144,7 +141,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public void incrementTechLevel()
         {
-            if (this.TechLevel < 3 && !this.isKSC)
+            if (this.TechLevel < 3 && !this.CommNetHome.isKSC)
             {
                 this.TechLevel++;
                 refresh();
@@ -156,7 +153,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public void decrementTechLevel()
         {
-            if (this.TechLevel > 0 && !this.isKSC)
+            if (this.TechLevel > 0 && !this.CommNetHome.isKSC)
             {
                 this.TechLevel--;
                 refresh();
@@ -168,7 +165,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public void setTechLevel(short level)
         {
-            if (level >= 0 && level <= 3 && !this.isKSC)
+            if (level >= 0 && level <= 3 && !this.CommNetHome.isKSC)
             {
                 this.TechLevel = level;
                 refresh();
@@ -218,14 +215,13 @@ namespace CommNetConstellation.CommNetLayer
                 //self-destruct
                 CNCLog.Error("CommNet Home '{0}' self-destructed due to missing info", this.ID);
                 CNCCommNetScenario.Instance.groundStations.Remove(this);
-                this.OnDestroy();
                 UnityEngine.Object.Destroy(this);
                 return;
             }
 
-            if (this.nodeTransform == null)
+            if (this.CommNetHome.nodeTransform == null)
             {
-                this.nodeTransform = base.nodeTransform;
+                this.CommNetHome.nodeTransform = base.CommNetHome.nodeTransform;
             }
 
             if (CommNetNetwork.Initialized)
@@ -256,7 +252,7 @@ namespace CommNetConstellation.CommNetLayer
             if (!(HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION))
                 return;
 
-            if ((!HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().enableGroundStations && !this.isKSC) || !MapView.MapIsEnabled || MapView.MapCamera == null)
+            if ((!HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().enableGroundStations && !this.CommNetHome.isKSC) || !MapView.MapIsEnabled || MapView.MapCamera == null)
                 return;
 
             if (CNCCommNetScenario.Instance == null || CNCCommNetScenario.Instance.hideGroundStations)
@@ -403,7 +399,7 @@ namespace CommNetConstellation.CommNetLayer
             }
 
             // Obtain Tech Level of Tracking Station in KCS
-            if (this.isKSC)
+            if (this.CommNetHome.isKSC)
             {
                 this.TechLevel = (short)((2 * ScenarioUpgradeableFacilities.GetFacilityLevel(SpaceCenterFacility.TrackingStation)) + 1);
             }
@@ -451,7 +447,7 @@ namespace CommNetConstellation.CommNetLayer
         public double GetDSNRange(short level)
         {
             double power;
-            if (this.isKSC)
+            if (this.CommNetHome.isKSC)
             {
                 power = CNCSettings.Instance.KSCStationPowers[level - 1];
             }
@@ -477,13 +473,13 @@ namespace CommNetConstellation.CommNetLayer
         {
             if (this.comm != null && this.body != null)
             {
-                this.comm.precisePosition = this.body.GetWorldSurfacePosition(this.lat, this.lon, this.alt);
+                this.comm.precisePosition = this.body.GetWorldSurfacePosition(this.latitude, this.longitude, this.altitude);
                 //this.comm.position has no setter
                 this.comm.transform.position = this.comm.precisePosition;
 
-                if (this.nodeTransform != null)
+                if (this.CommNetHome.nodeTransform != null)
                 {
-                    this.nodeTransform.position = this.comm.precisePosition;
+                    this.CommNetHome.nodeTransform.position = this.comm.precisePosition;
                 }
             }
         }

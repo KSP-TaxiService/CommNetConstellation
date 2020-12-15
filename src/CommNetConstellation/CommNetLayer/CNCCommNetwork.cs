@@ -1,5 +1,6 @@
 ﻿using CommNet;
 using CommNetConstellation.UI;
+using CommNetManagerAPI;
 using System;
 
 namespace CommNetConstellation.CommNetLayer
@@ -32,6 +33,8 @@ namespace CommNetConstellation.CommNetLayer
         /// <summary>
         /// Edit the connectivity between two potential nodes
         /// </summary>
+        [CNMAttrAndOr(CNMAttrAndOr.options.AND)]
+        [CNMAttrSequence(CNMAttrSequence.options.LATE)]
         protected override bool SetNodeConnection(CommNode a, CommNode b)
         {
             try
@@ -51,7 +54,8 @@ namespace CommNetConstellation.CommNetLayer
                     //each CommNode has at least some frequencies?
                     if (GameUtils.firstCommonElement(CNCCommNetScenario.Instance.getFrequencies(a), CNCCommNetScenario.Instance.getFrequencies(b)) >= 0)
                     {
-                        return base.SetNodeConnection(a, b);
+                        //return base.SetNodeConnection(a, b);
+                        return CommNetManagerChecker.CommNetManagerInstalled ? true : base.SetNodeConnection(a, b);
                     }
                     else
                     {

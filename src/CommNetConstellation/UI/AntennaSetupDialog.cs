@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using System;
 using TMPro;
 using KSP.Localization;
+using CommNetManagerAPI;
 
 namespace CommNetConstellation.UI
 {
@@ -158,7 +159,7 @@ namespace CommNetConstellation.UI
                     {
                         if (this.hostVessel != null)
                         {
-                            CNCCommNetVessel cncVessel = (CNCCommNetVessel)this.hostVessel.Connection;
+                            CNCCommNetVessel cncVessel = ((IModularCommNetVessel)this.hostVessel.connection).GetModuleOfType<CNCCommNetVessel>();
                             cncVessel.OnAntennaChange();
                         }
 

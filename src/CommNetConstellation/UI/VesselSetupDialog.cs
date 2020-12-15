@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using CommNetConstellation.UI.VesselMgtTools;
 using CommNetConstellation.UI.DialogGUI;
 using KSP.Localization;
+using CommNetManagerAPI;
 
 namespace CommNetConstellation.UI
 {
@@ -14,6 +15,7 @@ namespace CommNetConstellation.UI
     public class VesselSetupDialog : AbstractDialog
     {
         private Vessel hostVessel; // could be null (in editor)
+        private CNCCommNetVessel cncVessel = null;
         private string description = Localizer.Format("#CNC_AntennaSetup_DescText1");// "Something"
 
         private const string nofreqMessage = "#CNC_VesselSetup_nofreqMessage";//"No active frequency to broadcast!"
@@ -34,6 +36,7 @@ namespace CommNetConstellation.UI
                                                                                                                 new DialogOptions[] {})
         {
             this.hostVessel = vessel;
+            this.cncVessel = ((IModularCommNetVessel)hostVessel.Connection).GetModuleOfType<CNCCommNetVessel>();
             this.updateCallback = updateCallback;
             this.description = Localizer.Format("#CNC_VesselSetup_desc", this.hostVessel.GetDisplayName());//string.Format("Active frequencies allow this vessel '{0}' to talk with other vessels, which share one or more of these frequencies.", )
 
@@ -65,7 +68,6 @@ namespace CommNetConstellation.UI
         {
             List<DialogGUIBase> listComponments = new List<DialogGUIBase>();
 
-            CNCCommNetVessel cncVessel = (CNCCommNetVessel)this.hostVessel.Connection;
             List<short> vesselFrequencyList = cncVessel.getFrequencyList();
             vesselFrequencyList.Sort();
 
@@ -101,7 +103,6 @@ namespace CommNetConstellation.UI
 
         private DialogGUIHorizontalLayout createFrequencyRow(short freq)
         {
-            CNCCommNetVessel cncVessel = (CNCCommNetVessel)this.hostVessel.Connection;
             Color color = Constellation.getColor(freq);
             string name = Constellation.getName(freq);
 
@@ -116,7 +117,6 @@ namespace CommNetConstellation.UI
         {
             deregisterLayoutComponents(frequencyRowLayout);
 
-            CNCCommNetVessel cncVessel = (CNCCommNetVessel)this.hostVessel.Connection;
             List<short> vesselFrequencyList = cncVessel.getFrequencyList();
             vesselFrequencyList.Sort();
 

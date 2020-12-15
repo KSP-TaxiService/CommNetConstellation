@@ -7,9 +7,8 @@
     }
   ],
   "depends": [
-    {
-      "name": "ModuleManager"
-    }
+    { "name": "ModuleManager" },
+    { "name": "CommNetManager" }
   ],
   "conflicts": [
     { "name": "CommNetVisualisation" },

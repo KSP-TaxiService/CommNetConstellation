@@ -4,6 +4,7 @@ using KSP.UI.Screens.Flight;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using CommNetManagerAPI;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -20,7 +21,7 @@ namespace CommNetConstellation.CommNetLayer
          */
 
         private CNCCommNetUI CustomCommNetUI = null;
-        private CNCCommNetNetwork CustomCommNetNetwork = null;
+        private CommNetNetwork CustomCommNetNetwork = null;
         private CNCTelemetryUpdate CustomCommNetTelemetry = null;
         private CNCCommNetUIModeButton CustomCommNetModeButton = null;
         public List<Constellation> constellations = new List<Constellation>();
@@ -38,6 +39,12 @@ namespace CommNetConstellation.CommNetLayer
 
         protected override void Start()
         {
+            if (!CommNetManagerChecker.CommNetManagerInstalled)
+            {
+                CNCLog.Error("CommNet Manager is not installed! Please download and install this to use CommNet Constellation.");
+                return;
+            }
+
             CNCCommNetScenario.Instance = this;
             this.commVessels = new List<CNCCommNetVessel>();
             this.dirtyCommNetVesselList = true;
@@ -58,9 +65,7 @@ namespace CommNetConstellation.CommNetLayer
             UnityEngine.Object.Destroy(ui);
 
             //Replace the CommNet network
-            CommNetNetwork net = FindObjectOfType<CommNetNetwork>();
-            CustomCommNetNetwork = gameObject.AddComponent<CNCCommNetNetwork>();
-            UnityEngine.Object.Destroy(net);
+            CommNetManagerChecker.SetCommNetManagerIfAvailable(this, typeof(CNCCommNetNetwork), out CustomCommNetNetwork);
 
             //Replace the TelemetryUpdate
             TelemetryUpdate tel = TelemetryUpdate.Instance; //only appear in flight
@@ -79,18 +84,19 @@ namespace CommNetConstellation.CommNetLayer
                 UnityEngine.Object.DestroyImmediate(cnmodeUI);
             }
 
+            //Request for CommNetManager instance
+            ICommNetManager CNM = (ICommNetManager)CommNetManagerChecker.GetCommNetManagerInstance();
+            CNM.SetCommNetTypes();
+
             //Replace the CommNet ground stations
             groundStations.Clear();
-            CommNetHome[] homes = FindObjectsOfType<CommNetHome>();
-            for(int i=0; i<homes.Length; i++)
+            for(int i=0; i< CNM.Homes.Count; i++)
             {
-                CNCCommNetHome customHome = homes[i].gameObject.AddComponent(typeof(CNCCommNetHome)) as CNCCommNetHome;
-                customHome.copyOf(homes[i]);
-                UnityEngine.Object.Destroy(homes[i]);
+                var customHome = CNM.Homes[i].Components.Find(x => x is CNCCommNetHome) as CNCCommNetHome;
                 groundStations.Add(customHome);
             }
             groundStations.Sort();
-
+            
             //Apply the ground-station changes from persistent.sfs
             for (int i = 0; i < persistentGroundStations.Count; i++)
             {
@@ -101,8 +107,8 @@ namespace CommNetConstellation.CommNetLayer
                     //var additionalHome = ksc.gameObject.AddComponent(typeof(RemoteTechCommNetHome)) as RemoteTechCommNetHome; //fail
                     //var additionalHome = gameObject.AddComponent<RemoteTechCommNetHome>(); //working but transform reference reused
                     var additionalStation = UnityEngine.Object.Instantiate<CNCCommNetHome>(stockStation); //working
-                    additionalStation.ID = additionalStation.nodeName = additionalStation.displaynodeName = persistentGroundStations[i].ID;
-                    additionalStation.isKSC = false;
+                    additionalStation.ID = additionalStation.CommNetHome.nodeName = additionalStation.CommNetHome.displaynodeName = persistentGroundStations[i].ID;
+                    additionalStation.CommNetHome.isKSC = false;
                     groundStations.Add(additionalStation);
 
                     CNCLog.Verbose("Custom CommNet Home '{0}' added", persistentGroundStations[i].ID);
@@ -111,15 +117,6 @@ namespace CommNetConstellation.CommNetLayer
                 groundStations.Find(x => x.ID.Equals(persistentGroundStations[i].ID)).applySavedChanges(persistentGroundStations[i]);
             }
             persistentGroundStations.Clear();//dont need anymore
-
-            //Replace the CommNet celestial bodies
-            CommNetBody[] bodies = FindObjectsOfType<CommNetBody>();
-            for (int i = 0; i < bodies.Length; i++)
-            {
-                CNCCommNetBody customBody = bodies[i].gameObject.AddComponent(typeof(CNCCommNetBody)) as CNCCommNetBody;
-                customBody.copyOf(bodies[i]);
-                UnityEngine.Object.Destroy(bodies[i]);
-            }
 
             //Imitate stock CommNetScenario.Instance in order to run certain stock functionalities
             //Comment: Vessel.GetControlLevel() has the check on CommNetScenario.Instance != null before calling vessel.connection.GetControlLevel()
@@ -360,7 +357,7 @@ namespace CommNetConstellation.CommNetLayer
         {
             cacheCommNetVessels();
 
-            return commVessels.Find(x => CNCCommNetwork.AreSame(x.Comm, commNode)).Vessel; // more specific equal
+            return commVessels.Find(x => CNCCommNetwork.AreSame(x.CommNetVessel.Comm, commNode)).Vessel; // more specific equal
             //IEqualityComparer<CommNode> comparer = commNode.Comparer; // a combination of third-party mods somehow  affects CommNode's IEqualityComparer on two objects
             //return commVessels.Find(x => comparer.Equals(commNode, x.Comm)).Vessel;
         }
@@ -370,7 +367,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public CNCCommNetHome findCorrespondingGroundStation(CommNode commNode)
         {
-            return groundStations.Find(x => CNCCommNetwork.AreSame(x.commNode, commNode));
+            return groundStations.Find(x => CNCCommNetwork.AreSame(x.comm, commNode));
         }
 
         /// <summary>
@@ -390,11 +387,11 @@ namespace CommNetConstellation.CommNetLayer
                 for (int i = 0; i < allVessels.Count; i++)
                 {
                     if (allVessels[i].connection != null && 
-                        ((allVessels[i].connection as CNCCommNetVessel).IsCommandable && allVessels[i].vesselType != VesselType.Unknown)// && allVessels[i].vesselType != VesselType.Debris) // debris could be spent stage with functional probes and antennas
+                        ((allVessels[i].connection as IModularCommNetVessel).GetModuleOfType<CNCCommNetVessel>().IsCommandable && allVessels[i].vesselType != VesselType.Unknown)// && allVessels[i].vesselType != VesselType.Debris) // debris could be spent stage with functional probes and antennas
                         || (allVessels[i].vesselType == VesselType.DeployedScienceController))
                     {
                         CNCLog.Debug("Caching CommNetVessel '{0}'", allVessels[i].vesselName);
-                        this.commVessels.Add(allVessels[i].connection as CNCCommNetVessel);
+                        this.commVessels.Add(((IModularCommNetVessel)allVessels[i].connection).GetModuleOfType<CNCCommNetVessel>());
                     }
                 }
 
@@ -435,7 +432,8 @@ namespace CommNetConstellation.CommNetLayer
             }
             else
             {
-                return ((CNCCommNetVessel)findCorrespondingVessel(a).Connection).getFrequencyArray();
+                var cncvessel = ((IModularCommNetVessel)a.GetVessel().Connection).GetModuleOfType<CNCCommNetVessel>();
+                return cncvessel.getFrequencyArray();
             }
         }
 
@@ -452,7 +450,8 @@ namespace CommNetConstellation.CommNetLayer
             }
             else
             {
-                power = ((CNCCommNetVessel)findCorrespondingVessel(a).Connection).getMaxComPower(frequency);
+                var cncvessel = ((IModularCommNetVessel)a.GetVessel().Connection).GetModuleOfType<CNCCommNetVessel>();
+                power = cncvessel.getMaxComPower(frequency);
             }
 
             return power;

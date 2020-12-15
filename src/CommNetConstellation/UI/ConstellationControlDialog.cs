@@ -1,6 +1,7 @@
 ﻿using CommNet;
 using CommNetConstellation.CommNetLayer;
 using CommNetConstellation.UI.DialogGUI;
+using CommNetManagerAPI;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
@@ -809,7 +810,7 @@ namespace CommNetConstellation.UI
             if (this.currentContentType != ContentType.VESSELS)
                 return;
 
-            CNCCommNetVessel thisVessel = (CNCCommNetVessel)updatedVessel.Connection;
+            CNCCommNetVessel thisVessel = ((IModularCommNetVessel)updatedVessel).GetModuleOfType<CNCCommNetVessel>();
             List<DialogGUIBase> rows = contentLayout.children;
 
             for (int i = 0; i < rows.Count; i++)
@@ -902,7 +903,7 @@ namespace CommNetConstellation.UI
             }
             else
             {
-                newRows.Add(createGroundStationRow(stations.Find(x => x.isKSC)));
+                newRows.Add(createGroundStationRow(stations.Find(x => x.CommNetHome.isKSC)));
             }
 
             return newRows;
@@ -915,11 +916,11 @@ namespace CommNetConstellation.UI
             DialogGUILabel locationLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_LatitudeAndLongitude", string.Format("{0:0.0}", thisStation.latitude), string.Format("{0:0.0}", thisStation.longitude)), 80, 24);//string.Format("LAT: \nLON: ", , )
             DialogGUILabel freqsLabel = new DialogGUILabel(getFreqString(thisStation.getFrequencyList()), 160, 12);
             DialogGUIButton buildButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Upgradebutton"), delegate { groundstationBuildClick(thisStation); }, 70, 32, false);//"Upgrade"
-            buildButton.OptionInteractableCondition = () => (thisStation.isKSC) ? false : (thisStation.TechLevel < 3) ? true : false;
+            buildButton.OptionInteractableCondition = () => (thisStation.CommNetHome.isKSC) ? false : (thisStation.TechLevel < 3) ? true : false;
             DialogGUIButton updateButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Editbutton"), delegate { groundstationEditClick(thisStation); }, 50, 32, false);//"Edit"
 
             DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, stationNameLabel, locationLabel, freqsLabel, buildButton, updateButton };
-            if (thisStation.isKSC) { rowGUIBase[4] = new DialogGUISpace(70); } //hide upgrade button
+            if (thisStation.CommNetHome.isKSC) { rowGUIBase[4] = new DialogGUISpace(70); } //hide upgrade button
 
             DialogGUIHorizontalLayout groundStationGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, rowGUIBase);
             groundStationGroup.SetOptionText(thisStation.ID); //for quick identification

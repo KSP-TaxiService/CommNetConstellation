@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using UnityEngine;
+using CommNetManagerAPI;
 
 namespace CommNetConstellation.CommNetLayer
 {
@@ -128,9 +129,10 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         private void OnMapNodeUpdateVisible(MapNode node, MapNode.IconData iconData)
         {
-            CNCCommNetVessel thisVessel = (CNCCommNetVessel) node.mapObject.vessel.connection;
+            CNCCommNetVessel thisVessel = ((IModularCommNetVessel)node.mapObject.vessel.connection).GetModuleOfType<CNCCommNetVessel>();
+            //(CNCCommNetVessel) node.mapObject.vessel.connection;
 
-            if(thisVessel != null && node.mapObject.type == MapObject.ObjectType.Vessel)
+            if (thisVessel != null && node.mapObject.type == MapObject.ObjectType.Vessel)
             {
                 if (thisVessel.getStrongestFrequency() < 0) // blind vessel
                 {

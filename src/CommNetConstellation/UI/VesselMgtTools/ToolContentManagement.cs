@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using KSP.Localization;
+using CommNetManagerAPI;
 
 namespace CommNetConstellation.UI.VesselMgtTools
 {
@@ -22,13 +23,13 @@ namespace CommNetConstellation.UI.VesselMgtTools
 
         public AbstractMgtTool(CommNetVessel thisVessel, string uniqueCodename, string toolName, List<Callback> actionCallbacks = null)
         {
-            if (!(thisVessel is CNCCommNetVessel))
+            if (!(thisVessel is IModularCommNetVessel))
             {
                 CNCLog.Error("Vessel '{0}''s connection is not of type CNCCommNetVessel!", thisVessel.Vessel.vesselName);
                 return;
             }
 
-            this.cncVessel = (CNCCommNetVessel)thisVessel;
+            this.cncVessel = ((IModularCommNetVessel)thisVessel).GetModuleOfType<CNCCommNetVessel>();
             this.codename = uniqueCodename + "_mgttool";
             this.toolName = toolName;
             this.actionCallbacks = actionCallbacks;

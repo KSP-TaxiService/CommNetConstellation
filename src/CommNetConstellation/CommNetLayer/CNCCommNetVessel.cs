@@ -68,7 +68,7 @@ namespace CommNetConstellation.CommNetLayer
     /// <summary>
     /// Data structure for a CommNetVessel
     /// </summary>
-    public class CNCCommNetVessel : CommNetVessel, IPersistenceSave, IPersistenceLoad
+    public class CNCCommNetVessel : CommNetManagerAPI.ModularCommNetVesselComponent, IPersistenceSave, IPersistenceLoad
     {
         public enum FrequencyListOperation
         {
@@ -140,30 +140,8 @@ namespace CommNetConstellation.CommNetLayer
             }
         }
 
-        protected override void OnAwake()
+        protected void OnDestroy()
         {
-            base.OnAwake();
-        }
-
-        protected override void OnStart()
-        {
-            if (this.vessel != null)
-            {
-                //if this connection is stock, replace it with this custom connection
-                if (this.vessel.connection != null && this.vessel.connection is CommNetVessel && CommNetNetwork.Initialized)
-                {
-                    CommNetNetwork.Remove(this.vessel.connection.Comm); //delete stock node from commnet network
-                    //UnityEngine.Object.DestroyObject(this.vessel.connection); // don't do this. there are still action-call leftovers of stock CommNetVessel
-                    this.vessel.connection = this;
-                }
-            }
-            base.OnStart();
-        }
-
-        protected override void OnDestroy()
-        {
-            base.OnDestroy();
-
             if (HighLogic.CurrentGame == null)
                 return;
             //if (HighLogic.LoadedScene != GameScenes.FLIGHT)
@@ -503,24 +481,24 @@ namespace CommNetConstellation.CommNetLayer
 
             //Preventative measure on null antenna range curve due to 3rd-party mods
             //Effect: cause commNode.antennaRelay.rangeCurve.Evaluate(normalizedRange) to fail *without* throwing exception
-            if (this.comm.antennaRelay.rangeCurve == null || this.comm.antennaTransmit.rangeCurve == null)
+            if (this.CommNetVessel.Comm.antennaRelay.rangeCurve == null || this.CommNetVessel.Comm.antennaTransmit.rangeCurve == null)
             {
-                if (this.comm.antennaRelay.rangeCurve == null && this.comm.antennaTransmit.rangeCurve != null)
+                if (this.CommNetVessel.Comm.antennaRelay.rangeCurve == null && this.CommNetVessel.Comm.antennaTransmit.rangeCurve != null)
                 {
-                    this.comm.antennaRelay.rangeCurve = this.comm.antennaTransmit.rangeCurve;
+                    this.CommNetVessel.Comm.antennaRelay.rangeCurve = this.CommNetVessel.Comm.antennaTransmit.rangeCurve;
                 }
-                else if (this.comm.antennaRelay.rangeCurve != null && this.comm.antennaTransmit.rangeCurve == null)
+                else if (this.CommNetVessel.Comm.antennaRelay.rangeCurve != null && this.CommNetVessel.Comm.antennaTransmit.rangeCurve == null)
                 {
-                    this.comm.antennaTransmit.rangeCurve = this.comm.antennaRelay.rangeCurve;
+                    this.CommNetVessel.Comm.antennaTransmit.rangeCurve = this.CommNetVessel.Comm.antennaRelay.rangeCurve;
                 }
                 else //failsafe
                 {
                     CNCLog.Error("CommNetVessel '{0}' has no range curve for both relay and transmit AntennaInfo! Fall back to a simple curve.", this.Vessel.GetName());
-                    this.comm.antennaTransmit.rangeCurve = this.comm.antennaRelay.rangeCurve = new DoubleCurve(new DoubleKeyframe[] { new DoubleKeyframe(0.0, 0.0), new DoubleKeyframe(1.0, 1.0) });
+                    this.CommNetVessel.Comm.antennaTransmit.rangeCurve = this.CommNetVessel.Comm.antennaRelay.rangeCurve = new DoubleCurve(new DoubleKeyframe[] { new DoubleKeyframe(0.0, 0.0), new DoubleKeyframe(1.0, 1.0) });
                 }
             }
 
-            this.comm.antennaTransmit.power = getMaxComPower(this.strongestFreq);
+            this.CommNetVessel.Comm.antennaTransmit.power = getMaxComPower(this.strongestFreq);
             //commented as range multiplier is applied by the mod
             //this.comm.antennaTransmit.power *= (double)HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().rangeModifier;
             //this.comm.antennaRelay.power *= (double)HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().rangeModifier;
@@ -766,7 +744,7 @@ namespace CommNetConstellation.CommNetLayer
                         ProtoPartModuleSnapshot cncModule;
                         if ((cncModule = parts[i].FindModule("CNConstellationModule")) == null) //check if CNConstellationModule is there
                         {
-                            CNConstellationModule realcncModule = gameObject.AddComponent<CNConstellationModule>(); // don't use new keyword. PartModule is Monobehavior
+                            CNConstellationModule realcncModule = this.CommNetVessel.gameObject.AddComponent<CNConstellationModule>(); // don't use new keyword. PartModule is Monobehavior
                             parts[i].modules.Add(new ProtoPartModuleSnapshot(realcncModule));
 
                             CNCLog.Verbose("CNConstellationModule is added to CommNet Vessel '{0}'", thisVessel.GetName());
