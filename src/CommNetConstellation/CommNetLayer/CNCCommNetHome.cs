@@ -44,7 +44,7 @@ namespace CommNetConstellation.CommNetLayer
         public CommNode comm { get { return ((ICNMHome)this.CommNetHome).Comm; } set { ((ICNMHome)this.CommNetHome).Comm = value; } }
         public string stationName
         {
-            get { return (this.OptionalName.Length == 0)? this.CommNetHome.displaynodeName : this.OptionalName; }
+            get { return (this.OptionalName.Length == 0)? this.CommNetHome.nodeName : this.OptionalName; }
             set { this.OptionalName = value; }
         }
 

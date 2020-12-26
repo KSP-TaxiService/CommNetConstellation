@@ -810,7 +810,7 @@ namespace CommNetConstellation.UI
             if (this.currentContentType != ContentType.VESSELS)
                 return;
 
-            CNCCommNetVessel thisVessel = ((IModularCommNetVessel)updatedVessel).GetModuleOfType<CNCCommNetVessel>();
+            CNCCommNetVessel thisVessel = ((IModularCommNetVessel)updatedVessel.connection).GetModuleOfType<CNCCommNetVessel>();
             List<DialogGUIBase> rows = contentLayout.children;
 
             for (int i = 0; i < rows.Count; i++)

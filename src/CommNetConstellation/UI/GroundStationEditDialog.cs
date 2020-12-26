@@ -129,7 +129,7 @@ namespace CommNetConstellation.UI
         /// </summary>
         private void defaultNameClick()
         {
-            nameInput.uiItem.GetComponent<TMP_InputField>().text = this.hostStation.CommNetHome.displaynodeName;
+            nameInput.uiItem.GetComponent<TMP_InputField>().text = this.hostStation.CommNetHome.nodeName;
         }
 
         /// <summary>
