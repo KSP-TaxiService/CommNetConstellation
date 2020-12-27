@@ -37,9 +37,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CommNetManager">
-      <HintPath>..\..\..\CommNetManager\CommNetManagerAPI Distribution\CommNetManager.dll</HintPath>
-    </Reference>
     <Reference Include="CommNetManagerAPI, Version=0.0.0.4, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\CommNetManager\CommNetManagerAPI Distribution\CommNetManagerAPI.dll</HintPath>
