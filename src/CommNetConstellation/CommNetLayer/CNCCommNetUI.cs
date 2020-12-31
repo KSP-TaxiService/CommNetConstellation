@@ -93,7 +93,7 @@ namespace CommNetConstellation.CommNetLayer
             {
                 MapObject mapObj = commnetVessels[i].Vessel.mapObject;
 
-                if (mapObj.type == MapObject.ObjectType.Vessel)
+                if (mapObj != null && mapObj.type == MapObject.ObjectType.Vessel)
                     mapObj.uiNode.OnUpdateVisible += new Callback<MapNode, MapNode.IconData>(this.OnMapNodeUpdateVisible);
             }
         }
