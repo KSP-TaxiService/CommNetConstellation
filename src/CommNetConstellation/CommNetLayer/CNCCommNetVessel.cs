@@ -253,7 +253,7 @@ namespace CommNetConstellation.CommNetLayer
                 }
 
                 bool populatedAntennaInfo = false;
-                CNCAntennaPartInfo newAntennaPartInfo = new CNCAntennaPartInfo(); ;
+                CNCAntennaPartInfo newAntennaPartInfo = new CNCAntennaPartInfo();
                 ProtoPartModuleSnapshot partModuleSnapshot = null;
 
                 //inspect each module of the part
@@ -266,6 +266,24 @@ namespace CommNetConstellation.CommNetLayer
                         if (!this.Vessel.loaded)
                         {
                             partModuleSnapshot = partSnapshot.FindModule(thisPartModule, moduleIndex);
+
+                            if (partModuleSnapshot == null)
+                            {
+                                //initialise and add to proto part
+                                ProtoPartModuleSnapshot newCNCAntMod = new ProtoPartModuleSnapshot(thisPartModule);
+                                newCNCAntMod.moduleValues.SetValue("Frequency", CNCSettings.Instance.PublicRadioFrequency);
+                                newCNCAntMod.moduleValues.SetValue("OptionalName", "");
+                                newCNCAntMod.moduleValues.SetValue("InUse", true);
+                                newCNCAntMod.moduleValues.SetValue("CosAngle", 0.0);
+                                partSnapshot.modules.Add(newCNCAntMod);
+
+                                partModuleSnapshot = partSnapshot.FindModule(thisPartModule, moduleIndex);
+                                if(partModuleSnapshot == null) //something goes wrong
+                                {
+                                    CNCLog.Error("Unable to add CNConstellationAntennaModule to proto part snapshot of '{0}'!", this.vessel.vesselName);
+                                    break;
+                                }
+                            }
 
                             newAntennaPartInfo.frequency = short.Parse(partModuleSnapshot.moduleValues.GetValue("Frequency"));
                             string oname = partModuleSnapshot.moduleValues.GetValue("OptionalName");
@@ -487,6 +505,7 @@ namespace CommNetConstellation.CommNetLayer
         {
             if (this.strongestFreq < 0)
             {
+                this.vesselAntennas = readAntennaData();
                 this.FrequencyDict = buildFrequencyList(this.vesselAntennas);
                 this.strongestFreq = computeStrongestFrequency(this.FrequencyDict);
             }
@@ -680,7 +699,8 @@ namespace CommNetConstellation.CommNetLayer
             }
             else
             {
-                partInfo.partSnapshotReference.FindModule("CNConstellationAntennaModule").moduleValues.SetValue("Frequency", newFrequency);
+                var cncAntMod = partInfo.partSnapshotReference.FindModule("CNConstellationAntennaModule");
+                if(cncAntMod != null) cncAntMod.moduleValues.SetValue("Frequency", newFrequency);
             }
 
             CNCLog.Verbose("Update the antenna of CommNet vessel '{0}' to {1}", this.Vessel.GetName(), newFrequency);
@@ -738,7 +758,8 @@ namespace CommNetConstellation.CommNetLayer
             }
             else
             {
-                partInfo.partSnapshotReference.FindModule("CNConstellationAntennaModule").moduleValues.SetValue("InUse", inUse);
+                var cncAntMod = partInfo.partSnapshotReference.FindModule("CNConstellationAntennaModule");
+                if(cncAntMod != null) cncAntMod.moduleValues.SetValue("InUse", inUse);
             }
 
             CNCLog.Verbose("Set the antenna '{0}' of CommNet vessel '{1}' to {2}", partInfo.name, this.Vessel.GetName(), inUse);
