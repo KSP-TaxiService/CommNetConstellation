@@ -614,11 +614,14 @@ namespace CommNetConstellation.UI
             for (int i = 0; i < FlightGlobals.Bodies.Count; i++)
             {
                 var cb = FlightGlobals.Bodies[i];
-                dict[cb].SubEntries.Sort((b, a) =>
+                if (dict.ContainsKey(cb))
                 {
-                    return FlightGlobals.Bodies.Find(x => x.bodyName.Equals(a.Text)).orbit.semiMajorAxis.CompareTo(
-                        FlightGlobals.Bodies.Find(x => x.bodyName.Equals(b.Text)).orbit.semiMajorAxis);
-                });
+                    dict[cb].SubEntries.Sort((b, a) =>
+                    {
+                        return FlightGlobals.Bodies.Find(x => x.bodyName.Equals(a.Text)).orbit.semiMajorAxis.CompareTo(
+                            FlightGlobals.Bodies.Find(x => x.bodyName.Equals(b.Text)).orbit.semiMajorAxis);
+                    });
+                }
             }
             tree.SubEntries.Reverse();
         }
@@ -636,7 +639,10 @@ namespace CommNetConstellation.UI
                     Guid = thisVessel.Vessel.id,
                     Color = Color.white,
                 };
-                dict[thisVessel.Vessel.mainBody].SubEntries.Add(current);
+                if (dict.ContainsKey(thisVessel.Vessel.mainBody))
+                {
+                    dict[thisVessel.Vessel.mainBody].SubEntries.Add(current);
+                }
             }
         }
         #endregion
@@ -737,7 +743,10 @@ namespace CommNetConstellation.UI
                     Guid = thisVessel.Vessel.id,
                     Color = Color.white,
                 };
-                dict[thisVessel.getStrongestFrequency()].SubEntries.Add(current);
+                if (dict.ContainsKey(thisVessel.getStrongestFrequency()))
+                {
+                    dict[thisVessel.getStrongestFrequency()].SubEntries.Add(current);
+                }
             }
         }
 
