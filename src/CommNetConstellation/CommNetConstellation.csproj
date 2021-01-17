@@ -39,7 +39,8 @@
   <ItemGroup>
     <Reference Include="CommNetManagerAPI, Version=0.0.0.4, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\CommNetManager\CommNetManagerAPI Distribution\CommNetManagerAPI.dll</HintPath>
+      <HintPath Condition="Exists('..\..\..\CommNetManager\CommNetManagerAPI Distribution\CommNetManagerAPI.dll')">..\..\..\CommNetManager\CommNetManagerAPI Distribution\CommNetManagerAPI.dll</HintPath>
+      <HintPath Condition="!Exists('..\..\..\CommNetManager\CommNetManagerAPI Distribution\CommNetManagerAPI.dll')">CommNetManagerAPI.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath Condition="Exists('$(KSPDEVDIR)\KSP_x64_Data\Managed\Assembly-CSharp.dll')">$(KSPDEVDIR)\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
