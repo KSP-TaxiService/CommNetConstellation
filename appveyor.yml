@@ -212,13 +212,13 @@
   #---------------------------------#
 
   # version format (you need to bump it when changing version)
-  version: 1.5.7-{build}-{branch}
+  version: 1.5.7-cnm-{build}-{branch}
 
   # branches
   branches:
     # whitelist
     only:
-      - develop
+      - commnet-manager-port
     # blacklist
     #except:
 
@@ -354,7 +354,7 @@
       prerelease: true
       # which branch?
       on:
-        branch: develop
+        branch: commnet-manager-port
         # deploy on tag push only
         appveyor_repo_tag: false
 
