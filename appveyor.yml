@@ -218,7 +218,7 @@
   branches:
     # whitelist
     only:
-      - commnet-manager-port
+      - commnet-manager-port-2
     # blacklist
     #except:
 
@@ -354,7 +354,7 @@
       prerelease: true
       # which branch?
       on:
-        branch: commnet-manager-port
+        branch: commnet-manager-port-2
         # deploy on tag push only
         appveyor_repo_tag: false
 
