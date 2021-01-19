@@ -446,7 +446,7 @@ namespace CommNetConstellation.CommNetLayer
         /// Comment: Subclassing GameVariables.Instance.GetDSNRange to just change the ranges is too excessive at this point.
         public double GetDSNRange(short level)
         {
-            double power;
+            double power = 0.0;
             if (this.CommNetHome.isKSC)
             {
                 power = CNCSettings.Instance.KSCStationPowers[level - 1];
@@ -455,7 +455,7 @@ namespace CommNetConstellation.CommNetLayer
             {
                 if (level == 0)
                 {
-                    power = 0;
+                    power = 0.0;
                 }
                 else
                 {
@@ -471,6 +471,12 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         protected override void Update()
         {
+            if (HighLogic.CurrentGame == null)
+                return;
+
+            if (!(HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION))
+                return;
+
             if (this.comm != null && this.body != null)
             {
                 this.comm.precisePosition = this.body.GetWorldSurfacePosition(this.latitude, this.longitude, this.altitude);
@@ -481,6 +487,8 @@ namespace CommNetConstellation.CommNetLayer
                 {
                     this.CommNetHome.nodeTransform.position = this.comm.precisePosition;
                 }
+
+                this.refresh();
             }
         }
 
