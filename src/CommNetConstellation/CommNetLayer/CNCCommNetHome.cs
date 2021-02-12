@@ -43,7 +43,7 @@ namespace CommNetConstellation.CommNetLayer
         public string stationName
         {
             get { return (this.OptionalName.Length == 0)? this.displaynodeName : this.OptionalName; }
-            set { this.OptionalName = value; }
+            set { this.OptionalName = value; this.comm.name = this.comm.displayName = value; }
         }
 
         /// <summary>
@@ -400,6 +400,11 @@ namespace CommNetConstellation.CommNetLayer
                     CNCLog.Verbose("Ground station '{0}': Null CommNode, likely due to a third-party CommNet mod", this.ID);
                 }
                 return;
+            }
+
+            if(this.comm != null && (this.comm.displayName.Length < 1 || this.comm.name.Length < 1))
+            {
+                this.comm.name = this.comm.displayName = stationName; //required for visual sequence of connected nodes
             }
 
             // Obtain Tech Level of Tracking Station in KCS
