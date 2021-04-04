@@ -39,6 +39,8 @@ namespace CommNetConstellation.CommNetLayer
 
         protected override void Start()
         {
+            CNCLog.Verbose("CommNet Constellation requires CommNet Manager 1.1 or greater to run properly.");
+
             if (!CommNetManagerChecker.CommNetManagerInstalled)
             {
                 CNCLog.Error("CommNet Manager is not installed! Please download and install this to use CommNet Constellation.");
