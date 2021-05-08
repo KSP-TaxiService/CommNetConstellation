@@ -86,37 +86,59 @@ namespace CommNetConstellation.CommNetLayer
                 UnityEngine.Object.DestroyImmediate(cnmodeUI);
             }
 
-            //Request for CommNetManager instance
-            ICommNetManager CNM = (ICommNetManager)CommNetManagerChecker.GetCommNetManagerInstance();
-            CNM.SetCommNetTypes();
-
-            //Replace the CommNet ground stations
-            groundStations.Clear();
-            for(int i=0; i< CNM.Homes.Count; i++)
-            {
-                var customHome = CNM.Homes[i].Components.Find(x => x is CNCCommNetHome) as CNCCommNetHome;
-                groundStations.Add(customHome);
-            }
-            groundStations.Sort();
-            
-            //Apply the ground-station changes from persistent.sfs
+            //Create new dummy stock CommNetHome for additional ground stations
+            CommNetHome[] stockHomes = FindObjectsOfType<CommNetHome>();
+            List<CommNetHome> tempStockHomes = new List<CommNetHome>(stockHomes);
+            CommNetHome stockHomeTemplate = tempStockHomes.Find(x => x.nodeName.Equals("Kerbin: North Station One"));
             for (int i = 0; i < persistentGroundStations.Count; i++)
             {
-                if (!groundStations.Exists(x => x.ID.Equals(persistentGroundStations[i].ID))) //need to create ground stations
+                if (!tempStockHomes.Exists(x => x.nodeName.Equals(persistentGroundStations[i].ID))) //addtional ground station
                 {
-                    var stockStation = groundStations.Find(x => x.ID.Equals("Kerbin: Baikerbanur")); //not recommended to use KSC as it has additional properties like SurfaceObject (camera)
-                    //var additionalHome = ksc.gameObject.AddComponent<RemoteTechCommNetHome>(); //fail
-                    //var additionalHome = ksc.gameObject.AddComponent(typeof(RemoteTechCommNetHome)) as RemoteTechCommNetHome; //fail
-                    //var additionalHome = gameObject.AddComponent<RemoteTechCommNetHome>(); //working but transform reference reused
-                    var additionalStation = UnityEngine.Object.Instantiate<CNCCommNetHome>(stockStation); //working
-                    additionalStation.ID = additionalStation.CommNetHome.nodeName = additionalStation.CommNetHome.displaynodeName = persistentGroundStations[i].ID;
-                    additionalStation.CommNetHome.isKSC = false;
-                    groundStations.Add(additionalStation);
+                    var additionalStation = UnityEngine.Object.Instantiate<CommNetHome>(stockHomeTemplate);
+                    additionalStation.nodeName = additionalStation.displaynodeName = persistentGroundStations[i].ID;
+                    additionalStation.isKSC = false;
+
+                    var stockHomeBodyField = stockHomeTemplate.GetType().GetField("body", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    var customBody = (persistentGroundStations[i].CustomCelestialBody.Length > 0) ?
+                        FlightGlobals.Bodies.Find(x => x.name.Equals(persistentGroundStations[i].CustomCelestialBody)) :
+                        stockHomeBodyField.GetValue(stockHomeTemplate);
+                    if (customBody != null)
+                    {
+                        var additionalStationBodyField = additionalStation.GetType().GetField("body", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        additionalStationBodyField.SetValue(additionalStation, customBody);
+                    }
 
                     CNCLog.Verbose("Custom CommNet Home '{0}' added", persistentGroundStations[i].ID);
                 }
+            }
+            tempStockHomes.Clear();
 
-                groundStations.Find(x => x.ID.Equals(persistentGroundStations[i].ID)).applySavedChanges(persistentGroundStations[i]);
+            //Request for CommNetManager instance
+            ICommNetManager CNM = (ICommNetManager)CommNetManagerChecker.GetCommNetManagerInstance();
+            CNM.SetCommNetTypes(); //be careful, this method instantiates new CNM home objects for each stock CommNet Home so don't call this method more than 1 time
+
+            //Replace the CommNet ground stations
+            groundStations.Clear();
+            for (int i = 0; i < CNM.Homes.Count; i++)
+            {
+                if (CNM.Homes[i].Components.Count < 1) //can be due to cached CNM data so need to force re-initialize
+                {
+                    CNM.Homes[i].Initialize();
+                }
+                var groundStation = CNM.Homes[i].Components.Find(x => x is CNCCommNetHome) as CNCCommNetHome;
+                groundStations.Add(groundStation);
+            }
+            groundStations.Sort();
+
+            //Apply the ground-station changes from persistent.sfs
+            for (int i = 0; i < persistentGroundStations.Count; i++)
+            {
+                var groundStation = groundStations.Find(x => x.ID.Equals(persistentGroundStations[i].ID));
+                if (groundStation != null)
+                {
+                    groundStation.applySavedChanges(persistentGroundStations[i]);
+                    CNCLog.Verbose("CommNet Home '{0}' saved settings applied", persistentGroundStations[i].ID);
+                }
             }
             persistentGroundStations.Clear();//dont need anymore
 

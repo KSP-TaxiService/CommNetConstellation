@@ -76,6 +76,12 @@ namespace CommNetConstellation.CommNetLayer
             this.CustomLongitude = stationSnapshot.CustomLongitude;
             this.CustomAltitude = stationSnapshot.CustomAltitude;
             this.CustomCelestialBody = stationSnapshot.CustomCelestialBody;
+
+            //required for CommNetHome's CreateNode()
+            this.body = (this.CustomCelestialBody.Length > 0) ?
+                FlightGlobals.Bodies.Find(x => x.name.Equals(this.CustomCelestialBody)) :
+                ((ICNMHome)base.CommNetHome).Body;
+                //FlightGlobals.Bodies.Find(x => x.name.Equals("Kerbin")); //fallback option
         }
 
         /// <summary>
@@ -208,12 +214,21 @@ namespace CommNetConstellation.CommNetLayer
                 };
             }
 
-            this.body = (this.CustomCelestialBody.Length > 0) ? FlightGlobals.Bodies.Find(x => x.name.Equals(this.CustomCelestialBody)) : base.GetComponentInParent<CelestialBody>();
-
-            if(this.body == null)//one root cause is 3rd-party mod Making Less History, which disables 2 ground stations in Making History expansion
+            if (this.CommNetHome == null)
             {
                 //self-destruct
-                CNCLog.Error("CommNet Home '{0}' self-destructed due to missing info", this.ID);
+                CNCLog.Error("CommNet Home '{0}' self-destructed due to CommNetHome being null", this.ID);
+                CNCCommNetScenario.Instance.groundStations.Remove(this);
+                UnityEngine.Object.Destroy(this);
+                return;
+            }
+
+            //this.body = (this.CustomCelestialBody.Length > 0) ? FlightGlobals.Bodies.Find(x => x.name.Equals(this.CustomCelestialBody)) : ((ICNMHome)base.CommNetHome).Body;
+
+            if (this.body == null)//one root cause is 3rd-party mod Making Less History, which disables 2 ground stations in Making History expansion
+            {
+                //self-destruct
+                CNCLog.Error("CommNet Home '{0}' self-destructed due to body being null", this.ID);
                 CNCCommNetScenario.Instance.groundStations.Remove(this);
                 UnityEngine.Object.Destroy(this);
                 return;
@@ -222,6 +237,11 @@ namespace CommNetConstellation.CommNetLayer
             if (this.CommNetHome.nodeTransform == null)
             {
                 this.CommNetHome.nodeTransform = base.CommNetHome.nodeTransform;
+            }
+
+            if (this.comm == null)
+            {
+                this.comm = new CommNode(this.CommNetHome.nodeTransform);
             }
 
             if (CommNetNetwork.Initialized)
