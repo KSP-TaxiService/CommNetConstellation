@@ -35,7 +35,7 @@ namespace CommNetConstellation
 
         public virtual void Start()
         {
-            SetupAppLauncher(ApplicationLauncher.AppScenes.MAPVIEW);
+            SetupAppLauncher(ApplicationLauncher.AppScenes.ALWAYS);
         }
 
         public void OnDestroy()
