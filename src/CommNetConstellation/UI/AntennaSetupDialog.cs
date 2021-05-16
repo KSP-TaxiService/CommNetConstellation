@@ -20,6 +20,7 @@ namespace CommNetConstellation.UI
 
         private DialogGUITextInput frequencyInput;
         private DialogGUITextInput nameInput;
+        private DialogGUIToggle enableToggle;
 
         private DialogGUIImage constellationColorImage;
         private static readonly Texture2D colorTexture = UIUtils.loadImage("colorDisplay");
@@ -61,6 +62,11 @@ namespace CommNetConstellation.UI
             DialogGUIButton publicButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_PublicButton"), defaultFreqClick, 100, 25, false);//"Revert to public"
             DialogGUIHorizontalLayout freqGRoup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { freqLabel, frequencyInput, publicButton });
             listComponments.Add(freqGRoup);
+
+            DialogGUILabel enableLabel = new DialogGUILabel("<b>" + Localizer.Format("#CNC_Generic_EnableLabel") + "</b>", 40, 12);//Enable
+            enableToggle = new DialogGUIToggle(this.antennaModule.InUse , "", delegate(bool a) { }, 20, 32);
+            DialogGUIHorizontalLayout enableGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleCenter, new DialogGUIBase[] { enableLabel, enableToggle, new DialogGUISpace(160)});
+            listComponments.Add(enableGroup);
 
             constellationColorImage = new DialogGUIImage(new Vector2(32, 32), Vector2.one, Color.white, colorTexture);
             DialogGUILabel constNameLabel = new DialogGUILabel(getConstellationName, 200, 12);
@@ -153,7 +159,15 @@ namespace CommNetConstellation.UI
                         changesCommitted = true;
                     }
 
-                    CNCLog.Debug("Updated antenna: {0}, {1}", inputName, inputFreq);
+                    if(this.antennaModule.InUse != enableToggle.toggle.isOn) // different enable state
+                    {
+                        this.antennaModule.InUse = enableToggle.toggle.isOn;
+                        ScreenMessage msg = new ScreenMessage(Localizer.Format("#CNC_ScreenMsg_EnableUpdate", enableToggle.toggle.isOn ? "enabled" : "disabled"), CNCSettings.ScreenMessageDuration, ScreenMessageStyle.UPPER_CENTER);//Antenna is '<<1>>' now
+                        ScreenMessages.PostScreenMessage(msg);
+                        changesCommitted = true;
+                    }
+
+                    CNCLog.Debug("Updated antenna: {0}, {1}, {2}", inputName, inputFreq, enableToggle.toggle.isOn);
 
                     if (changesCommitted)
                     {
