@@ -79,7 +79,7 @@ namespace CommNetConstellation.UI
             listComponments.Add(new DialogGUISpace(10));
 
             DialogGUIButton upgradeButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Upgradebutton"), onClickUpgrade, false);//Upgrade
-            upgradeButton.OptionInteractableCondition = () => this.hostStation.TechLevel < 3 ? true : false;
+            upgradeButton.OptionInteractableCondition = () => this.hostStation.TechLevel < CNCSettings.Instance.GroundStationUpgradesCount ? true : false;
             DialogGUIButton closeButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Close"), delegate { this.dismiss(); }, false);//Close
             DialogGUIHorizontalLayout actionGroup = new DialogGUIHorizontalLayout(true, false, 4, new RectOffset(), TextAnchor.MiddleLeft, new DialogGUIBase[] { new DialogGUIFlexibleSpace(), upgradeButton, closeButton, new DialogGUIFlexibleSpace() });
             listComponments.Add(actionGroup);
@@ -95,7 +95,7 @@ namespace CommNetConstellation.UI
 
         private string nextPowerFunc()
         {
-            if(this.hostStation.TechLevel >= 3)
+            if(this.hostStation.TechLevel >= CNCSettings.Instance.GroundStationUpgradesCount)
             {
                 return Localizer.Format("#CNC_GroundStationBuild_DSNpowerNil");//DSN Power: Nil
             }
@@ -109,7 +109,7 @@ namespace CommNetConstellation.UI
 
         private string costFunc()
         {
-            if(this.hostStation.TechLevel >= 3)
+            if(this.hostStation.TechLevel >= CNCSettings.Instance.GroundStationUpgradesCount)
             {
                 return Localizer.Format("#CNC_GroundStationBuild_InvoiceNil");//Invoice: Nil
             }
@@ -127,7 +127,7 @@ namespace CommNetConstellation.UI
             }
 
             string color = "green";
-            if (this.hostStation.TechLevel < 3)
+            if (this.hostStation.TechLevel < CNCSettings.Instance.GroundStationUpgradesCount)
             {
                 int cost = CNCSettings.Instance.GroundStationUpgradeableCosts[this.hostStation.TechLevel];
                 if (Funding.Instance.Funds < cost)
@@ -158,7 +158,7 @@ namespace CommNetConstellation.UI
                 }
 
                 currentTexture.uiItem.GetComponent<RawImage>().texture = getLevelTexture(this.hostStation.TechLevel);
-                nextTexture.uiItem.GetComponent<RawImage>().texture = getLevelTexture((short)(this.hostStation.TechLevel < 3? (this.hostStation.TechLevel + 1) : this.hostStation.TechLevel));
+                nextTexture.uiItem.GetComponent<RawImage>().texture = getLevelTexture((short)(this.hostStation.TechLevel < CNCSettings.Instance.GroundStationUpgradesCount ? (this.hostStation.TechLevel + 1) : this.hostStation.TechLevel));
             }
         }
 
@@ -175,8 +175,8 @@ namespace CommNetConstellation.UI
                 case 3:
                     return L3PicTexture;
                 default:
-                    CNCLog.Error("No texture found for Tech Level {0}!", level);
-                    return null;
+                    CNCLog.Verbose("No texture found for Tech Level {0}!", level);
+                    return L3PicTexture;
             }
         }
     }

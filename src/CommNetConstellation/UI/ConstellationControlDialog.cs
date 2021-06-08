@@ -925,7 +925,7 @@ namespace CommNetConstellation.UI
             DialogGUILabel locationLabel = new DialogGUILabel(Localizer.Format("#CNC_ConstellationControl_LatitudeAndLongitude", string.Format("{0:0.0}", thisStation.latitude), string.Format("{0:0.0}", thisStation.longitude)), 80, 24);//string.Format("LAT: \nLON: ", , )
             DialogGUILabel freqsLabel = new DialogGUILabel(getFreqString(thisStation.getFrequencyList()), 160, 12);
             DialogGUIButton buildButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Upgradebutton"), delegate { groundstationBuildClick(thisStation); }, 70, 32, false);//"Upgrade"
-            buildButton.OptionInteractableCondition = () => (thisStation.CommNetHome.isKSC) ? false : (thisStation.TechLevel < 3) ? true : false;
+            buildButton.OptionInteractableCondition = () => (thisStation.CommNetHome.isKSC) ? false : (thisStation.TechLevel < CNCSettings.Instance.GroundStationUpgradesCount) ? true : false;
             DialogGUIButton updateButton = new DialogGUIButton(Localizer.Format("#CNC_Generic_Editbutton"), delegate { groundstationEditClick(thisStation); }, 50, 32, false);//"Edit"
 
             DialogGUIBase[] rowGUIBase = new DialogGUIBase[] { colorImage, stationNameLabel, locationLabel, freqsLabel, buildButton, updateButton };

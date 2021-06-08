@@ -57,6 +57,7 @@ namespace CommNetConstellation
         public int[] GroundStationUpgradeableCosts;
         public double[] GroundStationUpgradeablePowers;
         public double[] KSCStationPowers;
+        public int GroundStationUpgradesCount = 0;
 
         public void postprocess()
         {
@@ -64,6 +65,7 @@ namespace CommNetConstellation
             {
                 var tokens = UpgradeableGroundStationCosts.Split(';');
                 GroundStationUpgradeableCosts = new int[tokens.Length];
+                GroundStationUpgradesCount = tokens.Length;
                 for (int i = 0; i < tokens.Length; i++)
                 {
                     int.TryParse(tokens[i], out GroundStationUpgradeableCosts[i]);
@@ -73,6 +75,7 @@ namespace CommNetConstellation
             {
                 var tokens = UpgradeableGroundStationPowers.Split(';');
                 GroundStationUpgradeablePowers = new double[tokens.Length];
+                GroundStationUpgradesCount = Math.Min(tokens.Length, GroundStationUpgradesCount);
                 for (int i = 0; i < tokens.Length; i++)
                 {
                     double.TryParse(tokens[i], out GroundStationUpgradeablePowers[i]);

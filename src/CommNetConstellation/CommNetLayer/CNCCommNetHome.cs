@@ -143,11 +143,11 @@ namespace CommNetConstellation.CommNetLayer
         }
 
         /// <summary>
-        /// Increment Tech Level Ground Station to max 3
+        /// Increment Tech Level Ground Station to max X
         /// </summary>
         public void incrementTechLevel()
         {
-            if (this.TechLevel < 3 && !this.CommNetHome.isKSC)
+            if (this.TechLevel < CNCSettings.Instance.GroundStationUpgradesCount && !this.CommNetHome.isKSC)
             {
                 this.TechLevel++;
                 refresh();
@@ -171,7 +171,7 @@ namespace CommNetConstellation.CommNetLayer
         /// </summary>
         public void setTechLevel(short level)
         {
-            if (level >= 0 && level <= 3 && !this.CommNetHome.isKSC)
+            if (level >= 0 && level <= CNCSettings.Instance.GroundStationUpgradesCount && !this.CommNetHome.isKSC)
             {
                 this.TechLevel = level;
                 refresh();
