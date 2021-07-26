@@ -92,6 +92,8 @@ namespace CommNetConstellation.CommNetLayer
         protected bool stageActivated = false;
         public bool IsCommandable = true;
 
+        public List<CNCAntennaPartInfo> Antennas { get { return vesselAntennas; } }
+
         /// <summary>
         /// Retrieve the CNC data from the vessel, in addition of stock network joining
         /// </summary>
@@ -892,6 +894,31 @@ namespace CommNetConstellation.CommNetLayer
             {
                 this.rebuildFreqList(true);
             }
+        }
+
+        /// <summary>
+        /// Check if this and target vessels can establish connection of specific frequency
+        /// </summary>
+        public bool isConnectionEligible(CNCCommNetVessel otherVessel, short targetFreq)
+        {
+            for(int i = 0; i < this.vesselAntennas.Count; i++)
+            {
+                if(this.vesselAntennas[i].frequency == targetFreq)
+                {
+                    for(int j = 0; j < otherVessel.Antennas.Count; j++)
+                    {
+                        if (otherVessel.Antennas[j].frequency == targetFreq)
+                        {
+                            if(this.vesselAntennas[i].antennaType == AntennaType.RELAY || otherVessel.Antennas[j].antennaType == AntennaType.RELAY)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false; //cannot connect to each other
         }
     }
 }

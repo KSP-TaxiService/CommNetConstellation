@@ -170,6 +170,17 @@ namespace CommNetConstellation.CommNetLayer
                     continue;
                 }
 
+                //ensure connection can be established on this frequency (eg 1<->1 not 1<->2)
+                if (a.isHome != true && b.isHome != true) //skip if either A or B CommNet Home (always relay)
+                {
+                    var vesselA = (a.GetVessel().connection as IModularCommNetVessel).GetModuleOfType<CNCCommNetVessel>();
+                    var vesselB = (b.GetVessel().connection as IModularCommNetVessel).GetModuleOfType<CNCCommNetVessel>();
+                    if (!vesselA.isConnectionEligible(vesselB, commonFreqs[i]))
+                    {
+                        continue;
+                    }
+                }
+
                 thisRange = CNCCommNetScenario.RangeModel.GetMaximumRange(CNCCommNetScenario.Instance.getCommPower(a, commonFreqs[i]), CNCCommNetScenario.Instance.getCommPower(b, commonFreqs[i]));
                 if(thisRange > longestRange)
                 {
