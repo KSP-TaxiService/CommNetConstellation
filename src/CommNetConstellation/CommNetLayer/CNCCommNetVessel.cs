@@ -265,11 +265,20 @@ namespace CommNetConstellation.CommNetLayer
                                 }
                             }
 
-                            newAntennaPartInfo.frequency = short.Parse(partModuleSnapshot.moduleValues.GetValue("Frequency"));
                             string oname = partModuleSnapshot.moduleValues.GetValue("OptionalName");
                             newAntennaPartInfo.name = (oname.Length == 0) ? partSnapshot.partInfo.title : oname;
-                            newAntennaPartInfo.inUse = bool.Parse(partModuleSnapshot.moduleValues.GetValue("InUse"));
-                            newAntennaPartInfo.CosAngle = double.Parse(partModuleSnapshot.moduleValues.GetValue("CosAngle"));
+                            if (!short.TryParse(partModuleSnapshot.moduleValues.GetValue("Frequency"), out newAntennaPartInfo.frequency))
+                            {
+                                newAntennaPartInfo.frequency = CNCSettings.Instance.PublicRadioFrequency; // default value
+                            }
+                            if (!bool.TryParse(partModuleSnapshot.moduleValues.GetValue("InUse"), out newAntennaPartInfo.inUse))
+                            {
+                                newAntennaPartInfo.inUse = true; // default value
+                            }
+                            if (!double.TryParse(partModuleSnapshot.moduleValues.GetValue("CosAngle"), out newAntennaPartInfo.CosAngle))
+                            {
+                                newAntennaPartInfo.CosAngle = 0.0; // default value
+                            }
                         }
                         else
                         {
@@ -707,8 +716,9 @@ namespace CommNetConstellation.CommNetLayer
             {
                 for (int i = 0; i < this.vessel.protoVessel.protoPartSnapshots.Count; i++)
                 {
+                    short freq;
                     ProtoPartModuleSnapshot cncAntMod = this.vessel.protoVessel.protoPartSnapshots[i].FindModule("CNConstellationAntennaModule");
-                    if (cncAntMod != null && short.Parse(cncAntMod.moduleValues.GetValue("Frequency")) == oldFrequency)
+                    if (cncAntMod != null && short.TryParse(cncAntMod.moduleValues.GetValue("Frequency"), out freq) && freq == oldFrequency)
                         cncAntMod.moduleValues.SetValue("Frequency", newFrequency);
                 }
             }
